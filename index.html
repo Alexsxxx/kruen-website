@@ -256,6 +256,133 @@
     }
 
     /* ================================================================= */
+    /* MANUAL ROTATE TOGGLE - MOBILE ONLY */
+    /* ================================================================= */
+    .manual-rotate-toggle {
+        position: absolute;
+        top: 35px;
+        left: 20px;
+        z-index: 1000;
+        display: none; /* Hidden by default */
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(8px);
+        padding: 8px 12px;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Show only on mobile */
+    @media (max-width: 768px) {
+        .manual-rotate-toggle {
+            display: flex;
+        }
+    }
+
+    html.dark-theme .manual-rotate-toggle {
+        background: rgba(26, 26, 26, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .manual-rotate-label {
+        font-size: 10px;
+        color: #666;
+        font-weight: 400;
+        text-transform: lowercase;
+        text-align: center;
+        line-height: 1;
+        word-break: break-all;
+        width: 10px;
+        overflow-wrap: break-word;
+    }
+
+    html.dark-theme .manual-rotate-label {
+        color: #cccccc;
+    }
+
+    .manual-rotate-input {
+        display: none;
+    }
+
+    .manual-rotate-switch-label {
+        position: relative;
+        display: inline-block;
+        width: 22px;
+        height: 40px;
+        background: linear-gradient(145deg, #e0e0e0, #c0c0c0);
+        border-radius: 22px;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        box-shadow: 
+            inset 2px 2px 4px rgba(0, 0, 0, 0.1),
+            inset -2px -2px 4px rgba(255, 255, 255, 0.8);
+    }
+
+    html.dark-theme .manual-rotate-switch-label {
+        background: linear-gradient(145deg, #2d3748, #1a202c);
+        box-shadow: 
+            inset 2px 2px 4px rgba(0, 0, 0, 0.3),
+            inset -2px -2px 4px rgba(255, 255, 255, 0.1);
+    }
+
+    .manual-rotate-switch-button {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 18px;
+        height: 18px;
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        border-radius: 50%;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        box-shadow: 
+            2px 2px 6px rgba(0, 0, 0, 0.15),
+            -1px -1px 3px rgba(255, 255, 255, 0.8);
+    }
+
+    .manual-rotate-input:checked + .manual-rotate-switch-label {
+        background: linear-gradient(145deg, #667eea, #764ba2);
+        box-shadow: 
+            inset 2px 2px 4px rgba(0, 0, 0, 0.2),
+            inset -2px -2px 4px rgba(255, 255, 255, 0.3);
+    }
+
+    html.dark-theme .manual-rotate-input:checked + .manual-rotate-switch-label {
+        background: linear-gradient(145deg, #74b9ff, #0984e3);
+        box-shadow: 
+            inset 2px 2px 4px rgba(0, 0, 0, 0.3),
+            inset -2px -2px 4px rgba(255, 255, 255, 0.1);
+    }
+
+    .manual-rotate-input:checked + .manual-rotate-switch-label .manual-rotate-switch-button {
+        transform: translateY(18px);
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        box-shadow: 
+            2px 2px 6px rgba(0, 0, 0, 0.15),
+            -1px -1px 3px rgba(255, 255, 255, 0.8);
+    }
+
+    html.dark-theme .manual-rotate-switch-button {
+        background: linear-gradient(145deg, #4a5568, #2d3748);
+        box-shadow: 
+            2px 2px 6px rgba(0, 0, 0, 0.3),
+            -1px -1px 3px rgba(255, 255, 255, 0.1);
+    }
+
+    html.dark-theme .manual-rotate-input:checked + .manual-rotate-switch-label .manual-rotate-switch-button {
+        transform: translateY(18px);
+        background: linear-gradient(145deg, #4a5568, #2d3748);
+        box-shadow: 
+            2px 2px 6px rgba(0, 0, 0, 0.3),
+            -1px -1px 3px rgba(255, 255, 255, 0.1);
+    }
+
+    .manual-rotate-switch-label:hover {
+        transform: scale(1.05);
+    }
+
+    /* ================================================================= */
     /* LAYOUT */
     /* ================================================================= */
     main {
@@ -720,7 +847,7 @@
     @media (max-width: 768px) {
         .nav-container {
             width: 100%;
-            padding: 0 15px;
+            padding: 5px 15px;
         }
 
         .nav-logo {
@@ -836,6 +963,15 @@
                 </div>
             </div>
         </nav>
+
+        <!-- Manual Rotate Toggle -->
+        <div class="manual-rotate-toggle">
+            <input type="checkbox" id="manual-rotate-switch" class="manual-rotate-input">
+            <label for="manual-rotate-switch" class="manual-rotate-switch-label">
+                <span class="manual-rotate-switch-button"></span>
+            </label>
+            <span class="manual-rotate-label">move</span>
+        </div>
 
         <!-- Floating K Letter -->
 
@@ -1120,6 +1256,7 @@
             this.manualRotationX = 0;
             this.rotationVelocityZ = 0;
             this.rotationVelocityX = 0;
+            this.manualRotateEnabled = false; // Default: disabled
             this.updateTheme();
             
             this.init();
@@ -1127,6 +1264,20 @@
 
         updateTheme() {
             this.isDark = document.documentElement.classList.contains('dark-theme');
+        }
+
+        setupManualRotateToggle() {
+            // Try to set up toggle, retry if element doesn't exist yet
+            const manualRotateSwitch = document.getElementById('manual-rotate-switch');
+            if (manualRotateSwitch) {
+                manualRotateSwitch.addEventListener('change', (e) => {
+                    this.manualRotateEnabled = e.target.checked;
+                    console.log('Manual rotate:', this.manualRotateEnabled ? 'enabled' : 'disabled');
+                });
+            } else {
+                // Retry after a short delay if element not found
+                setTimeout(() => this.setupManualRotateToggle(), 100);
+            }
         }
 
         addNodesOnClick(x, y) {
@@ -1246,62 +1397,87 @@
 
             // Touch events for mobile with passive: false to allow preventDefault
             window.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                const touch = e.touches[0];
-                this.isMouseDown = true;
-                this.isDragging = true;
-                this.lastMouseX = touch.clientX;
-                this.lastMouseY = touch.clientY;
-                this.mouse.x = touch.clientX;
-                this.mouse.y = touch.clientY;
-                this.rotationVelocityZ = 0;
-                this.rotationVelocityX = 0;
-                this.mouseTrail = [];
+                // Check if touch is on a UI element (toggles)
+                const target = e.target;
+                const isUIElement = target.closest('.theme-toggle') || target.closest('.manual-rotate-toggle');
+                
+                if (this.manualRotateEnabled && !isUIElement) {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    this.isMouseDown = true;
+                    this.isDragging = true;
+                    this.lastMouseX = touch.clientX;
+                    this.lastMouseY = touch.clientY;
+                    this.mouse.x = touch.clientX;
+                    this.mouse.y = touch.clientY;
+                    this.rotationVelocityZ = 0;
+                    this.rotationVelocityX = 0;
+                    this.mouseTrail = [];
+                } else {
+                    // Allow normal scrolling and UI interaction when manual rotate is disabled or touching UI
+                    const touch = e.touches[0];
+                    this.mouse.x = touch.clientX;
+                    this.mouse.y = touch.clientY;
+                }
             }, { passive: false });
 
             window.addEventListener('touchmove', (e) => {
-                e.preventDefault();
                 const touch = e.touches[0];
                 this.mouse.x = touch.clientX;
                 this.mouse.y = touch.clientY;
                 
-                if (this.isDragging) {
-                    const centerY = this.canvas.height / 2;
-                    const deltaX = touch.clientX - this.lastMouseX;
-                    const deltaY = touch.clientY - this.lastMouseY;
+                // Check if touch is on a UI element (toggles)
+                const target = e.target;
+                const isUIElement = target.closest('.theme-toggle') || target.closest('.manual-rotate-toggle');
+                
+                if (this.manualRotateEnabled && !isUIElement) {
+                    e.preventDefault();
                     
-                    // Z-axis rotation (left/right movement)
-                    const rotationMultiplier = touch.clientY > centerY ? -0.005 : 0.005;
-                    const rotationDeltaZ = deltaX * rotationMultiplier;
-                    
-                    // X-axis rotation (up/down movement)
-                    const rotationDeltaX = -deltaY * 0.005;
-                    
-                    this.manualRotationZ += rotationDeltaZ;
-                    this.manualRotationX += rotationDeltaX;
-                    
-                    this.rotationVelocityZ = rotationDeltaZ;
-                    this.rotationVelocityX = rotationDeltaX;
-                    
-                    this.lastMouseX = touch.clientX;
-                    this.lastMouseY = touch.clientY;
-                } else {
-                    // Add to trail when not dragging on mobile
-                    this.mouseTrail.push({
-                        x: touch.clientX,
-                        y: touch.clientY,
-                        age: 0,
-                        maxAge: 180
-                    });
-                    
-                    if (this.mouseTrail.length > 200) {
-                        this.mouseTrail.shift();
+                    if (this.isDragging) {
+                        const centerY = this.canvas.height / 2;
+                        const deltaX = touch.clientX - this.lastMouseX;
+                        const deltaY = touch.clientY - this.lastMouseY;
+                        
+                        // Z-axis rotation (left/right movement)
+                        const rotationMultiplier = touch.clientY > centerY ? -0.005 : 0.005;
+                        const rotationDeltaZ = deltaX * rotationMultiplier;
+                        
+                        // X-axis rotation (up/down movement)
+                        const rotationDeltaX = -deltaY * 0.005;
+                        
+                        this.manualRotationZ += rotationDeltaZ;
+                        this.manualRotationX += rotationDeltaX;
+                        
+                        this.rotationVelocityZ = rotationDeltaZ;
+                        this.rotationVelocityX = rotationDeltaX;
+                        
+                        this.lastMouseX = touch.clientX;
+                        this.lastMouseY = touch.clientY;
+                    } else {
+                        // Add to trail when not dragging and manual rotate is enabled
+                        this.mouseTrail.push({
+                            x: touch.clientX,
+                            y: touch.clientY,
+                            age: 0,
+                            maxAge: 180
+                        });
+                        
+                        if (this.mouseTrail.length > 200) {
+                            this.mouseTrail.shift();
+                        }
                     }
                 }
+                // If manual rotate is disabled or touching UI, don't preventDefault - allow normal scrolling and UI interaction
             }, { passive: false });
 
             window.addEventListener('touchend', (e) => {
-                e.preventDefault();
+                // Check if touch is on a UI element (toggles)
+                const target = e.target;
+                const isUIElement = target.closest('.theme-toggle') || target.closest('.manual-rotate-toggle');
+                
+                if (this.manualRotateEnabled && !isUIElement) {
+                    e.preventDefault();
+                }
                 this.isMouseDown = false;
                 this.isDragging = false;
                 // Don't reset velocity here - let inertia continue
@@ -1311,6 +1487,9 @@
             window.addEventListener('scroll', () => {
                 this.scrollY = window.scrollY;
             });
+
+            // Listen for manual rotate toggle changes - will be set up later in DOMContentLoaded
+            this.setupManualRotateToggle();
 
             // Listen for theme changes
             const observer = new MutationObserver(() => {
@@ -1515,6 +1694,12 @@
         new ScrollAnimationManager();
         new NetworkBackground();
         initScrollEffect();
+        
+        // Initialize manual rotate toggle after DOM is loaded
+        const manualRotateSwitch = document.getElementById('manual-rotate-switch');
+        if (manualRotateSwitch) {
+            console.log('Manual rotate switch found and initialized');
+        }
     });
     </script>
 </body>

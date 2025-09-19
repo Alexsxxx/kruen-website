@@ -1244,7 +1244,7 @@
                 // Don't reset velocity here - let inertia continue
             });
 
-            // Touch events for mobile
+            // Touch events for mobile with passive: false to allow preventDefault
             window.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 const touch = e.touches[0];
@@ -1257,7 +1257,7 @@
                 this.rotationVelocityZ = 0;
                 this.rotationVelocityX = 0;
                 this.mouseTrail = [];
-            });
+            }, { passive: false });
 
             window.addEventListener('touchmove', (e) => {
                 e.preventDefault();
@@ -1298,14 +1298,14 @@
                         this.mouseTrail.shift();
                     }
                 }
-            });
+            }, { passive: false });
 
             window.addEventListener('touchend', (e) => {
                 e.preventDefault();
                 this.isMouseDown = false;
                 this.isDragging = false;
                 // Don't reset velocity here - let inertia continue
-            });
+            }, { passive: false });
 
             // Listen for scroll events
             window.addEventListener('scroll', () => {

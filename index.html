@@ -39,6 +39,10 @@
         transition: all 0.3s ease;
         position: relative;
         overflow-x: hidden;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
     }
 
     /* Dark theme */
@@ -166,6 +170,7 @@
         backdrop-filter: blur(2px);
         box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
     }
+
 
     .nav-container {
         display: flex;
@@ -997,10 +1002,15 @@
                             <p>We provide comprehensive support even after your app launch.</p>
                         </div>
                     </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 40px; font-size: 12px; color: #666;">
+                        <div>©kruen s.r.o. 2025</div>
+                        <div>contact: alexsxxx.kruen@gmail.com</div>
+                    </div>
                 </div>
             </div>
         </section>
         </main>
+
     </div>
 
     <script>
@@ -1100,6 +1110,16 @@
             this.ctx = this.canvas.getContext('2d');
             this.nodes = [];
             this.mouse = { x: 0, y: 0 };
+            this.mouseTrail = [];
+            this.isMouseDown = false;
+            this.scrollY = 0;
+            this.isDragging = false;
+            this.lastMouseX = 0;
+            this.lastMouseY = 0;
+            this.manualRotationZ = 0;
+            this.manualRotationX = 0;
+            this.rotationVelocityZ = 0;
+            this.rotationVelocityX = 0;
             this.updateTheme();
             
             this.init();
@@ -1110,55 +1130,7 @@
         }
 
         addNodesOnClick(x, y) {
-            // First, push away nearby existing nodes (explosion effect)
-            const explosionRadius = 150;
-            const explosionForce = 8;
-            
-            this.nodes.forEach(node => {
-                const dx = node.x - x;
-                const dy = node.y - y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                if (distance < explosionRadius && distance > 0) {
-                    // Calculate push force (stronger for closer nodes)
-                    const force = (explosionRadius - distance) / explosionRadius * explosionForce;
-                    const angle = Math.atan2(dy, dx);
-                    
-                    // Add velocity to push node away
-                    node.vx += Math.cos(angle) * force;
-                    node.vy += Math.sin(angle) * force;
-                    
-                    // Limit maximum velocity to prevent nodes from flying too fast
-                    const maxVelocity = 3;
-                    node.vx = Math.max(-maxVelocity, Math.min(maxVelocity, node.vx));
-                    node.vy = Math.max(-maxVelocity, Math.min(maxVelocity, node.vy));
-                }
-            });
-            
-            // Then add 3-5 new nodes around the click position
-            const nodeCount = Math.floor(Math.random() * 3) + 3; // 3-5 nodes
-            
-            for (let i = 0; i < nodeCount; i++) {
-                // Spread nodes in a circle around click position
-                const angle = (Math.PI * 2 * i) / nodeCount;
-                const distance = Math.random() * 60 + 20; // 20-80px from click
-                
-                const newNode = {
-                    x: x + Math.cos(angle) * distance,
-                    y: y + Math.sin(angle) * distance,
-                    vx: (Math.random() - 0.5) * 1.2, // Slightly faster initial movement
-                    vy: (Math.random() - 0.5) * 1.2,
-                    radius: Math.random() * 2 + 1,
-                    age: 0, // Track how long the node has existed
-                    maxAge: 300 + Math.random() * 200 // Node will fade after 300-500 frames
-                };
-                
-                // Keep nodes within canvas bounds
-                newNode.x = Math.max(newNode.radius, Math.min(this.canvas.width - newNode.radius, newNode.x));
-                newNode.y = Math.max(newNode.radius, Math.min(this.canvas.height - newNode.radius, newNode.y));
-                
-                this.nodes.push(newNode);
-            }
+            // Removed click ripple effect
         }
 
         init() {
@@ -1174,17 +1146,38 @@
         }
 
         createNodes() {
-            const nodeCount = Math.floor((window.innerWidth * window.innerHeight) / 15000);
+            const spacing = 18;
+            const cols = 40;
+            const rows = 20;
             this.nodes = [];
+            
+            const centerX = this.canvas.width / 2;
+            const centerY = this.canvas.height / 2;
 
-            for (let i = 0; i < nodeCount; i++) {
-                this.nodes.push({
-                    x: Math.random() * this.canvas.width,
-                    y: Math.random() * this.canvas.height,
-                    vx: (Math.random() - 0.5) * 0.5,
-                    vy: (Math.random() - 0.5) * 0.5,
-                    radius: Math.random() * 2 + 1
-                });
+            for (let i = 0; i < cols; i++) {
+                for (let j = 0; j < rows; j++) {
+                    // Isometric projection coordinates
+                    const x3d = (i - cols/2) * spacing;
+                    const y3d = (j - rows/2) * spacing;
+                    const z3d = 0;
+                    
+                    // Convert to isometric 2D
+                    const isoX = centerX + (x3d - y3d) * Math.cos(Math.PI / 6);
+                    const isoY = centerY + (x3d + y3d) * Math.sin(Math.PI / 6);
+                    
+                    this.nodes.push({
+                        x: isoX,
+                        y: isoY,
+                        originalX: isoX,
+                        originalY: isoY,
+                        gridX: i,
+                        gridY: j,
+                        x3d: x3d,
+                        y3d: y3d,
+                        z3d: z3d,
+                        radius: 1.5
+                    });
+                }
             }
         }
 
@@ -1197,11 +1190,63 @@
             window.addEventListener('mousemove', (e) => {
                 this.mouse.x = e.clientX;
                 this.mouse.y = e.clientY;
+                
+                // Handle dragging for rotation
+                if (this.isDragging) {
+                    const centerY = this.canvas.height / 2;
+                    const deltaX = e.clientX - this.lastMouseX;
+                    const deltaY = e.clientY - this.lastMouseY;
+                    
+                    // Z-axis rotation (left/right movement)
+                    const rotationMultiplier = e.clientY > centerY ? -0.005 : 0.005;
+                    const rotationDeltaZ = deltaX * rotationMultiplier;
+                    
+                    // X-axis rotation (up/down movement)
+                    const rotationDeltaX = -deltaY * 0.005; // Negative for intuitive movement
+                    
+                    this.manualRotationZ += rotationDeltaZ;
+                    this.manualRotationX += rotationDeltaX;
+                    
+                    this.rotationVelocityZ = rotationDeltaZ; // Store velocity for inertia
+                    this.rotationVelocityX = rotationDeltaX;
+                    
+                    this.lastMouseX = e.clientX;
+                    this.lastMouseY = e.clientY;
+                } else {
+                    // Add to trail when not dragging
+                    this.mouseTrail.push({
+                        x: e.clientX,
+                        y: e.clientY,
+                        age: 0,
+                        maxAge: 180 // Trail lasts 3 seconds at 60fps
+                    });
+                    
+                    // Limit trail length
+                    if (this.mouseTrail.length > 200) {
+                        this.mouseTrail.shift();
+                    }
+                }
             });
 
-            // Add click interaction
-            window.addEventListener('click', (e) => {
-                this.addNodesOnClick(e.clientX, e.clientY);
+            window.addEventListener('mousedown', (e) => {
+                this.isMouseDown = true;
+                this.isDragging = true;
+                this.lastMouseX = e.clientX;
+                this.lastMouseY = e.clientY;
+                this.rotationVelocityZ = 0; // Reset velocity when starting new drag
+                this.rotationVelocityX = 0;
+                this.mouseTrail = []; // Clear trail when dragging
+            });
+
+            window.addEventListener('mouseup', () => {
+                this.isMouseDown = false;
+                this.isDragging = false;
+                // Don't reset velocity here - let inertia continue
+            });
+
+            // Listen for scroll events
+            window.addEventListener('scroll', () => {
+                this.scrollY = window.scrollY;
             });
 
             // Listen for theme changes
@@ -1214,110 +1259,184 @@
         animate() {
             // Set background color based on theme
             if (this.isDark) {
-                this.ctx.fillStyle = '#1a1a1a'; // Same as tile background
+                this.ctx.fillStyle = '#000000';
             } else {
                 this.ctx.fillStyle = '#ffffff';
             }
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-            // Update and draw nodes
-            this.nodes = this.nodes.filter(node => {
-                // Remove old nodes that have exceeded their lifespan
-                if (node.age !== undefined) {
-                    node.age++;
-                    if (node.age > node.maxAge) {
-                        return false; // Remove this node
-                    }
+            const time = Date.now() * 0.001;
+
+            // Apply inertia when not dragging
+            if (!this.isDragging) {
+                if (Math.abs(this.rotationVelocityZ) > 0.0001) {
+                    this.manualRotationZ += this.rotationVelocityZ;
+                    this.rotationVelocityZ *= 0.95; // Friction/damping
                 }
-                return true; // Keep this node
-            });
+                if (Math.abs(this.rotationVelocityX) > 0.0001) {
+                    this.manualRotationX += this.rotationVelocityX;
+                    this.rotationVelocityX *= 0.95; // Friction/damping
+                }
+            }
 
             this.nodes.forEach((node, i) => {
-                // Mouse interaction
-                const dx = this.mouse.x - node.x;
-                const dy = this.mouse.y - node.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
+                // Create complex wave patterns like in the image - smoother
+                const waveZ1 = Math.sin(time * 0.8 + node.x3d * 0.008 + node.y3d * 0.006) * 80;
+                const waveZ2 = Math.cos(time * 0.5 + node.x3d * 0.010 + node.y3d * 0.004) * 60;
+                const waveZ3 = Math.sin(time * 0.3 + node.x3d * 0.005 + node.y3d * 0.012) * 40;
                 
-                if (distance < 100) {
-                    const force = (100 - distance) / 100;
-                    node.x += dx * force * 0.02;
-                    node.y += dy * force * 0.02;
-                }
-
-                // Natural movement with slight friction
-                node.x += node.vx;
-                node.y += node.vy;
+                // Combine waves for complex surface
+                const totalWaveZ = waveZ1 + waveZ2 + waveZ3;
                 
-                // Apply friction to gradually slow down nodes but keep minimum movement
-                node.vx *= 0.99;
-                node.vy *= 0.99;
+                // Mouse interaction - gentle push effect (calculated after rotation)
+                let mouseWaveZ = 0;
+
+                // Final Z position
+                const finalZ = totalWaveZ + mouseWaveZ;
                 
-                // Add small random movement to prevent complete stop
-                if (Math.abs(node.vx) < 0.1 && Math.abs(node.vy) < 0.1) {
-                    node.vx += (Math.random() - 0.5) * 0.2;
-                    node.vy += (Math.random() - 0.5) * 0.2;
-                }
-
-                // Bounce off edges
-                if (node.x < 0 || node.x > this.canvas.width) node.vx *= -1;
-                if (node.y < 0 || node.y > this.canvas.height) node.vy *= -1;
-
-                // Keep nodes in bounds
-                node.x = Math.max(0, Math.min(this.canvas.width, node.x));
-                node.y = Math.max(0, Math.min(this.canvas.height, node.y));
-
-                // Draw connections
-                for (let j = i + 1; j < this.nodes.length; j++) {
-                    const dx = this.nodes[j].x - node.x;
-                    const dy = this.nodes[j].y - node.y;
+                // Calculate scroll-based rotation and zoom - very gradual
+                const scrollFactor = Math.min(this.scrollY / 4000, 1); // Normalize scroll to 0-1 over 4000px 
+                const scrollRotationZ = scrollFactor * Math.PI * 0.25; // Rotate up to 45 degrees from scroll
+                const totalRotationZ = scrollRotationZ + this.manualRotationZ; // Combine scroll and manual rotation
+                const totalRotationX = this.manualRotationX; // Only manual X rotation
+                const zoom = 1 + scrollFactor * 0.8; // Zoom from 1x to 1.8x
+                
+                // Apply Z-axis rotation first (around Z axis)
+                let rotatedX = node.x3d * Math.cos(totalRotationZ) - node.y3d * Math.sin(totalRotationZ);
+                let rotatedY = node.x3d * Math.sin(totalRotationZ) + node.y3d * Math.cos(totalRotationZ);
+                let rotatedZ = finalZ;
+                
+                // Then apply X-axis rotation (around X axis)
+                const tempY = rotatedY * Math.cos(totalRotationX) - rotatedZ * Math.sin(totalRotationX);
+                rotatedZ = rotatedY * Math.sin(totalRotationX) + rotatedZ * Math.cos(totalRotationX);
+                rotatedY = tempY;
+                
+                // Convert 3D to isometric 2D with rotation and zoom
+                const centerX = this.canvas.width / 2;
+                const centerY = this.canvas.height / 2;
+                
+                node.x = centerX + (rotatedX - rotatedY) * Math.cos(Math.PI / 6) * zoom;
+                node.y = centerY + (rotatedX + rotatedY) * Math.sin(Math.PI / 6) * zoom - finalZ * 0.3;
+                
+                // Now calculate mouse push effect based on rotated position
+                if (!this.isDragging) {
+                    const dx = this.mouse.x - node.x;
+                    const dy = this.mouse.y - node.y;
                     const distance = Math.sqrt(dx * dx + dy * dy);
-
-                    if (distance < 120) {
-                        const opacity = (120 - distance) / 120 * 0.5;
-                        const gradient = this.ctx.createLinearGradient(node.x, node.y, this.nodes[j].x, this.nodes[j].y);
+                    
+                    if (distance < 200) {
+                        const influence = (200 - distance) / 200;
+                        // Smooth falloff without pulsing
+                        const pushAmount = -influence * influence * 120; // Negative to push down
                         
-                        if (this.isDark) {
-                            gradient.addColorStop(0, `rgba(220, 220, 220, ${opacity * 0.8})`);
-                            gradient.addColorStop(1, `rgba(180, 180, 180, ${opacity * 0.8})`);
-                        } else {
-                            gradient.addColorStop(0, `rgba(60, 60, 60, ${opacity})`);
-                            gradient.addColorStop(1, `rgba(40, 40, 40, ${opacity})`);
-                        }
-
-                        this.ctx.strokeStyle = gradient;
-                        this.ctx.lineWidth = 1;
+                        // Apply push by adjusting the final Z and recalculating position
+                        const newFinalZ = finalZ + pushAmount;
+                        node.y = centerY + (rotatedX + rotatedY) * Math.sin(Math.PI / 6) * zoom - newFinalZ * 0.3;
+                    }
+                }
+                
+                // Calculate visibility and size based on rotated Z
+                const normalizedZ = (rotatedZ + 200) / 400; // Normalize to 0-1
+                const pointSize = Math.max(0.1, (0.5 + normalizedZ * 2) * zoom * 0.8); // Prevent negative radius
+                const opacity = 0.3 + normalizedZ * 0.7;
+                
+                // Draw connections first (behind points)
+                if (node.gridX < 39 && node.gridY < 19) {
+                    const rightNode = this.nodes.find(n => n.gridX === node.gridX + 1 && n.gridY === node.gridY);
+                    const bottomNode = this.nodes.find(n => n.gridX === node.gridX && n.gridY === node.gridY + 1);
+                    
+                    if (rightNode) {
+                        const lineOpacity = (opacity + (rightNode.y + 200) / 400 * 0.7) * 0.4;
+                        this.ctx.strokeStyle = this.isDark ? 
+                            `rgba(255, 255, 255, ${lineOpacity})` : 
+                            `rgba(80, 80, 80, ${lineOpacity})`;
+                        this.ctx.lineWidth = 0.5;
                         this.ctx.beginPath();
                         this.ctx.moveTo(node.x, node.y);
-                        this.ctx.lineTo(this.nodes[j].x, this.nodes[j].y);
+                        this.ctx.lineTo(rightNode.x, rightNode.y);
+                        this.ctx.stroke();
+                    }
+                    
+                    if (bottomNode) {
+                        const lineOpacity = (opacity + (bottomNode.y + 200) / 400 * 0.7) * 0.4;
+                        this.ctx.strokeStyle = this.isDark ? 
+                            `rgba(255, 255, 255, ${lineOpacity})` : 
+                            `rgba(80, 80, 80, ${lineOpacity})`;
+                        this.ctx.lineWidth = 0.5;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(node.x, node.y);
+                        this.ctx.lineTo(bottomNode.x, bottomNode.y);
                         this.ctx.stroke();
                     }
                 }
 
-                // Draw node
-                const gradient = this.ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, node.radius);
+                // Calculate real surface normal based on neighboring points
+                let normalX3d = 0, normalY3d = 0, normalZ3d = 1; // Default normal pointing up
                 
-                // Calculate fade effect for aging nodes
-                let opacity1 = this.isDark ? 0.9 : 0.8;
-                let opacity2 = this.isDark ? 0.4 : 0.3;
+                // Find neighboring nodes to calculate surface normal
+                const rightNode = this.nodes.find(n => n.gridX === node.gridX + 1 && n.gridY === node.gridY);
+                const bottomNode = this.nodes.find(n => n.gridX === node.gridX && n.gridY === node.gridY + 1);
                 
-                if (node.age !== undefined && node.maxAge !== undefined) {
-                    const ageRatio = node.age / node.maxAge;
-                    const fadeMultiplier = Math.max(0, 1 - ageRatio);
-                    opacity1 *= fadeMultiplier;
-                    opacity2 *= fadeMultiplier;
+                if (rightNode && bottomNode) {
+                    // Calculate surface vectors
+                    const rightZ = Math.sin(time * 0.8 + rightNode.x3d * 0.008 + rightNode.y3d * 0.006) * 80 +
+                                  Math.cos(time * 0.5 + rightNode.x3d * 0.010 + rightNode.y3d * 0.004) * 60 +
+                                  Math.sin(time * 0.3 + rightNode.x3d * 0.005 + rightNode.y3d * 0.012) * 40;
+                    
+                    const bottomZ = Math.sin(time * 0.8 + bottomNode.x3d * 0.008 + bottomNode.y3d * 0.006) * 80 +
+                                   Math.cos(time * 0.5 + bottomNode.x3d * 0.010 + bottomNode.y3d * 0.004) * 60 +
+                                   Math.sin(time * 0.3 + bottomNode.x3d * 0.005 + bottomNode.y3d * 0.012) * 40;
+                    
+                    // Calculate surface normal using cross product
+                    const dx1 = 18, dy1 = 0, dz1 = rightZ - finalZ;
+                    const dx2 = 0, dy2 = 18, dz2 = bottomZ - finalZ;
+                    
+                    // Cross product for normal vector
+                    normalX3d = dy1 * dz2 - dz1 * dy2;
+                    normalY3d = dz1 * dx2 - dx1 * dz2;
+                    normalZ3d = dx1 * dy2 - dy1 * dx2;
+                    
+                    // Normalize the normal vector
+                    const normalLength3d = Math.sqrt(normalX3d * normalX3d + normalY3d * normalY3d + normalZ3d * normalZ3d);
+                    if (normalLength3d > 0) {
+                        normalX3d /= normalLength3d;
+                        normalY3d /= normalLength3d;
+                        normalZ3d /= normalLength3d;
+                    }
                 }
+                
+                // Convert 3D normal to 2D screen coordinates with zoom
+                const normalLength = Math.max(5, (30 + normalizedZ * 20) * zoom * 0.8); // Prevent negative length
+                const normalEndX = node.x + (normalX3d - normalY3d) * Math.cos(Math.PI / 6) * normalLength;
+                const normalEndY = node.y + (normalX3d + normalY3d) * Math.sin(Math.PI / 6) * normalLength - normalZ3d * normalLength;
+                
+                // Draw normal line
+                const normalOpacity = opacity * 0.8;
+                const gradient = this.ctx.createLinearGradient(node.x, node.y, normalEndX, normalEndY);
                 
                 if (this.isDark) {
-                    gradient.addColorStop(0, `rgba(240, 240, 240, ${opacity1})`);
-                    gradient.addColorStop(1, `rgba(200, 200, 200, ${opacity2})`);
+                    gradient.addColorStop(0, `rgba(255, 255, 255, ${normalOpacity})`);
+                    gradient.addColorStop(0.7, `rgba(255, 255, 255, ${normalOpacity * 0.3})`);
+                    gradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
                 } else {
-                    gradient.addColorStop(0, `rgba(80, 80, 80, ${opacity1})`);
-                    gradient.addColorStop(1, `rgba(50, 50, 50, ${opacity2})`);
+                    gradient.addColorStop(0, `rgba(100, 100, 100, ${normalOpacity})`);
+                    gradient.addColorStop(0.7, `rgba(100, 100, 100, ${normalOpacity * 0.3})`);
+                    gradient.addColorStop(1, `rgba(100, 100, 100, 0)`);
                 }
-
-                this.ctx.fillStyle = gradient;
+                
+                this.ctx.strokeStyle = gradient;
+                this.ctx.lineWidth = 1;
                 this.ctx.beginPath();
-                this.ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+                this.ctx.moveTo(node.x, node.y);
+                this.ctx.lineTo(normalEndX, normalEndY);
+                this.ctx.stroke();
+
+                // Draw point
+                this.ctx.fillStyle = this.isDark ? 
+                    `rgba(255, 255, 255, ${opacity})` : 
+                    `rgba(80, 80, 80, ${opacity})`;
+                this.ctx.beginPath();
+                this.ctx.arc(node.x, node.y, pointSize, 0, Math.PI * 2);
                 this.ctx.fill();
             });
 

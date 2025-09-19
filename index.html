@@ -271,7 +271,7 @@
         backdrop-filter: blur(8px);
         padding: 8px 12px;
         border-radius: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(0, 0, 0, 0.2);
     }
 
     /* Show only on mobile */
@@ -283,7 +283,7 @@
 
     html.dark-theme .manual-rotate-toggle {
         background: rgba(26, 26, 26, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
     }
 
     .manual-rotate-label {
@@ -1292,8 +1292,16 @@
         }
 
         resize() {
-            this.canvas.width = window.innerWidth;
-            this.canvas.height = window.innerHeight;
+            const dpr = window.devicePixelRatio || 1;
+            const displayWidth = window.innerWidth;
+            const displayHeight = window.innerHeight;
+            
+            this.canvas.width = displayWidth * dpr;
+            this.canvas.height = displayHeight * dpr;
+            this.canvas.style.width = displayWidth + 'px';
+            this.canvas.style.height = displayHeight + 'px';
+            
+            this.ctx.scale(dpr, dpr);
         }
 
         createNodes() {
@@ -1302,8 +1310,8 @@
             const rows = 20;
             this.nodes = [];
             
-            const centerX = this.canvas.width / 2;
-            const centerY = this.canvas.height / 2;
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
 
             for (let i = 0; i < cols; i++) {
                 for (let j = 0; j < rows; j++) {
@@ -1344,7 +1352,7 @@
                 
                 // Handle dragging for rotation
                 if (this.isDragging) {
-                    const centerY = this.canvas.height / 2;
+                    const centerY = window.innerHeight / 2;
                     const deltaX = e.clientX - this.lastMouseX;
                     const deltaY = e.clientY - this.lastMouseY;
                     
@@ -1434,7 +1442,7 @@
                     e.preventDefault();
                     
                     if (this.isDragging) {
-                        const centerY = this.canvas.height / 2;
+                        const centerY = window.innerHeight / 2;
                         const deltaX = touch.clientX - this.lastMouseX;
                         const deltaY = touch.clientY - this.lastMouseY;
                         
@@ -1505,7 +1513,7 @@
             } else {
                 this.ctx.fillStyle = '#ffffff';
             }
-            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
             const time = Date.now() * 0.001;
 
@@ -1554,8 +1562,8 @@
                 rotatedY = tempY;
                 
                 // Convert 3D to isometric 2D with rotation and zoom
-                const centerX = this.canvas.width / 2;
-                const centerY = this.canvas.height / 2;
+                const centerX = window.innerWidth / 2;
+                const centerY = window.innerHeight / 2;
                 
                 node.x = centerX + (rotatedX - rotatedY) * Math.cos(Math.PI / 6) * zoom;
                 node.y = centerY + (rotatedX + rotatedY) * Math.sin(Math.PI / 6) * zoom - finalZ * 0.3;

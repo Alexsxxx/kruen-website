@@ -1292,7 +1292,7 @@
         }
 
         resize() {
-            const dpr = window.devicePixelRatio || 1;
+            const dpr = (window.devicePixelRatio || 1) * 0.5 + 0.5; // Halfway between 1 and devicePixelRatio
             const displayWidth = window.innerWidth;
             const displayHeight = window.innerHeight;
             

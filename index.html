@@ -1244,6 +1244,69 @@
                 // Don't reset velocity here - let inertia continue
             });
 
+            // Touch events for mobile
+            window.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                this.isMouseDown = true;
+                this.isDragging = true;
+                this.lastMouseX = touch.clientX;
+                this.lastMouseY = touch.clientY;
+                this.mouse.x = touch.clientX;
+                this.mouse.y = touch.clientY;
+                this.rotationVelocityZ = 0;
+                this.rotationVelocityX = 0;
+                this.mouseTrail = [];
+            });
+
+            window.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                this.mouse.x = touch.clientX;
+                this.mouse.y = touch.clientY;
+                
+                if (this.isDragging) {
+                    const centerY = this.canvas.height / 2;
+                    const deltaX = touch.clientX - this.lastMouseX;
+                    const deltaY = touch.clientY - this.lastMouseY;
+                    
+                    // Z-axis rotation (left/right movement)
+                    const rotationMultiplier = touch.clientY > centerY ? -0.005 : 0.005;
+                    const rotationDeltaZ = deltaX * rotationMultiplier;
+                    
+                    // X-axis rotation (up/down movement)
+                    const rotationDeltaX = -deltaY * 0.005;
+                    
+                    this.manualRotationZ += rotationDeltaZ;
+                    this.manualRotationX += rotationDeltaX;
+                    
+                    this.rotationVelocityZ = rotationDeltaZ;
+                    this.rotationVelocityX = rotationDeltaX;
+                    
+                    this.lastMouseX = touch.clientX;
+                    this.lastMouseY = touch.clientY;
+                } else {
+                    // Add to trail when not dragging on mobile
+                    this.mouseTrail.push({
+                        x: touch.clientX,
+                        y: touch.clientY,
+                        age: 0,
+                        maxAge: 180
+                    });
+                    
+                    if (this.mouseTrail.length > 200) {
+                        this.mouseTrail.shift();
+                    }
+                }
+            });
+
+            window.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.isMouseDown = false;
+                this.isDragging = false;
+                // Don't reset velocity here - let inertia continue
+            });
+
             // Listen for scroll events
             window.addEventListener('scroll', () => {
                 this.scrollY = window.scrollY;

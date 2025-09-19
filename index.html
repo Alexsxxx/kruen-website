@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-site-verification" content="0c-hmtOEQ5Lbyy8KcHhiSP3Y-jO0mCeDEr_tyvdrUfw" />
+    <title>Kruen</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Anti-flicker script -->
+    <script>
+    (function() {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.documentElement.classList.add('dark-theme');
+        }
+        setTimeout(function() {
+            document.documentElement.classList.add('page-loaded');
+        }, 50);
+    })();
+    </script>
+    
+    <style>
+    /* ================================================================= */
+    /* BASE STYLES */
+    /* ================================================================= */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    html, body {
+        font-family: 'Poppins', sans-serif;
+        background: #ffffff;
+        color: #333333;
+        transition: all 0.3s ease;
+    }
+
+    /* Dark theme */
+    html.dark-theme, 
+    html.dark-theme body {
+        background: #1a1a1a;
+        color: #ffffff;
+    }
+
+    /* ================================================================= */
+    /* NAVIGATION */
+    /* ================================================================= */
+    .navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0);
+        backdrop-filter: none;
+        transition: all 0.1s ease;
+    }
+
+    .navbar.scrolled {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(2px);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    html.dark-theme .navbar {
+        background: rgba(26, 26, 26, 0);
+    }
+
+    html.dark-theme .navbar.scrolled {
+        background: rgba(26, 26, 26, 0.6);
+        backdrop-filter: blur(2px);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .nav-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 1200px;
+        margin: 0 auto;
+        padding: 10px 0;
+    }
+
+    .nav-logo {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        font-size: 24px;
+        font-weight: 700;
+        color: #333;
+        text-decoration: none;
+    }
+
+    html.dark-theme .nav-logo {
+        color: #ffffff;
+    }
+
+    /* ================================================================= */
+    /* THEME TOGGLE */
+    /* ================================================================= */
+    .theme-toggle {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .theme-switch-input {
+        display: none;
+    }
+
+    .theme-switch-label {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 26px;
+        background: linear-gradient(145deg, #e0e0e0, #c0c0c0);
+        border-radius: 26px;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        box-shadow: 
+            inset 2px 2px 4px rgba(0, 0, 0, 0.1),
+            inset -2px -2px 4px rgba(255, 255, 255, 0.8);
+    }
+
+    .theme-switch-button {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 22px;
+        height: 22px;
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        border-radius: 50%;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        box-shadow: 
+            2px 2px 6px rgba(0, 0, 0, 0.15),
+            -1px -1px 3px rgba(255, 255, 255, 0.8);
+    }
+
+    .theme-switch-input:checked + .theme-switch-label {
+        background: linear-gradient(145deg, #2d3748, #1a202c);
+        box-shadow: 
+            inset 2px 2px 4px rgba(0, 0, 0, 0.3),
+            inset -2px -2px 4px rgba(255, 255, 255, 0.1);
+    }
+
+    .theme-switch-input:checked + .theme-switch-label .theme-switch-button {
+        transform: translateX(24px);
+        background: linear-gradient(145deg, #4a5568, #2d3748);
+        box-shadow: 
+            2px 2px 6px rgba(0, 0, 0, 0.3),
+            -1px -1px 3px rgba(255, 255, 255, 0.1);
+    }
+
+    .theme-switch-label:hover {
+        transform: scale(1.05);
+    }
+
+    /* ================================================================= */
+    /* LAYOUT */
+    /* ================================================================= */
+    main {
+        margin-top: 70px;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    /* ================================================================= */
+    /* HERO SECTION */
+    /* ================================================================= */
+    .hero {
+        min-height: calc(100vh - 70px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-content {
+        max-width: 800px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 2;
+    }
+
+    .hero h1 {
+        font-size: 64px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: #333;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    html.dark-theme .hero h1 {
+        background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .hero-subtitle {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: #555;
+    }
+
+    html.dark-theme .hero-subtitle {
+        color: #e0e0e0;
+    }
+
+    .hero-description {
+        font-size: 18px;
+        color: #666;
+        line-height: 1.6;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    html.dark-theme .hero-description {
+        color: #cccccc;
+    }
+
+    /* ================================================================= */
+    /* SECTIONS */
+    /* ================================================================= */
+    .services, 
+    .about, 
+    .info-section {
+        padding: 80px 0;
+    }
+
+    /* ================================================================= */
+    /* INFO SECTION */
+    /* ================================================================= */
+    .info-block {
+        display: flex;
+        align-items: center;
+        gap: 60px;
+        margin-bottom: 120px;
+        opacity: 0;
+        transform: translateY(50px);
+        transition: all 0.8s ease;
+    }
+
+    .info-block:last-child {
+        margin-bottom: 0;
+    }
+
+    .info-block.animate {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .info-block-reverse {
+        flex-direction: row-reverse;
+    }
+
+    .info-content {
+        flex: 1;
+        padding: 40px;
+    }
+
+    .info-content h3 {
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 24px;
+        color: #333;
+    }
+
+    html.dark-theme .info-content h3 {
+        color: #ffffff;
+    }
+
+    .info-content p {
+        font-size: 16px;
+        line-height: 1.7;
+        margin-bottom: 20px;
+        color: #666;
+    }
+
+    html.dark-theme .info-content p {
+        color: #cccccc;
+    }
+
+    .info-content strong {
+        color: #333;
+        font-weight: 600;
+    }
+
+    html.dark-theme .info-content strong {
+        color: #ffffff;
+    }
+
+    .info-features {
+        list-style: none;
+        padding: 0;
+        margin-top: 24px;
+    }
+
+    .info-features li {
+        padding: 8px 0;
+        color: #555;
+        position: relative;
+        padding-left: 24px;
+        font-size: 16px;
+    }
+
+    .info-features li::before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: #667eea;
+        font-weight: bold;
+        font-size: 18px;
+    }
+
+    html.dark-theme .info-features li {
+        color: #bbb;
+    }
+
+    html.dark-theme .info-features li::before {
+        color: #74b9ff;
+    }
+
+    /* ================================================================= */
+    /* INFO TILES */
+    /* ================================================================= */
+    .info-image {
+        flex: 0 0 350px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .info-tile-placeholder {
+        width: 100%;
+        height: 300px;
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    html.dark-theme .info-tile-placeholder {
+        background: #2a2a2a;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .info-tile-placeholder:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    html.dark-theme .info-tile-placeholder:hover {
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .info-tile-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        margin-bottom: 20px;
+    }
+
+    html.dark-theme .info-tile-icon {
+        background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+    }
+
+    /* Full Background Image Tiles */
+    .info-tile-image {
+        position: relative;
+        overflow: hidden;
+        padding: 0;
+    }
+
+    .tile-background-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .info-tile-placeholder:hover .tile-background-image {
+        transform: scale(1.05);
+    }
+
+
+    .info-tile-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+
+    html.dark-theme .info-tile-title {
+        color: #ffffff;
+    }
+
+    .section-title {
+        font-size: 48px;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 60px;
+        color: #333;
+    }
+
+    html.dark-theme .section-title {
+        color: #ffffff;
+    }
+
+    /* ================================================================= */
+    /* SERVICES SECTION */
+    /* ================================================================= */
+    .services-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 40px;
+        margin-bottom: 40px;
+    }
+
+    .service-tile {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        opacity: 0;
+        transform: translateY(50px);
+    }
+
+    html.dark-theme .service-tile {
+        background: #2a2a2a;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .service-tile:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    html.dark-theme .service-tile:hover {
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .service-tile.animate {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .tile-image {
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .placeholder-image {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        margin: 0 auto;
+    }
+
+    html.dark-theme .placeholder-image {
+        background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+    }
+
+    .tile-content h3 {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: #333;
+    }
+
+    html.dark-theme .tile-content h3 {
+        color: #ffffff;
+    }
+
+    .tile-content p {
+        font-size: 16px;
+        line-height: 1.6;
+        margin-bottom: 20px;
+        color: #666;
+    }
+
+    html.dark-theme .tile-content p {
+        color: #cccccc;
+    }
+
+    .tile-content ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .tile-content li {
+        padding: 8px 0;
+        color: #555;
+        position: relative;
+        padding-left: 20px;
+    }
+
+    .tile-content li::before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: #667eea;
+        font-weight: bold;
+    }
+
+    html.dark-theme .tile-content li {
+        color: #bbb;
+    }
+
+    html.dark-theme .tile-content li::before {
+        color: #74b9ff;
+    }
+
+    /* ================================================================= */
+    /* ABOUT SECTION */
+    /* ================================================================= */
+    .about {
+        background: #f8f9fa;
+    }
+
+    html.dark-theme .about {
+        background: #1e1e1e;
+    }
+
+    .about-content {
+        text-align: center;
+        opacity: 0;
+        transform: translateY(50px);
+        transition: all 0.8s ease;
+    }
+
+    .about-content.animate {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .about-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 40px;
+        margin-top: 40px;
+    }
+
+    .about-item {
+        text-align: left;
+    }
+
+    .about-item h4 {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: #333;
+    }
+
+    html.dark-theme .about-item h4 {
+        color: #ffffff;
+    }
+
+    .about-item p {
+        font-size: 16px;
+        line-height: 1.6;
+        color: #666;
+    }
+
+    html.dark-theme .about-item p {
+        color: #cccccc;
+    }
+
+    /* ================================================================= */
+    /* ANIMATIONS */
+    /* ================================================================= */
+    .fade-in-tile {
+        opacity: 0;
+        transform: translateY(50px);
+        transition: all 0.8s ease;
+    }
+
+    .fade-in-tile.animate {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+
+    /* ================================================================= */
+    /* RESPONSIVE DESIGN */
+    /* ================================================================= */
+    @media (max-width: 768px) {
+        .nav-container {
+            width: 100%;
+            padding: 0 15px;
+        }
+
+        .nav-logo {
+            font-size: 20px;
+        }
+
+        main {
+            margin-top: 60px;
+        }
+
+        .hero {
+            min-height: calc(100vh - 60px);
+            padding: 20px;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+        }
+
+        .hero-subtitle {
+            font-size: 20px;
+        }
+
+        .hero-description {
+            font-size: 16px;
+        }
+
+        .section-title {
+            font-size: 36px;
+            margin-bottom: 40px;
+        }
+
+        .services, .about, .info-section {
+            padding: 60px 0;
+        }
+
+        .services-grid {
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .service-tile {
+            padding: 30px;
+        }
+
+        .about-grid {
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        /* Info Section Mobile */
+        .info-block {
+            flex-direction: column !important;
+            gap: 30px;
+            margin-bottom: 80px;
+            text-align: center;
+        }
+
+        .info-content {
+            padding: 20px;
+        }
+
+        .info-content h3 {
+            font-size: 24px;
+        }
+
+        .info-image {
+            flex: none;
+        }
+
+        .info-tile-placeholder {
+            height: 200px;
+            padding: 20px;
+        }
+
+        .info-tile-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        /* Mobile styles for full background images are handled by parent classes */
+
+        .info-tile-title {
+            font-size: 16px;
+        }
+
+        .container {
+            padding: 0 15px;
+        }
+
+    }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">Kruen</div>
+            
+            <div class="theme-toggle">
+                <input type="checkbox" id="theme-switch" class="theme-switch-input">
+                <label for="theme-switch" class="theme-switch-label">
+                    <span class="theme-switch-button"></span>
+                </label>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Floating K Letter -->
+
+    <main>
+        <!-- ========================================================= -->
+        <!-- HERO SECTION -->
+        <!-- ========================================================= -->
+        <section class="hero">
+            <div class="hero-content">
+                <h1>Kruen</h1>
+                <p class="hero-subtitle">Android App Design & Development</p>
+                <p class="hero-description">We create modern and user-friendly applications that combine quality design with perfect functionality</p>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- INFO SECTION -->
+        <!-- ========================================================= -->
+        <section class="info-section">
+            <div class="container">
+                <!-- First Info Block -->
+                <div class="info-block fade-in-tile" data-delay="0">
+                    <div class="info-content info-text-left">
+                        <h3>Made in Czech Republic</h3>
+                        <p>Kruen originates from the heart of Europe - Czech Republic. Located in the center of the continent, we bring European quality and precision to mobile app development. Our deep understanding of both local and international markets allows us to create applications that resonate globally while maintaining the highest standards of craftsmanship.</p>
+                        <p>From the historic city of Prague to the innovative tech hubs across the country, Czech Republic has become a leading destination for software development, combining traditional engineering excellence with cutting-edge technology innovation.</p>
+                    </div>
+                    <div class="info-image info-tile-right">
+                        <div class="info-tile-placeholder info-tile-image">
+                            <img src="prague.png" alt="Prague skyline" class="tile-background-image">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Second Info Block -->
+                <div class="info-block fade-in-tile" data-delay="200">
+                    <div class="info-image info-tile-left">
+                        <div class="info-tile-placeholder info-tile-image">
+                            <img src="secur.png" alt="Security and privacy" class="tile-background-image">
+                        </div>
+                    </div>
+                    <div class="info-content info-text-right">
+                        <h3>Security-First Development</h3>
+                        <p>We specialize in creating applications with a strong focus on security and API functionality. Every app we develop prioritizes user privacy and data protection, implementing the latest security protocols and encryption standards.</p>
+                        <p>Our commitment to clean, ethical development means <strong>no ads, no hidden fees, no additional payments</strong>. We believe in transparent, honest applications that serve users without compromising their experience or privacy.</p>
+                        <p><strong>We do not collect any user data.</strong> Your privacy is completely protected - no tracking, no analytics, no data harvesting. What you do with our apps stays with you.</p>
+                        <ul class="info-features">
+                            <li>End-to-end encryption</li>
+                            <li>Secure API implementations</li>
+                            <li>Privacy-by-design architecture</li>
+                            <li>Ad-free user experience</li>
+                            <li>Zero data collection</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- SERVICES SECTION -->
+        <!-- ========================================================= -->
+        <section class="services">
+            <div class="container">
+                <h2 class="section-title">Our Services</h2>
+                
+                <div class="services-grid">
+                    <div class="service-tile fade-in-tile" data-delay="0">
+                        <div class="tile-image">
+                            <div class="placeholder-image">
+                                <span>📱</span>
+                            </div>
+                        </div>
+                        <div class="tile-content">
+                            <h3>App Development</h3>
+                            <p>We create native Android applications with focus on performance, security and user experience. From concept to final product.</p>
+                            <ul>
+                                <li>Native Android development</li>
+                                <li>Kotlin & Java</li>
+                                <li>Material Design</li>
+                                <li>API integration</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="service-tile fade-in-tile" data-delay="200">
+                        <div class="tile-image">
+                            <div class="placeholder-image">
+                                <span>🎨</span>
+                            </div>
+                        </div>
+                        <div class="tile-content">
+                            <h3>UI/UX Design</h3>
+                            <p>We design intuitive and attractive user interfaces that provide great user experience on all devices.</p>
+                            <ul>
+                                <li>Wireframing & Prototyping</li>
+                                <li>Visual Design</li>
+                                <li>User Research</li>
+                                <li>Usability Testing</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="service-tile fade-in-tile" data-delay="400">
+                        <div class="tile-image">
+                            <div class="placeholder-image">
+                                <span>🔬</span>
+                            </div>
+                        </div>
+                        <div class="tile-content">
+                            <h3>Testing</h3>
+                            <p>We ensure app quality through comprehensive testing on various devices and platforms.</p>
+                            <ul>
+                                <li>Manual testing</li>
+                                <li>Automated testing</li>
+                                <li>Performance testing</li>
+                                <li>Security testing</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="service-tile fade-in-tile" data-delay="600">
+                        <div class="tile-image">
+                            <div class="placeholder-image">
+                                <span>🚀</span>
+                            </div>
+                        </div>
+                        <div class="tile-content">
+                            <h3>Deployment</h3>
+                            <p>We help with publishing apps to Google Play Store and provide post-launch support.</p>
+                            <ul>
+                                <li>Google Play publishing</li>
+                                <li>App Store optimization</li>
+                                <li>CI/CD pipeline</li>
+                                <li>Support & maintenance</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- ABOUT SECTION -->
+        <!-- ========================================================= -->
+        <section class="about">
+            <div class="container">
+                <div class="about-content fade-in-tile" data-delay="0">
+                    <h2>Why Choose Kruen?</h2>
+                    <div class="about-grid">
+                        <div class="about-item">
+                            <h4>🏆 Quality</h4>
+                            <p>Every app goes through thorough testing and optimization for maximum performance.</p>
+                        </div>
+                        <div class="about-item">
+                            <h4>⚡ Speed</h4>
+                            <p>Efficient development processes ensure fast delivery without compromising quality.</p>
+                        </div>
+                        <div class="about-item">
+                            <h4>🤝 Partnership</h4>
+                            <p>We approach every project as a long-term partnership.</p>
+                        </div>
+                        <div class="about-item">
+                            <h4>🔧 Support</h4>
+                            <p>We provide comprehensive support even after your app launch.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+    // ===================================================================
+    // DARK MODE MANAGER
+    // ===================================================================
+    class DarkModeManager {
+        constructor() {
+            this.themeSwitch = document.getElementById('theme-switch');
+            this.init();
+        }
+
+        init() {
+            // Set initial state
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                this.enableDarkMode();
+                this.themeSwitch.checked = true;
+            }
+
+            // Add event listener
+            this.themeSwitch.addEventListener('change', () => {
+                if (this.themeSwitch.checked) {
+                    this.enableDarkMode();
+                } else {
+                    this.disableDarkMode();
+                }
+            });
+        }
+
+        enableDarkMode() {
+            document.documentElement.classList.add('dark-theme');
+            localStorage.setItem('theme', 'dark');
+        }
+
+        disableDarkMode() {
+            document.documentElement.classList.remove('dark-theme');
+            localStorage.setItem('theme', 'light');
+        }
+    }
+
+    // ===================================================================
+    // SCROLL ANIMATION MANAGER  
+    // ===================================================================
+    class ScrollAnimationManager {
+        constructor() {
+            this.animatedElements = document.querySelectorAll('.fade-in-tile');
+            this.init();
+        }
+
+        init() {
+            // Create intersection observer
+            this.observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const delay = entry.target.dataset.delay || 0;
+                        setTimeout(() => {
+                            entry.target.classList.add('animate');
+                        }, delay);
+                        this.observer.unobserve(entry.target);
+                    }
+                });
+            }, {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            });
+
+            // Observe all elements
+            this.animatedElements.forEach(element => {
+                this.observer.observe(element);
+            });
+        }
+    }
+
+    // ===================================================================
+    // NAVBAR SCROLL EFFECT
+    // ===================================================================
+    function initScrollEffect() {
+        const navbar = document.querySelector('.navbar');
+        
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 2) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+    }
+
+
+    // ===================================================================
+    // INITIALIZATION
+    // ===================================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        new DarkModeManager();
+        new ScrollAnimationManager();
+        initScrollEffect();
+    });
+    </script>
+</body>
+</html>

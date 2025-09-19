@@ -34,16 +34,107 @@
 
     html, body {
         font-family: 'Poppins', sans-serif;
-        background: #ffffff;
+        background: transparent;
         color: #333333;
         transition: all 0.3s ease;
+        position: relative;
+        overflow-x: hidden;
     }
 
     /* Dark theme */
     html.dark-theme, 
     html.dark-theme body {
-        background: #1a1a1a;
+        background: transparent;
         color: #ffffff;
+    }
+
+    /* ================================================================= */
+    /* INTERACTIVE BACKGROUND */
+    /* ================================================================= */
+    .interactive-background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        z-index: -1;
+        pointer-events: none;
+        opacity: 1.0;
+    }
+
+    .interactive-background canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        top: 0;
+        left: 0;
+    }
+
+    html.dark-theme .interactive-background {
+        opacity: 1.0;
+    }
+
+    /* Content overlay with background */
+    .content-wrapper {
+        position: relative;
+        z-index: 1;
+        background: transparent;
+        min-height: 100vh;
+    }
+
+    /* Make most sections transparent to show background */
+    .info-section,
+    .services {
+        background: transparent;
+    }
+
+    html.dark-theme .info-section,
+    html.dark-theme .services {
+        background: transparent;
+    }
+
+    /* Keep 'Why Choose Kruen?' section opaque */
+    .about {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(2px);
+    }
+
+    html.dark-theme .about {
+        background: rgba(26, 26, 26, 0.95);
+        backdrop-filter: blur(2px);
+    }
+
+    /* Make info blocks semi-transparent to show background */
+    .info-block {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(8px);
+        border-radius: 15px;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    html.dark-theme .info-block {
+        background: rgba(26, 26, 26, 0.7);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Service tiles semi-transparent */
+    .service-tile {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(8px);
+    }
+
+    html.dark-theme .service-tile {
+        background: rgba(26, 26, 26, 0.7);
+        backdrop-filter: blur(8px);
+    }
+
+    /* Keep hero fully transparent */
+    .hero {
+        background: transparent;
     }
 
     /* ================================================================= */
@@ -350,7 +441,7 @@
     .info-tile-placeholder {
         width: 100%;
         height: 300px;
-        background: #ffffff;
+        /* background removed - using transparency */
         border-radius: 20px;
         padding: 40px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
@@ -364,7 +455,7 @@
     }
 
     html.dark-theme .info-tile-placeholder {
-        background: #2a2a2a;
+        /* background removed - using transparency */
         border: 1px solid rgba(255, 255, 255, 0.1);
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     }
@@ -447,7 +538,7 @@
     }
 
     .service-tile {
-        background: #ffffff;
+        /* background removed - using transparency */
         border-radius: 20px;
         padding: 40px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
@@ -458,7 +549,7 @@
     }
 
     html.dark-theme .service-tile {
-        background: #2a2a2a;
+        /* background removed - using transparency */
         border: 1px solid rgba(255, 255, 255, 0.1);
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     }
@@ -552,11 +643,11 @@
     /* ABOUT SECTION */
     /* ================================================================= */
     .about {
-        background: #f8f9fa;
+        /* background removed - handled by transparency rules above */
     }
 
     html.dark-theme .about {
-        background: #1e1e1e;
+        /* background removed - handled by transparency rules above */
     }
 
     .about-content {
@@ -677,22 +768,24 @@
 
         /* Info Section Mobile */
         .info-block {
-            flex-direction: column !important;
-            gap: 30px;
+            flex-direction: column;
+            gap: 0px;
             margin-bottom: 80px;
             text-align: center;
         }
 
         .info-content {
-            padding: 20px;
+            padding: 30px;
+            width: 100%;
         }
 
         .info-content h3 {
             font-size: 24px;
         }
 
+        /* Hide images completely on mobile */
         .info-image {
-            flex: none;
+            display: none;
         }
 
         .info-tile-placeholder {
@@ -721,22 +814,27 @@
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">Kruen</div>
-            
-            <div class="theme-toggle">
-                <input type="checkbox" id="theme-switch" class="theme-switch-input">
-                <label for="theme-switch" class="theme-switch-label">
-                    <span class="theme-switch-button"></span>
-                </label>
+    <div class="interactive-background">
+        <canvas id="networkCanvas"></canvas>
+    </div>
+
+    <div class="content-wrapper">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-logo">Kruen</div>
+                
+                <div class="theme-toggle">
+                    <input type="checkbox" id="theme-switch" class="theme-switch-input">
+                    <label for="theme-switch" class="theme-switch-label">
+                        <span class="theme-switch-button"></span>
+                    </label>
+                </div>
             </div>
-        </div>
-    </nav>
+        </nav>
 
-    <!-- Floating K Letter -->
+        <!-- Floating K Letter -->
 
-    <main>
+        <main>
         <!-- ========================================================= -->
         <!-- HERO SECTION -->
         <!-- ========================================================= -->
@@ -902,7 +1000,8 @@
                 </div>
             </div>
         </section>
-    </main>
+        </main>
+    </div>
 
     <script>
     // ===================================================================
@@ -993,11 +1092,246 @@
 
 
     // ===================================================================
+    // INTERACTIVE NETWORK BACKGROUND
+    // ===================================================================
+    class NetworkBackground {
+        constructor() {
+            this.canvas = document.getElementById('networkCanvas');
+            this.ctx = this.canvas.getContext('2d');
+            this.nodes = [];
+            this.mouse = { x: 0, y: 0 };
+            this.updateTheme();
+            
+            this.init();
+        }
+
+        updateTheme() {
+            this.isDark = document.documentElement.classList.contains('dark-theme');
+        }
+
+        addNodesOnClick(x, y) {
+            // First, push away nearby existing nodes (explosion effect)
+            const explosionRadius = 150;
+            const explosionForce = 8;
+            
+            this.nodes.forEach(node => {
+                const dx = node.x - x;
+                const dy = node.y - y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < explosionRadius && distance > 0) {
+                    // Calculate push force (stronger for closer nodes)
+                    const force = (explosionRadius - distance) / explosionRadius * explosionForce;
+                    const angle = Math.atan2(dy, dx);
+                    
+                    // Add velocity to push node away
+                    node.vx += Math.cos(angle) * force;
+                    node.vy += Math.sin(angle) * force;
+                    
+                    // Limit maximum velocity to prevent nodes from flying too fast
+                    const maxVelocity = 3;
+                    node.vx = Math.max(-maxVelocity, Math.min(maxVelocity, node.vx));
+                    node.vy = Math.max(-maxVelocity, Math.min(maxVelocity, node.vy));
+                }
+            });
+            
+            // Then add 3-5 new nodes around the click position
+            const nodeCount = Math.floor(Math.random() * 3) + 3; // 3-5 nodes
+            
+            for (let i = 0; i < nodeCount; i++) {
+                // Spread nodes in a circle around click position
+                const angle = (Math.PI * 2 * i) / nodeCount;
+                const distance = Math.random() * 60 + 20; // 20-80px from click
+                
+                const newNode = {
+                    x: x + Math.cos(angle) * distance,
+                    y: y + Math.sin(angle) * distance,
+                    vx: (Math.random() - 0.5) * 1.2, // Slightly faster initial movement
+                    vy: (Math.random() - 0.5) * 1.2,
+                    radius: Math.random() * 2 + 1,
+                    age: 0, // Track how long the node has existed
+                    maxAge: 300 + Math.random() * 200 // Node will fade after 300-500 frames
+                };
+                
+                // Keep nodes within canvas bounds
+                newNode.x = Math.max(newNode.radius, Math.min(this.canvas.width - newNode.radius, newNode.x));
+                newNode.y = Math.max(newNode.radius, Math.min(this.canvas.height - newNode.radius, newNode.y));
+                
+                this.nodes.push(newNode);
+            }
+        }
+
+        init() {
+            this.resize();
+            this.createNodes();
+            this.setupEventListeners();
+            this.animate();
+        }
+
+        resize() {
+            this.canvas.width = window.innerWidth;
+            this.canvas.height = window.innerHeight;
+        }
+
+        createNodes() {
+            const nodeCount = Math.floor((window.innerWidth * window.innerHeight) / 15000);
+            this.nodes = [];
+
+            for (let i = 0; i < nodeCount; i++) {
+                this.nodes.push({
+                    x: Math.random() * this.canvas.width,
+                    y: Math.random() * this.canvas.height,
+                    vx: (Math.random() - 0.5) * 0.5,
+                    vy: (Math.random() - 0.5) * 0.5,
+                    radius: Math.random() * 2 + 1
+                });
+            }
+        }
+
+        setupEventListeners() {
+            window.addEventListener('resize', () => {
+                this.resize();
+                this.createNodes();
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                this.mouse.x = e.clientX;
+                this.mouse.y = e.clientY;
+            });
+
+            // Add click interaction
+            window.addEventListener('click', (e) => {
+                this.addNodesOnClick(e.clientX, e.clientY);
+            });
+
+            // Listen for theme changes
+            const observer = new MutationObserver(() => {
+                this.updateTheme();
+            });
+            observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        }
+
+        animate() {
+            // Set background color based on theme
+            if (this.isDark) {
+                this.ctx.fillStyle = '#1a1a1a'; // Same as tile background
+            } else {
+                this.ctx.fillStyle = '#ffffff';
+            }
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+            // Update and draw nodes
+            this.nodes = this.nodes.filter(node => {
+                // Remove old nodes that have exceeded their lifespan
+                if (node.age !== undefined) {
+                    node.age++;
+                    if (node.age > node.maxAge) {
+                        return false; // Remove this node
+                    }
+                }
+                return true; // Keep this node
+            });
+
+            this.nodes.forEach((node, i) => {
+                // Mouse interaction
+                const dx = this.mouse.x - node.x;
+                const dy = this.mouse.y - node.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < 100) {
+                    const force = (100 - distance) / 100;
+                    node.x += dx * force * 0.02;
+                    node.y += dy * force * 0.02;
+                }
+
+                // Natural movement with slight friction
+                node.x += node.vx;
+                node.y += node.vy;
+                
+                // Apply friction to gradually slow down nodes but keep minimum movement
+                node.vx *= 0.99;
+                node.vy *= 0.99;
+                
+                // Add small random movement to prevent complete stop
+                if (Math.abs(node.vx) < 0.1 && Math.abs(node.vy) < 0.1) {
+                    node.vx += (Math.random() - 0.5) * 0.2;
+                    node.vy += (Math.random() - 0.5) * 0.2;
+                }
+
+                // Bounce off edges
+                if (node.x < 0 || node.x > this.canvas.width) node.vx *= -1;
+                if (node.y < 0 || node.y > this.canvas.height) node.vy *= -1;
+
+                // Keep nodes in bounds
+                node.x = Math.max(0, Math.min(this.canvas.width, node.x));
+                node.y = Math.max(0, Math.min(this.canvas.height, node.y));
+
+                // Draw connections
+                for (let j = i + 1; j < this.nodes.length; j++) {
+                    const dx = this.nodes[j].x - node.x;
+                    const dy = this.nodes[j].y - node.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 120) {
+                        const opacity = (120 - distance) / 120 * 0.5;
+                        const gradient = this.ctx.createLinearGradient(node.x, node.y, this.nodes[j].x, this.nodes[j].y);
+                        
+                        if (this.isDark) {
+                            gradient.addColorStop(0, `rgba(220, 220, 220, ${opacity * 0.8})`);
+                            gradient.addColorStop(1, `rgba(180, 180, 180, ${opacity * 0.8})`);
+                        } else {
+                            gradient.addColorStop(0, `rgba(60, 60, 60, ${opacity})`);
+                            gradient.addColorStop(1, `rgba(40, 40, 40, ${opacity})`);
+                        }
+
+                        this.ctx.strokeStyle = gradient;
+                        this.ctx.lineWidth = 1;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(node.x, node.y);
+                        this.ctx.lineTo(this.nodes[j].x, this.nodes[j].y);
+                        this.ctx.stroke();
+                    }
+                }
+
+                // Draw node
+                const gradient = this.ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, node.radius);
+                
+                // Calculate fade effect for aging nodes
+                let opacity1 = this.isDark ? 0.9 : 0.8;
+                let opacity2 = this.isDark ? 0.4 : 0.3;
+                
+                if (node.age !== undefined && node.maxAge !== undefined) {
+                    const ageRatio = node.age / node.maxAge;
+                    const fadeMultiplier = Math.max(0, 1 - ageRatio);
+                    opacity1 *= fadeMultiplier;
+                    opacity2 *= fadeMultiplier;
+                }
+                
+                if (this.isDark) {
+                    gradient.addColorStop(0, `rgba(240, 240, 240, ${opacity1})`);
+                    gradient.addColorStop(1, `rgba(200, 200, 200, ${opacity2})`);
+                } else {
+                    gradient.addColorStop(0, `rgba(80, 80, 80, ${opacity1})`);
+                    gradient.addColorStop(1, `rgba(50, 50, 50, ${opacity2})`);
+                }
+
+                this.ctx.fillStyle = gradient;
+                this.ctx.beginPath();
+                this.ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+                this.ctx.fill();
+            });
+
+            requestAnimationFrame(() => this.animate());
+        }
+    }
+
+    // ===================================================================
     // INITIALIZATION
     // ===================================================================
     document.addEventListener('DOMContentLoaded', function() {
         new DarkModeManager();
         new ScrollAnimationManager();
+        new NetworkBackground();
         initScrollEffect();
     });
     </script>

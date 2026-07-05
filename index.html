@@ -61,7 +61,8 @@
         background: transparent;
         color: var(--text);
         position: relative;
-        overflow-x: hidden;
+        /* clip instead of hidden: does not create a scroll container, keeps position:sticky working */
+        overflow-x: clip;
     }
 
     img { max-width: 100%; height: auto; display: block; }
@@ -332,11 +333,11 @@
     }
 
     .eyebrow {
-        font-size: 13px;
-        font-weight: 500;
+        font-size: 17px;
+        font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.22em;
-        color: var(--accent);
+        color: #fff;
         margin-bottom: 18px;
     }
 
@@ -467,7 +468,8 @@
         color: var(--stage-text);
         border-radius: clamp(20px, 4vw, 44px) clamp(20px, 4vw, 44px) 0 0;
         padding: clamp(80px, 10vw, 140px) 0 0;
-        overflow: hidden;
+        /* clip instead of hidden so the sticky phone in .features keeps sticking */
+        overflow: clip;
         box-shadow: 0 -30px 80px rgba(0, 0, 0, 0.25);
     }
 
@@ -612,7 +614,7 @@
     .digits-track {
         display: flex;
         width: max-content;
-        animation: marquee 36s linear infinite;
+        animation: marquee 63s linear infinite;
     }
 
     .digits-track img {
@@ -737,11 +739,16 @@
         top: max(70px, calc(50vh - 46vh));
         display: flex;
         justify-content: center;
-        padding-bottom: 40px;
     }
 
     .phone-sticky .phone-frame {
         width: min(340px, 38vw, 42vh);
+    }
+
+    /* Give the last step extra room so the sticky phone stays pinned
+       through step 04 and only stops at the very end of the list */
+    @media (min-width: 900px) {
+        .feature-step:last-child { padding-bottom: 42vh; }
     }
 
     /* Inline phones inside steps: mobile only */
@@ -1059,7 +1066,7 @@
         <section class="hero">
             <div class="hero-content">
                 <h1>Kruen<span class="dot">.</span></h1>
-                <p class="hero-subtitle">Android App Design &amp; Development</p>
+                <p class="hero-subtitle">Android and iOS App Design &amp; Development</p>
                 <p class="hero-description">We create modern and user-friendly applications that combine quality design with perfect functionality.</p>
                 <div class="hero-cta">
                     <a class="hero-chip" href="#swr">SwR — Shortwave Radio <span class="arrow">↓</span></a>
@@ -1107,13 +1114,19 @@
             <div class="digits-marquee" aria-hidden="true">
                 <div class="digits-track">
                     <img src="assets/swr-digits.webp" alt="">
+                    <img src="assets/swr-digits-2.webp" alt="">
+                    <img src="assets/swr-digits-3.webp" alt="">
+                    <img src="assets/swr-digits-4.webp" alt="">
+                    <img src="assets/swr-digits-5.webp" alt="">
+                    <img src="assets/swr-digits-6.webp" alt="">
+                    <img src="assets/swr-digits-7.webp" alt="">
                     <img src="assets/swr-digits.webp" alt="">
-                    <img src="assets/swr-digits.webp" alt="">
-                    <img src="assets/swr-digits.webp" alt="">
-                    <img src="assets/swr-digits.webp" alt="">
-                    <img src="assets/swr-digits.webp" alt="">
-                    <img src="assets/swr-digits.webp" alt="">
-                    <img src="assets/swr-digits.webp" alt="">
+                    <img src="assets/swr-digits-2.webp" alt="">
+                    <img src="assets/swr-digits-3.webp" alt="">
+                    <img src="assets/swr-digits-4.webp" alt="">
+                    <img src="assets/swr-digits-5.webp" alt="">
+                    <img src="assets/swr-digits-6.webp" alt="">
+                    <img src="assets/swr-digits-7.webp" alt="">
                 </div>
             </div>
 
@@ -1131,7 +1144,7 @@
                     </div>
 
                     <div class="feature-step" data-num="02" data-shot="shot-3d">
-                        <h3>2D · 2.5D · 3D · 4D views</h3>
+                        <h3>Four different types of waterfalls</h3>
                         <p>Switch the waterfall into a rolling 3D landscape or a hypnotic 4D warp. Radio spectrum has never looked this good on a phone.</p>
                         <div class="step-media">
                             <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-3d.webp" alt="SwR 3D spectrum landscape view" loading="lazy"></div></div>
@@ -1140,7 +1153,7 @@
 
                     <div class="feature-step" data-num="03" data-shot="shot-map">
                         <h3>A worldwide receiver network</h3>
-                        <p>Pick your listening post on a live map of KiwiSDR and Web-888 receivers — from Scandinavia to South Africa. Free channels at a glance, one tap to connect.</p>
+                        <p>Find your receiver anywhere in the world. Watch where the sun is shining and where it's already night.</p>
                         <div class="step-media">
                             <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-map.webp" alt="SwR world map of KiwiSDR and Web-888 receivers" loading="lazy"></div></div>
                         </div>
@@ -1199,7 +1212,7 @@
                             <div class="app-icon"><img src="assets/amw-icon.webp" alt="AmW app icon" width="512" height="512"></div>
                             <h2>AmW<span>AllMarkets Widget</span></h2>
                         </div>
-                        <p class="lead reveal">Stocks, crypto, forex and commodities — as clean, glanceable <strong>home-screen widgets</strong>. Gold, Apple, Solana or USD/EUR: one look at your home screen and you know where the market stands.</p>
+                        <p class="lead reveal">Stocks, crypto, forex and commodities — as clean, glanceable <strong>home-screen widgets</strong>. One look at your home screen and you know where the market stands.</p>
                         <div class="cta-row reveal">
                             <a class="play-btn" href="https://play.google.com/store/apps/details?id=com.pricewidget" target="_blank" rel="noopener">
                                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.6 1.8c-.4.2-.6.6-.6 1.1v18.2c0 .5.2.9.6 1.1l10-10.2L3.6 1.8zm11.3 8.9l2.7-2.7-11-6.3 8.3 9zm3.9-1.5l-3 3 3 3 2.6-1.5c.8-.5.8-2.5 0-3l-2.6-1.5zm-4.2 4.2l-8.3 9 11-6.3-2.7-2.7z"/></svg>
@@ -1212,10 +1225,10 @@
                         </div>
                     </div>
                     <div class="amw-collage">
-                        <div class="amw-shot narrow" data-depth="0.05"><img src="assets/amw-gold.webp" alt="AmW widget showing a Gold futures chart" loading="lazy"></div>
+                        <div class="amw-shot narrow" data-depth="0.05"><img src="assets/amw-tickers.webp" alt="AmW compact ticker widgets for Apple and NASDAQ" loading="lazy"></div>
                         <div class="amw-shot offset" data-depth="-0.06"><img src="assets/amw-duo.webp" alt="AmW widgets showing Solana and Microsoft charts" loading="lazy"></div>
-                        <div class="amw-shot" data-depth="0.04"><img src="assets/amw-usdeur.webp" alt="AmW widget showing USD/EUR exchange rate chart" loading="lazy"></div>
-                        <div class="amw-shot offset" data-depth="-0.05"><img src="assets/amw-tickers.webp" alt="AmW compact ticker widgets for Apple and NASDAQ" loading="lazy"></div>
+                        <div class="amw-shot" style="width: 67%;" data-depth="0.04"><img src="assets/amw-usdeur.webp" alt="AmW widget showing USD/EUR exchange rate chart" loading="lazy"></div>
+                        <div class="amw-shot offset" style="width: 55%;" data-depth="-0.05"><img src="assets/amw-gold.webp" alt="AmW widget showing a Gold futures chart" loading="lazy"></div>
                     </div>
                 </div>
             </div>
@@ -1229,7 +1242,6 @@
                 <div class="about-grid">
                     <div class="reveal">
                         <p class="eyebrow">Made in the Czech Republic <span class="flag">🇨🇿</span></p>
-                        <h2>From the heart of Europe.</h2>
                         <p>Kruen is a small studio based in the Czech Republic. We bring European quality and precision to mobile app development — traditional engineering craft combined with modern technology.</p>
                         <p>Our commitment to clean, ethical development means <strong>no ads, no hidden fees, no additional payments</strong>. And above all: <strong>we do not collect any user data.</strong> No tracking, no analytics, no data harvesting. What you do with our apps stays with you.</p>
                     </div>
@@ -1242,7 +1254,7 @@
                 </div>
                 <div class="footer-row">
                     <div>© kruen s.r.o. 2026 · Czech Republic</div>
-                    <div><a href="mailto:alexsxxx.kruen@gmail.com">alexsxxx.kruen@gmail.com</a></div>
+                    <div><a href="mailto:info@kruen.cz">info@kruen.cz</a></div>
                 </div>
             </div>
         </section>

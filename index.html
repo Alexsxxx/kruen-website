@@ -734,6 +734,23 @@
 
     .phone-screen img.active { opacity: 1; }
 
+    /* Auto-crossfading pair of shots within a single slot */
+    .shot-cycle img {
+        animation: shotCycle 10s ease-in-out infinite;
+    }
+    .shot-cycle img:nth-of-type(2) { animation-delay: 5s; }
+    @keyframes shotCycle {
+        0%, 45%  { opacity: 1; }
+        50%, 95% { opacity: 0; }
+        100%     { opacity: 1; }
+    }
+    #stickyScreen > .shot-cycle {
+        position: absolute; inset: 0; width: 100%; height: 100%;
+        opacity: 0;
+        transition: opacity 0.55s ease;
+    }
+    #stickyScreen > .shot-cycle.active { opacity: 1; }
+
     .phone-sticky {
         position: sticky;
         top: max(70px, calc(50vh - 46vh));
@@ -771,6 +788,7 @@
         }
         .step-media .phone-frame { width: min(270px, 74vw); }
         .step-media .phone-screen img { opacity: 1; position: static; height: auto; }
+        .step-media .phone-screen .shot-cycle img { position: absolute; height: 100%; }
     }
 
     /* --- Warp banner --- */
@@ -1155,7 +1173,10 @@
                         <h3>A worldwide receiver network</h3>
                         <p>Find your receiver anywhere in the world. Watch where the sun is shining and where it's already night.</p>
                         <div class="step-media">
-                            <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-map.webp" alt="SwR world map of KiwiSDR and Web-888 receivers" loading="lazy"></div></div>
+                            <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle">
+                                <img src="assets/swr-shot-map.webp" alt="SwR world map of KiwiSDR and Web-888 receivers" loading="lazy">
+                                <img src="assets/swr-shot-map-2.webp" alt="SwR world map zoomed on a Florida receiver cluster" loading="lazy">
+                            </div></div></div>
                         </div>
                     </div>
 
@@ -1163,7 +1184,10 @@
                         <h3>Shape the sound</h3>
                         <p>A built-in equalizer, adjustable bandwidth, noise reduction and smart scanning. Fine-tune every station until it sounds exactly right.</p>
                         <div class="step-media">
-                            <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-eq.webp" alt="SwR equalizer with bass, mid and treble knobs" loading="lazy"></div></div>
+                            <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle">
+                                <img src="assets/swr-shot-eq.webp" alt="SwR equalizer with bass, mid and treble knobs" loading="lazy">
+                                <img src="assets/swr-shot-eq-2.webp" alt="SwR spectrum tab with bar-graph analyzer" loading="lazy">
+                            </div></div></div>
                         </div>
                     </div>
                 </div>
@@ -1173,8 +1197,14 @@
                         <div class="phone-screen" id="stickyScreen">
                             <img data-shot="shot-spectrum" class="active" src="assets/swr-shot-modes.webp" alt="SwR live spectrum and waterfall view">
                             <img data-shot="shot-3d" src="assets/swr-shot-3d.webp" alt="SwR 3D spectrum landscape view" loading="lazy">
-                            <img data-shot="shot-map" src="assets/swr-shot-map.webp" alt="SwR world map of receivers" loading="lazy">
-                            <img data-shot="shot-eq" src="assets/swr-shot-eq.webp" alt="SwR equalizer" loading="lazy">
+                            <div class="shot-cycle" data-shot="shot-map">
+                                <img src="assets/swr-shot-map.webp" alt="SwR world map of receivers" loading="lazy">
+                                <img src="assets/swr-shot-map-2.webp" alt="SwR world map zoomed on a Florida receiver cluster" loading="lazy">
+                            </div>
+                            <div class="shot-cycle" data-shot="shot-eq">
+                                <img src="assets/swr-shot-eq.webp" alt="SwR equalizer" loading="lazy">
+                                <img src="assets/swr-shot-eq-2.webp" alt="SwR spectrum tab with bar-graph analyzer" loading="lazy">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1352,7 +1382,7 @@
     // ===================================================================
     function initFeatureScrolly() {
         const steps = document.querySelectorAll('.feature-step');
-        const shots = document.querySelectorAll('#stickyScreen img');
+        const shots = document.querySelectorAll('#stickyScreen > [data-shot]');
         if (!steps.length) return;
 
         const io = new IntersectionObserver((entries) => {

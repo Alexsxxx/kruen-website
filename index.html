@@ -988,40 +988,106 @@
         text-shadow: 0 2px 20px rgba(0, 0, 0, 0.8);
     }
 
-    /* --- Specs grid --- */
-    .specs {
+    /* --- Upcoming: two phones that take turns playing --- */
+    .upcoming {
         margin-top: clamp(70px, 9vw, 120px);
     }
 
-    .specs-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 14px;
-        list-style: none;
+    .upcoming-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-bottom: clamp(24px, 4vw, 48px);
     }
 
-    .specs-grid li {
+    .upcoming-title {
+        font-size: clamp(28px, 4.5vw, 48px);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+
+    .upcoming-sound {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
         border: 1px solid var(--stage-line);
-        border-radius: 18px;
-        background: linear-gradient(160deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012));
-        padding: 22px 22px 20px;
+        border-radius: 999px;
+        padding: 8px 16px;
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--stage-text-2);
+        font: inherit;
+        font-size: 13px;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        transition: color 0.25s ease, border-color 0.25s ease;
+    }
+
+    .upcoming-sound:hover { color: var(--stage-text); border-color: rgba(255, 138, 30, 0.45); }
+    .upcoming-sound svg { width: 17px; height: 17px; }
+    .upcoming-sound[aria-pressed="true"] { color: var(--stage-text); }
+    .upcoming-sound[aria-pressed="true"] .icon-off,
+    .upcoming-sound[aria-pressed="false"] .icon-on { display: none; }
+
+    .upcoming-stage {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: clamp(28px, 5vw, 80px);
+        justify-items: center;
+        perspective: 1600px;
+    }
+
+    .upcoming-item {
+        max-width: 320px;
+        transform-style: preserve-3d;
+        /* Idle state: turned away from the viewer, waiting its turn */
+        transform: rotateY(22deg) scale(0.9);
+        opacity: 0.45;
+        transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+                    opacity 0.9s ease;
+    }
+
+    .upcoming-item[data-side="right"] { transform: rotateY(-22deg) scale(0.9); }
+
+    .upcoming-item.is-active[data-side] {
+        transform: rotateY(0deg) scale(1);
+        opacity: 1;
+    }
+
+    .upcoming-item .phone-screen video {
+        position: absolute;
+        inset: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;
+    }
+
+    .upcoming-item figcaption {
+        margin-top: 22px;
         font-size: 14.5px;
         line-height: 1.55;
         color: var(--stage-text-2);
-        transition: transform 0.3s ease, border-color 0.3s ease;
     }
 
-    .specs-grid li:hover {
-        transform: translateY(-4px);
-        border-color: rgba(255, 138, 30, 0.45);
-    }
-
-    .specs-grid li b {
+    .upcoming-item figcaption b {
         display: block;
         color: var(--stage-text);
         font-weight: 600;
         font-size: 15.5px;
         margin-bottom: 6px;
+    }
+
+    @media (max-width: 720px) {
+        .upcoming-stage { grid-template-columns: minmax(0, 1fr); }
+        .upcoming-item { max-width: min(300px, 78vw); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .upcoming-item,
+        .upcoming-item[data-side="right"] {
+            transform: none;
+            opacity: 1;
+        }
     }
 
     /* ================================================================= */
@@ -1331,7 +1397,10 @@
                         <h3>Live spectrum &amp; waterfall</h3>
                         <p>Watch the whole band breathe in real time. A glowing frequency display, an authentic S-meter and a full waterfall view make hunting for signals feel like the real thing.</p>
                         <div class="step-media">
-                            <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-modes.webp" alt="SwR live spectrum and waterfall view" loading="lazy"></div></div>
+                            <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle">
+                                <img src="assets/swr-shot-modes.webp" alt="SwR live spectrum and waterfall view" loading="lazy">
+                                <img src="assets/swr-shot-openweb.webp" alt="SwR open web receiver view" loading="lazy">
+                            </div></div></div>
                         </div>
                     </div>
 
@@ -1359,8 +1428,8 @@
                         <p>A built-in equalizer, adjustable bandwidth, noise reduction and smart scanning. Fine-tune every station until it sounds exactly right.</p>
                         <div class="step-media">
                             <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle">
-                                <img src="assets/swr-shot-eq.webp" alt="SwR equalizer with bass, mid and treble knobs" loading="lazy">
-                                <img src="assets/swr-shot-eq-2.webp" alt="SwR spectrum tab with bar-graph analyzer" loading="lazy">
+                                <img src="assets/swr-shot-eq.webp" alt="SwR noise tab with squelch, noise blanker and noise reduction knobs" loading="lazy">
+                                <img src="assets/swr-shot-eq-2.webp" alt="SwR equalizer with bass, mid and treble knobs" loading="lazy">
                             </div></div></div>
                         </div>
                     </div>
@@ -1372,22 +1441,43 @@
                             <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-pixel.png" alt="SwR pixel-art display mode with dot-matrix spectrum and waterfall" loading="lazy"></div></div>
                         </div>
                     </div>
+
+                    <div class="feature-step" data-num="06" data-shot="shot-fm">
+                        <h3>FM-DX</h3>
+                        <p>FM broadcast radio, right on your phone (87.5-108 MHz). Tuning by hand is fast and lands right on frequency, so drag the dial to hunt for stations.</p>
+                        <div class="step-media">
+                            <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-fm.webp" alt="SwR FM-DX mode with the 87.5-108 MHz tuning dial" loading="lazy"></div></div>
+                        </div>
+                    </div>
+
+                    <div class="feature-step" data-num="07" data-shot="shot-free">
+                        <h3>Free version</h3>
+                        <p>Enjoy listening to stations around the world completely free and without ads.</p>
+                        <div class="step-media">
+                            <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-free.webp" alt="SwR free version" loading="lazy"></div></div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="phone-sticky">
                     <div class="phone-frame">
                         <div class="phone-screen" id="stickyScreen">
-                            <img data-shot="shot-spectrum" class="active" src="assets/swr-shot-modes.webp" alt="SwR live spectrum and waterfall view">
+                            <div class="shot-cycle active" data-shot="shot-spectrum">
+                                <img src="assets/swr-shot-modes.webp" alt="SwR live spectrum and waterfall view">
+                                <img src="assets/swr-shot-openweb.webp" alt="SwR open web receiver view" loading="lazy">
+                            </div>
                             <img data-shot="shot-3d" src="assets/swr-shot-3d.webp" alt="SwR 3D spectrum landscape view" loading="lazy">
                             <div class="shot-cycle" data-shot="shot-map">
                                 <img src="assets/swr-shot-map.webp" alt="SwR world map of receivers" loading="lazy">
                                 <img src="assets/swr-shot-map-2.webp" alt="SwR world map zoomed on a Florida receiver cluster" loading="lazy">
                             </div>
                             <div class="shot-cycle" data-shot="shot-eq">
-                                <img src="assets/swr-shot-eq.webp" alt="SwR equalizer" loading="lazy">
-                                <img src="assets/swr-shot-eq-2.webp" alt="SwR spectrum tab with bar-graph analyzer" loading="lazy">
+                                <img src="assets/swr-shot-eq.webp" alt="SwR noise reduction controls" loading="lazy">
+                                <img src="assets/swr-shot-eq-2.webp" alt="SwR equalizer with bass, mid and treble knobs" loading="lazy">
                             </div>
                             <img data-shot="shot-pixel" src="assets/swr-shot-pixel.png" alt="SwR pixel-art display mode" loading="lazy">
+                            <img data-shot="shot-fm" src="assets/swr-shot-fm.webp" alt="SwR FM-DX mode" loading="lazy">
+                            <img data-shot="shot-free" src="assets/swr-shot-free.webp" alt="SwR free version" loading="lazy">
                         </div>
                     </div>
                 </div>
@@ -1402,16 +1492,39 @@
                 </div>
             </div>
 
-            <!-- Specs -->
-            <div class="specs container">
-                <ul class="specs-grid">
-                    <li class="reveal"><b>Free version</b>Enjoy listening to stations around the world completely free and without ads.</li>
-                    <li class="reveal"><b>KiwiSDR &amp; Web-888</b>Hundreds of public receivers across the globe, with live channel availability.</li>
-                    <li class="reveal"><b>All the modes</b>AM · SAM · LSB · USB · CW · NBFM - with adjustable width and shift.</li>
-                    <li class="reveal"><b>Smart scan</b>Automatic station scanning with a signal-threshold slider.</li>
-                    <li class="reveal"><b>Audio toolkit</b>Equalizer, noise reduction, noise blanker, squelch and AGC.</li>
-                    <li class="reveal"><b>Clean by design</b>No ads, no hidden fees, no tracking. Your listening stays yours.</li>
-                </ul>
+            <!-- Upcoming -->
+            <div class="upcoming container" id="upcoming">
+                <div class="upcoming-head reveal">
+                    <h2 class="upcoming-title">Upcoming</h2>
+                    <button class="upcoming-sound" type="button" id="upcomingSound" aria-pressed="true">
+                        <svg class="icon-on" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 2.2v2.1a7.8 7.8 0 0 1 0 15.4v2.1a9.9 9.9 0 0 0 0-19.6z"/></svg>
+                        <svg class="icon-off" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4zm15.5 3 2.3-2.3-1.2-1.2-2.3 2.3-2.3-2.3-1.2 1.2 2.3 2.3-2.3 2.3 1.2 1.2 2.3-2.3 2.3 2.3 1.2-1.2-2.3-2.3z"/></svg>
+                        <span>Sound</span>
+                    </button>
+                </div>
+                <div class="upcoming-stage">
+                    <figure class="upcoming-item is-active" data-side="left">
+                        <div class="phone-frame"><div class="phone-screen">
+                            <video src="assets/swr-usb-dongle.mp4" muted playsinline preload="none"
+                                   aria-label="SwR running offline with a USB SDR dongle"></video>
+                        </div></div>
+                        <figcaption>
+                            <b>Your own USB dongle</b>
+                            Plug in an SDR dongle and listen completely offline - no internet, no server, no limits. Just your antenna and the whole band.
+                        </figcaption>
+                    </figure>
+
+                    <figure class="upcoming-item" data-side="right">
+                        <div class="phone-frame"><div class="phone-screen">
+                            <video src="assets/swr-widget.mp4" muted playsinline preload="none"
+                                   aria-label="SwR home-screen widget controlling playback"></video>
+                        </div></div>
+                        <figcaption>
+                            <b>Home-screen widget</b>
+                            Browse the web or do anything else on your phone while the radio keeps playing - and retune any time straight from the widget.
+                        </figcaption>
+                    </figure>
+                </div>
             </div>
 
             <!-- ===================================================== -->
@@ -1584,6 +1697,131 @@
         }, { rootMargin: '-42% 0px -42% 0px', threshold: 0 });
 
         steps.forEach(s => io.observe(s));
+    }
+
+    // ===================================================================
+    // UPCOMING: the two phones take turns - one plays, the other stays
+    // turned away until its neighbour's clip ends. Sound is on only while
+    // the section is on screen, and only once the visitor has interacted
+    // with the page (browsers refuse audible autoplay before that).
+    // ===================================================================
+    function initUpcoming() {
+        const stage = document.querySelector('.upcoming-stage');
+        const items = Array.from(document.querySelectorAll('.upcoming-item'));
+        if (!stage || items.length < 2) return;
+
+        const videos = items.map(item => item.querySelector('video'));
+        const soundBtn = document.getElementById('upcomingSound');
+        let current = 0;
+        let visible = false;
+        let gestured = false;
+        let wantSound = true;
+
+        function isAudible() {
+            const v = videos[current];
+            return !v.muted && !v.paused;
+        }
+
+        function syncSound() {
+            const audible = wantSound && gestured && visible;
+            videos.forEach((v, i) => { v.muted = !(audible && i === current); });
+            if (audible) recoverIfPaused(videos[current]);
+            updateButton();
+        }
+
+        function updateButton() {
+            if (!soundBtn) return;
+            soundBtn.setAttribute('aria-pressed', String(wantSound && isAudible()));
+            // Until the browser lets audio through, say what unblocks it.
+            soundBtn.lastElementChild.textContent =
+                wantSound && !isAudible() ? 'Tap for sound' : 'Sound';
+        }
+
+        // Chrome pauses a clip that gets unmuted without enough user
+        // engagement - fall back to a silent one rather than a frozen one.
+        function recoverIfPaused(video) {
+            const check = () => {
+                if (!visible || !video.paused || video.ended) return;
+                video.muted = true;
+                video.play().catch(() => {});
+                updateButton();
+            };
+            check();
+            setTimeout(check, 120);
+        }
+
+        function show(index) {
+            current = index;
+            items.forEach((item, i) => item.classList.toggle('is-active', i === index));
+            videos.forEach((v, i) => {
+                if (i === index) return;
+                v.pause();
+                v.currentTime = 0;
+            });
+            if (visible) play(videos[index]);
+        }
+
+        function play(video) {
+            video.currentTime = 0;
+            video.muted = !(wantSound && gestured && visible);
+            const p = video.play();
+            // Autoplay can still be refused (data saver, battery saver) - hand the
+            // turn over rather than leaving the pair frozen on a paused clip.
+            if (p) p.then(syncSound).catch(() => {
+                if (!video.muted) {
+                    video.muted = true;
+                    video.play().catch(() => {});
+                    syncSound();
+                } else {
+                    setTimeout(() => show((current + 1) % items.length), 4000);
+                }
+            });
+        }
+
+        videos.forEach(v => {
+            v.addEventListener('ended', () => {
+                if (visible) show((current + 1) % items.length);
+            });
+        });
+
+        if (soundBtn) {
+            soundBtn.addEventListener('click', () => {
+                // Sound already wanted but still silent? The click itself is the
+                // permission that was missing - spend it on unmuting, not on
+                // toggling off, otherwise it takes two clicks to hear anything.
+                if (!(wantSound && !isAudible())) wantSound = !wantSound;
+                gestured = true;
+                syncSound();
+            });
+        }
+
+        // Any interaction while the section is on screen is a fresh chance to
+        // unmute - browsers only allow it inside a recent user gesture.
+        ['pointerdown', 'keydown', 'touchstart'].forEach(evt => {
+            window.addEventListener(evt, (e) => {
+                gestured = true;
+                // Leave presses on the toggle to its own click handler, so it
+                // doesn't unmute here and get toggled straight back off.
+                if (soundBtn && e.target instanceof Node && soundBtn.contains(e.target)) return;
+                if (visible && wantSound && !isAudible()) syncSound();
+            }, { passive: true });
+        });
+
+        const io = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                visible = entry.isIntersecting;
+                if (visible) {
+                    videos.forEach(v => { if (v.preload === 'none') v.preload = 'auto'; });
+                    play(videos[current]);
+                } else {
+                    videos.forEach(v => { v.pause(); v.muted = true; });
+                }
+            });
+        }, { threshold: 0.35 });
+
+        io.observe(stage);
+        show(0);
+        updateButton();
     }
 
     // ===================================================================
@@ -2199,6 +2437,7 @@
         initNavbar();
         initReveals();
         initFeatureScrolly();
+        initUpcoming();
         initScrollFX();
         initSkinCompare();
     });

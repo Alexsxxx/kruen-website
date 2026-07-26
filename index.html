@@ -9,7 +9,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="preload" as="image" href="assets/swr-panel.webp">
+    <link rel="preload" as="image" href="assets/swr-panel-dark.webp">
+    <link rel="preload" as="image" href="assets/swr-panel-white.webp">
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111114'/%3E%3Ctext x='32' y='45' font-family='sans-serif' font-size='38' font-weight='bold' fill='%23fff' text-anchor='middle'%3EK%3C/text%3E%3Ccircle cx='50' cy='44' r='5' fill='%23ff8a1e'/%3E%3C/svg%3E">
 
     <!-- Anti-flicker script -->
@@ -595,7 +596,8 @@
     .panel-3d {
         transform-origin: 50% 100%;
         will-change: transform, opacity;
-        border-radius: clamp(12px, 2vw, 24px);
+        /* Matches the corner rounding baked into the panel artwork */
+        border-radius: clamp(8px, 1.2vw, 15px);
         overflow: hidden;
         border: 1px solid rgba(255, 255, 255, 0.12);
         box-shadow:
@@ -604,6 +606,135 @@
     }
 
     .panel-3d img { width: 100%; }
+
+    /* Light / dark skin comparison slider inside the panel */
+    .skin-compare {
+        position: relative;
+        display: block;
+        line-height: 0;
+        touch-action: pan-y;
+        cursor: ew-resize;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    .skin-compare-img { display: block; width: 100%; height: auto; }
+
+    /* Light skin sits on top and is clipped to the divider position */
+    .skin-compare-over {
+        position: absolute;
+        inset: 0;
+        clip-path: inset(0 calc(100% - var(--pos)) 0 0);
+    }
+
+    /* Mirror layer so the "Dark" badge is clipped away once the divider passes it */
+    .skin-compare-clip--dark {
+        position: absolute;
+        inset: 0;
+        clip-path: inset(0 0 0 var(--pos));
+        pointer-events: none;
+    }
+
+    .skin-compare-over .skin-compare-img { height: 100%; object-fit: cover; }
+
+    .skin-compare-divider {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: var(--pos);
+        width: 2px;
+        margin-left: -1px;
+        background: rgba(255, 255, 255, 0.85);
+        box-shadow: 0 0 14px rgba(255, 138, 30, 0.55), 0 0 3px rgba(0, 0, 0, 0.6);
+        pointer-events: none;
+    }
+
+    .skin-compare-handle {
+        position: absolute;
+        top: 50%;
+        left: var(--pos);
+        transform: translate(-50%, -50%);
+        width: clamp(38px, 4vw, 52px);
+        aspect-ratio: 1;
+        display: grid;
+        place-items: center;
+        padding: 0;
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: 50%;
+        background: rgba(14, 14, 18, 0.72);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        color: #fff;
+        cursor: ew-resize;
+        touch-action: none;
+        box-shadow: 0 6px 22px rgba(0, 0, 0, 0.55), 0 0 0 6px rgba(255, 138, 30, 0.10);
+        transition: box-shadow 0.25s ease, background 0.25s ease;
+    }
+
+    .skin-compare-handle svg { width: 62%; height: 62%; }
+
+    .skin-compare-handle:hover,
+    .skin-compare-handle:focus-visible {
+        background: rgba(255, 138, 30, 0.85);
+        box-shadow: 0 6px 26px rgba(0, 0, 0, 0.6), 0 0 0 8px rgba(255, 138, 30, 0.22);
+        outline: none;
+    }
+
+    /* Gentle hint that the handle is draggable - removed on first interaction */
+    .skin-compare-handle.is-hinting { animation: skinHint 2.6s ease-in-out infinite; }
+
+    @keyframes skinHint {
+        0%, 100% { box-shadow: 0 6px 22px rgba(0, 0, 0, 0.55), 0 0 0 6px rgba(255, 138, 30, 0.10); }
+        50%      { box-shadow: 0 6px 22px rgba(0, 0, 0, 0.55), 0 0 0 13px rgba(255, 138, 30, 0.03); }
+    }
+
+    .skin-compare-badge {
+        position: absolute;
+        bottom: clamp(8px, 1.4vw, 16px);
+        z-index: 2;
+        padding: 5px 11px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(8, 8, 11, 0.6);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        font-size: clamp(9px, 1vw, 11px);
+        line-height: 1.4;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--stage-text-2);
+        pointer-events: none;
+        opacity: 0.9;
+    }
+
+    .skin-compare-badge--l { left: clamp(10px, 1.6vw, 18px); }
+    .skin-compare-badge--r { right: clamp(10px, 1.6vw, 18px); }
+
+    /* The light panel needs a light-on-dark badge to stay readable */
+    .skin-compare-over .skin-compare-badge {
+        border-color: rgba(0, 0, 0, 0.12);
+        background: rgba(245, 245, 248, 0.72);
+        color: #55585f;
+    }
+
+    /* The panel gets small on phones - keep the controls proportional */
+    @media (max-width: 640px) {
+        .skin-compare-handle { width: 30px; border-width: 1px; }
+        .skin-compare-divider { box-shadow: 0 0 8px rgba(255, 138, 30, 0.5), 0 0 2px rgba(0, 0, 0, 0.6); }
+        .skin-compare-badge {
+            bottom: 5px;
+            padding: 2px 6px;
+            font-size: 8px;
+            letter-spacing: 0.08em;
+        }
+        .skin-compare-badge--l { left: 5px; }
+        .skin-compare-badge--r { right: 5px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .skin-compare-handle.is-hinting { animation: none; }
+    }
 
     .panel-caption {
         text-align: center;
@@ -1147,9 +1278,26 @@
             <!-- Dominant panel image with 3D scroll tilt -->
             <div class="panel-showcase">
                 <div class="panel-3d" id="panel3d">
-                    <img src="assets/swr-panel.webp" alt="SwR hand-crafted radio panel skin with analog knobs, S-meter and frequency display" width="1800" height="786">
+                    <div class="skin-compare" id="skinCompare" style="--pos: 50%">
+                        <img class="skin-compare-img" src="assets/swr-panel-dark.webp" alt="SwR Panel One radio skin in the dark finish, with analog knobs, S-meter and frequency display" width="2382" height="1034">
+                        <div class="skin-compare-clip skin-compare-clip--dark" aria-hidden="true">
+                            <span class="skin-compare-badge skin-compare-badge--r">Dark</span>
+                        </div>
+                        <div class="skin-compare-over">
+                            <img class="skin-compare-img" src="assets/swr-panel-white.webp" alt="The same SwR Panel One radio skin in the light finish" width="2382" height="1034">
+                            <span class="skin-compare-badge skin-compare-badge--l" aria-hidden="true">Light</span>
+                        </div>
+                        <div class="skin-compare-divider" aria-hidden="true"></div>
+                        <button class="skin-compare-handle" type="button" id="skinCompareHandle"
+                                role="slider" aria-orientation="horizontal"
+                                aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"
+                                aria-valuetext="Half light finish, half dark finish"
+                                aria-label="Drag to compare the light and dark finish of Panel One">
+                            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.6 6.4 4.8 12l4.8 5.6 1.5-1.3L7.5 12l3.6-4.3zm4.8 0-1.5 1.3L16.5 12l-3.6 4.3 1.5 1.3L19.2 12z"/></svg>
+                        </button>
+                    </div>
                 </div>
-                <p class="panel-caption"><strong>Panel One</strong> - a hand-crafted radio skin. Every knob, switch and needle actually works.</p>
+                <p class="panel-caption"><strong>Panel One</strong> - one hand-crafted radio skin, two finishes. Drag the divider to switch. Every knob, switch and needle actually works.</p>
             </div>
 
             <!-- Neon digits marquee -->
@@ -1494,6 +1642,94 @@
         }, { passive: true });
         window.addEventListener('resize', update, { passive: true });
         update();
+    }
+
+    // ===================================================================
+    // PANEL SKIN COMPARE (drag the divider between light and dark finish)
+    // ===================================================================
+    function initSkinCompare() {
+        const box = document.getElementById('skinCompare');
+        const handle = document.getElementById('skinCompareHandle');
+        if (!box || !handle) return;
+
+        let pos = 50;
+        let dragging = false;
+        let hinting = true;
+
+        function render() {
+            box.style.setProperty('--pos', pos + '%');
+            handle.setAttribute('aria-valuenow', String(Math.round(pos)));
+            handle.setAttribute('aria-valuetext',
+                pos <= 2 ? 'Dark finish only'
+                : pos >= 98 ? 'Light finish only'
+                : Math.round(pos) + '% light finish, ' + Math.round(100 - pos) + '% dark finish');
+        }
+
+        function stopHint() {
+            if (!hinting) return;
+            hinting = false;
+            handle.classList.remove('is-hinting');
+        }
+
+        function setFromClientX(clientX) {
+            const r = box.getBoundingClientRect();
+            if (!r.width) return;
+            pos = Math.min(100, Math.max(0, ((clientX - r.left) / r.width) * 100));
+            render();
+        }
+
+        box.addEventListener('pointerdown', function(e) {
+            // Ignore secondary buttons so right-click / middle-click stay normal
+            if (e.button !== 0) return;
+            dragging = true;
+            stopHint();
+            box.setPointerCapture(e.pointerId);
+            setFromClientX(e.clientX);
+            e.preventDefault();
+        });
+
+        box.addEventListener('pointermove', function(e) {
+            if (!dragging) return;
+            setFromClientX(e.clientX);
+        });
+
+        function endDrag(e) {
+            if (!dragging) return;
+            dragging = false;
+            if (box.hasPointerCapture(e.pointerId)) box.releasePointerCapture(e.pointerId);
+        }
+
+        box.addEventListener('pointerup', endDrag);
+        box.addEventListener('pointercancel', endDrag);
+
+        // Keyboard control on the handle
+        handle.addEventListener('keydown', function(e) {
+            const step = e.shiftKey ? 10 : 2;
+            let next = pos;
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') next = pos - step;
+            else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') next = pos + step;
+            else if (e.key === 'Home') next = 0;
+            else if (e.key === 'End') next = 100;
+            else return;
+            e.preventDefault();
+            stopHint();
+            pos = Math.min(100, Math.max(0, next));
+            render();
+        });
+
+        // Hint the handle once the panel is actually on screen
+        if ('IntersectionObserver' in window) {
+            const io = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (!entry.isIntersecting) return;
+                    io.disconnect();
+                    if (hinting) handle.classList.add('is-hinting');
+                });
+            }, { threshold: 0.4 });
+            io.observe(box);
+        }
+
+        render();
     }
 
     // ===================================================================
@@ -1964,6 +2200,7 @@
         initReveals();
         initFeatureScrolly();
         initScrollFX();
+        initSkinCompare();
     });
     </script>
 </body>

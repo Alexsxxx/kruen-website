@@ -1457,6 +1457,25 @@
                             <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-free.webp" alt="SwR free version" loading="lazy"></div></div>
                         </div>
                     </div>
+
+                    <div class="feature-step" data-num="08" data-shot="shot-widget">
+                        <h3>Widgets</h3>
+                        <p>Two types for KiwiSDR and FM-DX. Browse the web or do anything else on your phone while the radio keeps playing - and retune any time straight from the widget.</p>
+                        <div class="step-media">
+                            <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle">
+                                <img src="assets/swr-shot-widget.webp" alt="SwR KiwiSDR home-screen widget" loading="lazy">
+                                <img src="assets/swr-shot-widget-2.webp" alt="SwR FM-DX home-screen widget" loading="lazy">
+                            </div></div></div>
+                        </div>
+                    </div>
+
+                    <div class="feature-step" data-num="09" data-shot="shot-dongle">
+                        <h3>Your own USB dongle</h3>
+                        <p>Plug in an SDR dongle and listen completely offline - no internet, no server, no limits. Just your antenna and the whole band.</p>
+                        <div class="step-media">
+                            <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-dongle.webp" alt="SwR running offline with a USB SDR dongle" loading="lazy"></div></div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="phone-sticky">
@@ -1478,6 +1497,11 @@
                             <img data-shot="shot-pixel" src="assets/swr-shot-pixel.png" alt="SwR pixel-art display mode" loading="lazy">
                             <img data-shot="shot-fm" src="assets/swr-shot-fm.webp" alt="SwR FM-DX mode" loading="lazy">
                             <img data-shot="shot-free" src="assets/swr-shot-free.webp" alt="SwR free version" loading="lazy">
+                            <div class="shot-cycle" data-shot="shot-widget">
+                                <img src="assets/swr-shot-widget.webp" alt="SwR KiwiSDR home-screen widget" loading="lazy">
+                                <img src="assets/swr-shot-widget-2.webp" alt="SwR FM-DX home-screen widget" loading="lazy">
+                            </div>
+                            <img data-shot="shot-dongle" src="assets/swr-shot-dongle.webp" alt="SwR running offline with a USB SDR dongle" loading="lazy">
                         </div>
                     </div>
                 </div>
@@ -1492,8 +1516,8 @@
                 </div>
             </div>
 
-            <!-- Upcoming -->
-            <div class="upcoming container" id="upcoming">
+            <!-- Upcoming - hidden for now, kept for the next round of news -->
+            <div class="upcoming container" id="upcoming" hidden>
                 <div class="upcoming-head reveal">
                     <h2 class="upcoming-title">Upcoming</h2>
                     <button class="upcoming-sound" type="button" id="upcomingSound" aria-pressed="true">
@@ -1706,9 +1730,10 @@
     // with the page (browsers refuse audible autoplay before that).
     // ===================================================================
     function initUpcoming() {
+        const section = document.getElementById('upcoming');
         const stage = document.querySelector('.upcoming-stage');
         const items = Array.from(document.querySelectorAll('.upcoming-item'));
-        if (!stage || items.length < 2) return;
+        if (!stage || items.length < 2 || (section && section.hidden)) return;
 
         const videos = items.map(item => item.querySelector('video'));
         const soundBtn = document.getElementById('upcomingSound');

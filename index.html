@@ -1397,15 +1397,12 @@
                         <h3>Live spectrum &amp; waterfall</h3>
                         <p>Watch the whole band breathe in real time. A glowing frequency display, an authentic S-meter and a full waterfall view make hunting for signals feel like the real thing.</p>
                         <div class="step-media">
-                            <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle">
-                                <img src="assets/swr-shot-modes.webp" alt="SwR live spectrum and waterfall view" loading="lazy">
-                                <img src="assets/swr-shot-openweb.webp" alt="SwR open web receiver view" loading="lazy">
-                            </div></div></div>
+                            <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-modes.webp" alt="SwR live spectrum and waterfall view" loading="lazy"></div></div>
                         </div>
                     </div>
 
                     <div class="feature-step" data-num="02" data-shot="shot-3d">
-                        <h3>Four different types of waterfalls</h3>
+                        <h3>Different types of waterfalls &amp; spectrums</h3>
                         <p>Switch the waterfall into a rolling 3D landscape or a hypnotic 4D warp. Radio spectrum has never looked this good on a phone.</p>
                         <div class="step-media">
                             <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-3d.webp" alt="SwR 3D spectrum landscape view" loading="lazy"></div></div>
@@ -1414,7 +1411,7 @@
 
                     <div class="feature-step" data-num="03" data-shot="shot-map">
                         <h3>A worldwide receiver network</h3>
-                        <p>Find your receiver anywhere in the world. Watch where the sun is shining and where it's already night.</p>
+                        <p>Find your receiver anywhere in the world and choose from 5 clients: KiwiSDR/Web-888, OpenWebRX, UberSDR, FM-DX and AirSpy. Watch where the sun is shining and where it's already night.</p>
                         <div class="step-media">
                             <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle">
                                 <img src="assets/swr-shot-map.webp" alt="SwR world map of KiwiSDR and Web-888 receivers" loading="lazy">
@@ -1450,15 +1447,7 @@
                         </div>
                     </div>
 
-                    <div class="feature-step" data-num="07" data-shot="shot-free">
-                        <h3>Free version</h3>
-                        <p>Enjoy listening to stations around the world completely free and without ads.</p>
-                        <div class="step-media">
-                            <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-free.webp" alt="SwR free version" loading="lazy"></div></div>
-                        </div>
-                    </div>
-
-                    <div class="feature-step" data-num="08" data-shot="shot-widget">
+                    <div class="feature-step" data-num="07" data-shot="shot-widget">
                         <h3>Widgets</h3>
                         <p>Two types for KiwiSDR and FM-DX. Browse the web or do anything else on your phone while the radio keeps playing - and retune any time straight from the widget.</p>
                         <div class="step-media">
@@ -1469,11 +1458,19 @@
                         </div>
                     </div>
 
-                    <div class="feature-step" data-num="09" data-shot="shot-dongle">
+                    <div class="feature-step" data-num="08" data-shot="shot-dongle">
                         <h3>Your own USB dongle</h3>
                         <p>Plug in an SDR dongle and listen completely offline - no internet, no server, no limits. Just your antenna and the whole band.</p>
                         <div class="step-media">
                             <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-dongle.webp" alt="SwR running offline with a USB SDR dongle" loading="lazy"></div></div>
+                        </div>
+                    </div>
+
+                    <div class="feature-step" data-num="09" data-shot="shot-free">
+                        <h3>Free version</h3>
+                        <p>Enjoy listening to stations around the world completely free and without ads.</p>
+                        <div class="step-media">
+                            <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-free.webp" alt="SwR free version" loading="lazy"></div></div>
                         </div>
                     </div>
                 </div>
@@ -1481,10 +1478,7 @@
                 <div class="phone-sticky">
                     <div class="phone-frame">
                         <div class="phone-screen" id="stickyScreen">
-                            <div class="shot-cycle active" data-shot="shot-spectrum">
-                                <img src="assets/swr-shot-modes.webp" alt="SwR live spectrum and waterfall view">
-                                <img src="assets/swr-shot-openweb.webp" alt="SwR open web receiver view" loading="lazy">
-                            </div>
+                            <img class="active" data-shot="shot-spectrum" src="assets/swr-shot-modes.webp" alt="SwR live spectrum and waterfall view">
                             <img data-shot="shot-3d" src="assets/swr-shot-3d.webp" alt="SwR 3D spectrum landscape view" loading="lazy">
                             <div class="shot-cycle" data-shot="shot-map">
                                 <img src="assets/swr-shot-map.webp" alt="SwR world map of receivers" loading="lazy">
@@ -1496,12 +1490,12 @@
                             </div>
                             <img data-shot="shot-pixel" src="assets/swr-shot-pixel.png" alt="SwR pixel-art display mode" loading="lazy">
                             <img data-shot="shot-fm" src="assets/swr-shot-fm.webp" alt="SwR FM-DX mode" loading="lazy">
-                            <img data-shot="shot-free" src="assets/swr-shot-free.webp" alt="SwR free version" loading="lazy">
                             <div class="shot-cycle" data-shot="shot-widget">
                                 <img src="assets/swr-shot-widget.webp" alt="SwR KiwiSDR home-screen widget" loading="lazy">
                                 <img src="assets/swr-shot-widget-2.webp" alt="SwR FM-DX home-screen widget" loading="lazy">
                             </div>
                             <img data-shot="shot-dongle" src="assets/swr-shot-dongle.webp" alt="SwR running offline with a USB SDR dongle" loading="lazy">
+                            <img data-shot="shot-free" src="assets/swr-shot-free.webp" alt="SwR free version" loading="lazy">
                         </div>
                     </div>
                 </div>
@@ -2015,9 +2009,25 @@
             this.rotationVelocityZ = 0;
             this.rotationVelocityX = 0;
             this.manualRotateEnabled = false; // Default: disabled
+            // The net is decoration only on phones - no touch/pointer interaction there
+            this.mobileQuery = window.matchMedia('(max-width: 768px)');
+            if (this.mobileQuery.matches) this.parkMouse();
             this.updateTheme();
 
             this.init();
+        }
+
+        get interactive() {
+            return !this.mobileQuery.matches;
+        }
+
+        // Move the push point far off screen so no node stays dented
+        parkMouse() {
+            this.mouse.x = -9999;
+            this.mouse.y = -9999;
+            this.mouseTrail = [];
+            this.isMouseDown = false;
+            this.isDragging = false;
         }
 
         updateTheme() {
@@ -2097,7 +2107,12 @@
                 this.createNodes();
             });
 
+            this.mobileQuery.addEventListener('change', () => {
+                if (!this.interactive) this.parkMouse();
+            });
+
             window.addEventListener('mousemove', (e) => {
+                if (!this.interactive) return;
                 this.mouse.x = e.clientX;
                 this.mouse.y = e.clientY;
 
@@ -2139,6 +2154,7 @@
             });
 
             window.addEventListener('mousedown', (e) => {
+                if (!this.interactive) return;
                 // Only start net-dragging in the hero area, not over links/buttons
                 if (e.target.closest('a, button, label, input')) return;
                 this.isMouseDown = true;
@@ -2158,6 +2174,7 @@
 
             // Touch events for mobile with passive: false to allow preventDefault
             window.addEventListener('touchstart', (e) => {
+                if (!this.interactive) return;
                 // Check if touch is on a UI element (toggles)
                 const target = e.target;
                 const isUIElement = target.closest('.theme-toggle') || target.closest('.manual-rotate-toggle') || target.closest('a, button');
@@ -2183,6 +2200,7 @@
             }, { passive: false });
 
             window.addEventListener('touchmove', (e) => {
+                if (!this.interactive) return;
                 const touch = e.touches[0];
                 this.mouse.x = touch.clientX;
                 this.mouse.y = touch.clientY;
@@ -2232,6 +2250,7 @@
             }, { passive: false });
 
             window.addEventListener('touchend', (e) => {
+                if (!this.interactive) return;
                 // Check if touch is on a UI element (toggles)
                 const target = e.target;
                 const isUIElement = target.closest('.theme-toggle') || target.closest('.manual-rotate-toggle') || target.closest('a, button');

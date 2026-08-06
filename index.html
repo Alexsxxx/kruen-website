@@ -1210,7 +1210,9 @@
 
     .upcoming-stage {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        /* Sized by the items so a lone clip stays centred instead of hugging a column */
+        grid-template-columns: repeat(auto-fit, minmax(0, 320px));
+        justify-content: center;
         gap: clamp(28px, 5vw, 80px);
         justify-items: center;
         perspective: 1600px;
@@ -1382,9 +1384,7 @@
         font-size: 15px;
         font-weight: 500;
         color: var(--text);
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        padding: 14px 18px;
+        padding: 6px 0;
     }
 
     .about-list li::before {
@@ -1808,8 +1808,8 @@
                 </div>
             </div>
 
-            <!-- Upcoming - hidden for now, kept for the next round of news -->
-            <div class="upcoming container" id="upcoming" hidden>
+            <!-- Upcoming -->
+            <div class="upcoming container" id="upcoming">
                 <div class="upcoming-head reveal">
                     <h2 class="upcoming-title">Upcoming</h2>
                     <button class="upcoming-sound" type="button" id="upcomingSound" aria-pressed="true">
@@ -1821,23 +1821,12 @@
                 <div class="upcoming-stage">
                     <figure class="upcoming-item is-active" data-side="left">
                         <div class="phone-frame"><div class="phone-screen">
-                            <video src="assets/swr-usb-dongle.mp4" muted playsinline preload="none"
-                                   aria-label="SwR running offline with a USB SDR dongle"></video>
+                            <video src="assets/swr-satellite.mp4" muted playsinline preload="none"
+                                   aria-label="SwR tracking satellites across the sky"></video>
                         </div></div>
                         <figcaption>
-                            <b>Your own USB dongle</b>
-                            Plug in an SDR dongle and listen completely offline - no internet, no server, no limits. Just your antenna and the whole band.
-                        </figcaption>
-                    </figure>
-
-                    <figure class="upcoming-item" data-side="right">
-                        <div class="phone-frame"><div class="phone-screen">
-                            <video src="assets/swr-widget.mp4" muted playsinline preload="none"
-                                   aria-label="SwR home-screen widget controlling playback"></video>
-                        </div></div>
-                        <figcaption>
-                            <b>Home-screen widget</b>
-                            Browse the web or do anything else on your phone while the radio keeps playing - and retune any time straight from the widget.
+                            <b>Satellite tracking and listening</b>
+                            Intensive implementation is in process.
                         </figcaption>
                     </figure>
                 </div>
@@ -2025,7 +2014,7 @@
         const section = document.getElementById('upcoming');
         const stage = document.querySelector('.upcoming-stage');
         const items = Array.from(document.querySelectorAll('.upcoming-item'));
-        if (!stage || items.length < 2 || (section && section.hidden)) return;
+        if (!stage || !items.length || (section && section.hidden)) return;
 
         const videos = items.map(item => item.querySelector('video'));
         const soundBtn = document.getElementById('upcomingSound');

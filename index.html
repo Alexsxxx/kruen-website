@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-site-verification" content="0c-hmtOEQ5Lbyy8KcHhiSP3Y-jO0mCeDEr_tyvdrUfw" />
-    <meta name="description" content="Kruen - Android app design & development from the Czech Republic. Makers of SwR Shortwave Radio and AllMarkets Widget.">
-    <title>Kruen - SwR Shortwave Radio &amp; AllMarkets Widget</title>
+    <meta name="description" content="Kruen - Android app design & development from the Czech Republic. Makers of SwR Global Radio and AllMarkets Widget.">
+    <title>Kruen - SwR Global Radio &amp; AllMarkets Widget</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -492,6 +492,7 @@
         display: flex;
         align-items: center;
         gap: 24px;
+        flex-wrap: wrap;
         margin-bottom: 28px;
     }
 
@@ -519,6 +520,41 @@
         letter-spacing: 0.01em;
         color: var(--stage-text-2);
         margin-top: 8px;
+    }
+
+    /* "PRO is a one-time purchase" badge next to the app title */
+    .buy-badge {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        max-width: 340px;
+        padding: 14px 18px;
+        border: 1px solid rgba(255, 138, 30, 0.35);
+        border-radius: 16px;
+        background: var(--accent-soft);
+    }
+
+    .buy-badge svg {
+        flex: none;
+        width: 22px; height: 22px;
+        color: var(--accent);
+    }
+
+    .buy-badge p {
+        font-size: 13px;
+        line-height: 1.5;
+        color: var(--stage-text-2);
+    }
+
+    .buy-badge strong {
+        display: block;
+        font-family: 'Space Grotesk', 'Inter', sans-serif;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        color: var(--stage-text);
+        margin-bottom: 2px;
     }
 
     .lead {
@@ -1097,6 +1133,17 @@
         color: var(--accent);
     }
 
+    .compare-table thead .col-pro small {
+        display: block;
+        margin-top: 5px;
+        font-family: 'Inter', sans-serif;
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        text-transform: none;
+        color: var(--stage-text-2);
+    }
+
     .compare-mark {
         display: inline-flex;
         align-items: center;
@@ -1428,6 +1475,9 @@
         .nav-links { display: none; }
         .about-grid { grid-template-columns: 1fr; }
         .app-head { gap: 16px; }
+        .buy-badge { margin-left: 0; max-width: none; width: 100%; padding: 13px 15px; }
+        .buy-badge strong { font-size: 14px; }
+        .buy-badge p { font-size: 12.5px; }
         .cta-row { margin-top: 28px; }
     }
 
@@ -1486,7 +1536,7 @@
                 <p class="hero-subtitle">Android and iOS App Design &amp; Development</p>
                 <p class="hero-description">We create modern and user-friendly applications that combine quality design with perfect functionality.</p>
                 <div class="hero-cta">
-                    <a class="hero-chip" href="#swr">SwR - Shortwave Radio <span class="arrow">↓</span></a>
+                    <a class="hero-chip" href="#swr">SwR - Global Radio <span class="arrow">↓</span></a>
                     <a class="hero-chip" href="#amw">AmW - AllMarkets Widget <span class="arrow">↓</span></a>
                 </div>
             </div>
@@ -1503,9 +1553,16 @@
                 <p class="eyebrow reveal">01 · Flagship App</p>
                 <div class="app-head reveal">
                     <div class="app-icon"><img src="assets/swr-icon.webp" alt="SwR app icon" width="512" height="512"></div>
-                    <h2>SwR<span>Shortwave Radio</span></h2>
+                    <h2>SwR<span>Global Radio</span></h2>
+                    <div class="buy-badge">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 11V8a5 5 0 0 0-10 0v3"/><rect x="4.5" y="11" width="15" height="9.5" rx="2.5"/><path d="M12 15v2"/></svg>
+                        <p>
+                            <strong>PRO is a one-time purchase</strong>
+                            Pay once, keep it forever - no subscription.
+                        </p>
+                    </div>
                 </div>
-                <p class="lead reveal">Tune into <strong>real shortwave receivers</strong> around the world - live, from your phone. SwR connects to hundreds of KiwiSDR and Web-888 receivers and turns the ionosphere into your personal listening room.</p>
+                <p class="lead reveal">Tune into <strong>real radio receivers</strong> around the world - live, from your phone. SwR connects to hundreds of receivers across five clients - KiwiSDR/Web-888, OpenWebRX, UberSDR, FM-DX and AirSpy - and turns the ionosphere into your personal listening room.</p>
                 <div class="cta-row reveal">
                     <a class="play-btn" href="https://apps.apple.com/cz/app/swr-sdr-shortwave-radio/id6791090009" target="_blank" rel="noopener">
                         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.36 12.68c.02-2.1 1.72-3.11 1.79-3.16-.98-1.43-2.5-1.62-3.04-1.65-1.29-.13-2.53.76-3.18.76-.66 0-1.67-.74-2.75-.72-1.41.02-2.72.82-3.44 2.09-1.47 2.54-.38 6.3 1.05 8.36.7 1.01 1.53 2.14 2.62 2.1 1.05-.04 1.45-.68 2.72-.68 1.27 0 1.63.68 2.74.66 1.13-.02 1.85-1.03 2.54-2.04.8-1.17 1.13-2.3 1.15-2.36-.03-.01-2.2-.85-2.2-3.36zM14.3 6.6c.58-.7.97-1.68.86-2.65-.83.03-1.84.55-2.44 1.25-.54.62-1.01 1.61-.88 2.56.93.07 1.88-.47 2.46-1.16z"/></svg>
@@ -1703,7 +1760,7 @@
                             <tr>
                                 <th scope="col">Feature</th>
                                 <th scope="col" class="col-val">Free</th>
-                                <th scope="col" class="col-val col-pro">PRO</th>
+                                <th scope="col" class="col-val col-pro">PRO<small>one-time purchase</small></th>
                             </tr>
                         </thead>
                         <tbody>

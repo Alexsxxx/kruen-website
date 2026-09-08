@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-site-verification" content="0c-hmtOEQ5Lbyy8KcHhiSP3Y-jO0mCeDEr_tyvdrUfw" />
-    <meta name="description" content="Kruen - Android app design & development from the Czech Republic. Makers of SwR Global Radio and AllMarkets Widget.">
-    <title>Kruen - SwR Global Radio &amp; AllMarkets Widget</title>
+    <meta name="description" content="Kruen - Android app design & development from the Czech Republic. Makers of SwR Global Radio and CaF Crypto and Forex Widget.">
+    <title>Kruen - SwR Global Radio &amp; CaF Crypto and Forex Widget</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1403,7 +1403,6 @@
         margin-bottom: 22px;
     }
 
-    .about h2 .flag { font-size: 0.7em; vertical-align: 0.1em; }
 
     .about p {
         font-size: 16px;
@@ -1504,7 +1503,7 @@
                             <svg viewBox="0 0 24 24" role="img" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                         </a>
                         <a href="#swr">SwR</a>
-                        <a href="#amw">AmW</a>
+                        <a href="#amw">CaF</a>
                         <a href="#about">About</a>
                     </div>
                     <div class="theme-toggle">
@@ -1537,7 +1536,7 @@
                 <p class="hero-description">We create modern and user-friendly applications that combine quality design with perfect functionality.</p>
                 <div class="hero-cta">
                     <a class="hero-chip" href="#swr">SwR - Global Radio <span class="arrow">↓</span></a>
-                    <a class="hero-chip" href="#amw">AmW - AllMarkets Widget <span class="arrow">↓</span></a>
+                    <a class="hero-chip" href="#amw">CaF - Crypto and Forex Widget <span class="arrow">↓</span></a>
                 </div>
             </div>
             <div class="scroll-cue" aria-hidden="true"></div>
@@ -1709,7 +1708,18 @@
                         </div>
                     </div>
 
-                    <div class="feature-step" data-num="09" data-shot="shot-free">
+                    <div class="feature-step" data-num="09" data-shot="shot-satellite">
+                        <h3>Satellite tracking and listening</h3>
+                        <p>Catch transmissions from orbit right on your phone. Live satellite positions, real passes over your head - and every receiver that can hear them.</p>
+                        <div class="step-media">
+                            <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle">
+                                <img src="assets/swr-shot-satellite.webp" alt="SwR tracking the Orbcomm FM112 satellite with receivers in range" loading="lazy">
+                                <img src="assets/swr-shot-satellite-2.webp" alt="SwR showing the ISS pass with its downlink frequency" loading="lazy">
+                            </div></div></div>
+                        </div>
+                    </div>
+
+                    <div class="feature-step" data-num="10" data-shot="shot-free">
                         <h3>Free version</h3>
                         <p>Enjoy listening to stations around the world completely free and without ads.</p>
                         <div class="step-media">
@@ -1741,6 +1751,10 @@
                                 <img src="assets/swr-shot-widget-2.webp" alt="SwR FM-DX home-screen widget" loading="lazy">
                             </div>
                             <img data-shot="shot-dongle" src="assets/swr-shot-dongle.webp" alt="SwR running offline with a USB SDR dongle" loading="lazy">
+                            <div class="shot-cycle" data-shot="shot-satellite">
+                                <img src="assets/swr-shot-satellite.webp" alt="SwR tracking the Orbcomm FM112 satellite with receivers in range" loading="lazy">
+                                <img src="assets/swr-shot-satellite-2.webp" alt="SwR showing the ISS pass with its downlink frequency" loading="lazy">
+                            </div>
                             <img data-shot="shot-free" src="assets/swr-shot-free.webp" alt="SwR free version" loading="lazy">
                         </div>
                     </div>
@@ -1872,7 +1886,7 @@
             </div>
 
             <!-- Upcoming -->
-            <div class="upcoming container" id="upcoming">
+            <div class="upcoming container" id="upcoming" hidden style="display: none;">
                 <div class="upcoming-head reveal">
                     <h2 class="upcoming-title">Upcoming</h2>
                     <button class="upcoming-sound" type="button" id="upcomingSound" aria-pressed="true">
@@ -1884,6 +1898,7 @@
                 <div class="upcoming-stage">
                     <figure class="upcoming-item is-active" data-side="left">
                         <div class="phone-frame"><div class="phone-screen">
+                            <!-- TODO: drop a new clip in as assets/swr-satellite.mp4 before unhiding this section -->
                             <video src="assets/swr-satellite.mp4" muted playsinline preload="none"
                                    aria-label="SwR tracking satellites across the sky"></video>
                         </div></div>
@@ -1903,10 +1918,10 @@
                     <div>
                         <p class="eyebrow reveal">02 · Also by Kruen</p>
                         <div class="app-head reveal">
-                            <div class="app-icon"><img src="assets/amw-icon.webp" alt="AmW app icon" width="512" height="512"></div>
-                            <h2>AmW<span>AllMarkets Widget</span></h2>
+                            <div class="app-icon"><img src="assets/amw-icon.webp" alt="CaF app icon" width="512" height="512"></div>
+                            <h2>CaF<span>Crypto and Forex Widget</span></h2>
                         </div>
-                        <p class="lead reveal">Stocks, crypto, forex and commodities - as clean, glanceable <strong>home-screen widgets</strong>. One look at your home screen and you know where the market stands.</p>
+                        <p class="lead reveal">Crypto and forex - as clean, glanceable <strong>home-screen widgets</strong>. One look at your home screen and you know where the market stands.</p>
                         <div class="cta-row reveal">
                             <a class="play-btn" href="https://play.google.com/store/apps/details?id=com.pricewidget" target="_blank" rel="noopener">
                                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.6 1.8c-.4.2-.6.6-.6 1.1v18.2c0 .5.2.9.6 1.1l10-10.2L3.6 1.8zm11.3 8.9l2.7-2.7-11-6.3 8.3 9zm3.9-1.5l-3 3 3 3 2.6-1.5c.8-.5.8-2.5 0-3l-2.6-1.5zm-4.2 4.2l-8.3 9 11-6.3-2.7-2.7z"/></svg>
@@ -1919,10 +1934,10 @@
                         </div>
                     </div>
                     <div class="amw-collage">
-                        <div class="amw-shot narrow" data-depth="0.05"><img src="assets/amw-tickers.webp" alt="AmW compact ticker widgets for Apple and NASDAQ" loading="lazy"></div>
-                        <div class="amw-shot offset" data-depth="-0.06"><img src="assets/amw-duo.webp" alt="AmW widgets showing Solana and Microsoft charts" loading="lazy"></div>
-                        <div class="amw-shot" style="width: 67%;" data-depth="0.04"><img src="assets/amw-usdeur.webp" alt="AmW widget showing USD/EUR exchange rate chart" loading="lazy"></div>
-                        <div class="amw-shot offset" style="width: 55%;" data-depth="-0.05"><img src="assets/amw-gold.webp" alt="AmW widget showing a Gold futures chart" loading="lazy"></div>
+                        <div class="amw-shot narrow" data-depth="0.05"><img src="assets/amw-tickers.webp" alt="CaF compact ticker widgets for Bitcoin and EUR/USD" loading="lazy"></div>
+                        <div class="amw-shot offset" data-depth="-0.06"><img src="assets/amw-duo.webp" alt="CaF widgets showing Solana and GBP/USD charts" loading="lazy"></div>
+                        <div class="amw-shot" style="width: 67%;" data-depth="0.04"><img src="assets/amw-usdeur.webp" alt="CaF widget showing an Ethereum price chart" loading="lazy"></div>
+                        <div class="amw-shot offset" style="width: 55%;" data-depth="-0.05"><img src="assets/amw-gold.webp" alt="CaF widget showing a JPY/USD exchange rate chart" loading="lazy"></div>
                     </div>
                 </div>
             </div>
@@ -1935,7 +1950,7 @@
             <div class="container">
                 <div class="about-grid">
                     <div class="reveal">
-                        <p class="eyebrow">Made in the Czech Republic <span class="flag">🇨🇿</span></p>
+                        <p class="eyebrow">Made in the Czech Republic</p>
                         <p>Kruen is a small studio based in the Czech Republic. We bring European quality and precision to mobile app development - traditional engineering craft combined with modern technology.</p>
                         <p>Our commitment to clean, ethical development means <strong>no ads, no hidden fees, no additional payments</strong>. And above all: <strong>we do not collect any user data.</strong> No tracking, no analytics, no data harvesting. What you do with our apps stays with you.</p>
                     </div>

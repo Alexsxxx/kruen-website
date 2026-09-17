@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-site-verification" content="0c-hmtOEQ5Lbyy8KcHhiSP3Y-jO0mCeDEr_tyvdrUfw" />
-    <meta name="description" content="Kruen - Android app design & development from the Czech Republic. Makers of SwR Global Radio and CaF Crypto and Forex Widget.">
-    <title>Kruen - SwR Global Radio &amp; CaF Crypto and Forex Widget</title>
+    <meta name="description" content="Kruen - Android app design & development from the Czech Republic. Makers of SwR Global Radio, CmA Crypto Market Analysis, PBH Phone Battery Health and CaF Crypto and Forex Widget.">
+    <title>Kruen - SwR Global Radio, CmA, PBH &amp; CaF</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1380,6 +1380,122 @@
     }
 
     /* ================================================================= */
+    /* APP BLOCKS (CmA, PBH) */
+    /* ================================================================= */
+    .appblock {
+        margin-top: clamp(90px, 12vw, 170px);
+        position: relative;
+    }
+
+    .appblock::before {
+        content: "";
+        position: absolute;
+        inset: -80px -300px;
+        background: radial-gradient(700px 380px at 30% 55%, rgba(30, 90, 130, 0.16), transparent 70%);
+        pointer-events: none;
+    }
+
+    .appblock.tint-green::before {
+        background: radial-gradient(700px 380px at 70% 55%, rgba(25, 105, 70, 0.16), transparent 70%);
+    }
+
+    .appblock-grid {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+        gap: clamp(36px, 5vw, 70px);
+        align-items: center;
+    }
+
+    /* shots on the left, text on the right */
+    .appblock-grid.is-flipped { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); }
+    .appblock-grid.is-flipped .appblock-shots { order: 1; }
+    .appblock-grid.is-flipped .appblock-text { order: 2; }
+
+    .appblock .app-icon {
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 50px rgba(63, 184, 245, 0.1);
+    }
+
+    .appblock .app-head h2 { font-size: clamp(30px, 4.6vw, 52px); }
+
+    .appblock .lead { font-size: clamp(15px, 2vw, 18px); }
+
+    .appblock-note {
+        margin-top: 22px;
+        font-size: 13.5px;
+        line-height: 1.65;
+        color: var(--stage-text-2);
+        max-width: 620px;
+    }
+
+    .appblock-shots {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: clamp(12px, 1.6vw, 20px);
+        align-items: start;
+    }
+
+    .appblock-shot {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .appblock-shot.raised { margin-top: -26px; }
+
+    .appblock-shots .phone-frame {
+        border-radius: clamp(16px, 2.2vw, 26px);
+        padding: 5px;
+        box-shadow: 0 26px 55px rgba(0, 0, 0, 0.55);
+    }
+
+    .appblock-shots .phone-screen { border-radius: clamp(12px, 1.7vw, 21px); }
+
+    /* these frames hold one still shot each - no crossfade to wait for */
+    .appblock-shots .phone-screen img { opacity: 1; transition: none; }
+
+    .appblock-shot figcaption {
+        font-size: 12.5px;
+        line-height: 1.5;
+        color: var(--stage-text-2);
+        text-align: center;
+    }
+
+    /* Store button for an app that is not published yet */
+    .play-btn.is-soon {
+        background: transparent;
+        color: var(--stage-text-2);
+        border: 1px dashed var(--stage-line);
+        cursor: default;
+    }
+
+    .play-btn.is-soon:hover { transform: none; box-shadow: none; }
+
+    @media (max-width: 899px) {
+        .appblock-grid,
+        .appblock-grid.is-flipped { grid-template-columns: 1fr; }
+        .appblock-grid.is-flipped .appblock-text { order: 1; }
+        .appblock-grid.is-flipped .appblock-shots { order: 2; }
+        .appblock-shot.raised { margin-top: 0; }
+    }
+
+    /* on a phone the three frames become a swipeable strip */
+    @media (max-width: 599px) {
+        .appblock-shots {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            margin: 0 -24px;
+            padding: 0 24px 8px;
+        }
+        .appblock-shot {
+            flex: 0 0 60%;
+            scroll-snap-align: center;
+        }
+    }
+
+    /* ================================================================= */
     /* ABOUT / FOOTER (themed) */
     /* ================================================================= */
     .about {
@@ -1503,6 +1619,8 @@
                             <svg viewBox="0 0 24 24" role="img" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                         </a>
                         <a href="#swr">SwR</a>
+                        <a href="#cma">CmA</a>
+                        <a href="#pbh">PBH</a>
                         <a href="#amw">CaF</a>
                         <a href="#about">About</a>
                     </div>
@@ -1536,6 +1654,8 @@
                 <p class="hero-description">We create modern and user-friendly applications that combine quality design with perfect functionality.</p>
                 <div class="hero-cta">
                     <a class="hero-chip" href="#swr">SwR - Global Radio <span class="arrow">↓</span></a>
+                    <a class="hero-chip" href="#cma">CmA - Crypto Market Analysis <span class="arrow">↓</span></a>
+                    <a class="hero-chip" href="#pbh">PBH - Phone Battery Health <span class="arrow">↓</span></a>
                     <a class="hero-chip" href="#amw">CaF - Crypto and Forex Widget <span class="arrow">↓</span></a>
                 </div>
             </div>
@@ -1911,12 +2031,106 @@
             </div>
 
             <!-- ===================================================== -->
+            <!-- CMA -->
+            <!-- ===================================================== -->
+            <div class="appblock container" id="cma">
+                <div class="appblock-grid">
+                    <div class="appblock-text">
+                        <p class="eyebrow reveal">02 · New from Kruen</p>
+                        <div class="app-head reveal">
+                            <div class="app-icon"><img src="assets/cma-icon.webp" alt="CmA app icon" width="512" height="512"></div>
+                            <h2>CmA<span>Crypto Market Analysis</span></h2>
+                        </div>
+                        <p class="lead reveal">Every coin traded on Binance gets a single score from <strong>0 to 100&nbsp;%</strong> - and the app shows you exactly where that number comes from. Fourteen metrics across market, price, supply, fundamentals, development, community and risk, each with its own weight, all one tap away.</p>
+                        <div class="cta-row reveal">
+                            <span class="play-btn is-soon">
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.6 1.8c-.4.2-.6.6-.6 1.1v18.2c0 .5.2.9.6 1.1l10-10.2L3.6 1.8zm11.3 8.9l2.7-2.7-11-6.3 8.3 9zm3.9-1.5l-3 3 3 3 2.6-1.5c.8-.5.8-2.5 0-3l-2.6-1.5zm-4.2 4.2l-8.3 9 11-6.3-2.7-2.7z"/></svg>
+                                <span><small>Coming soon to</small>Google Play</span>
+                            </span>
+                            <span class="play-btn is-soon">
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.36 12.68c.02-2.1 1.72-3.11 1.79-3.16-.98-1.43-2.5-1.62-3.04-1.65-1.29-.13-2.53.76-3.18.76-.66 0-1.67-.74-2.75-.72-1.41.02-2.72.82-3.44 2.09-1.47 2.54-.38 6.3 1.05 8.36.7 1.01 1.53 2.14 2.62 2.1 1.05-.04 1.45-.68 2.72-.68 1.27 0 1.63.68 2.74.66 1.13-.02 1.85-1.03 2.54-2.04.8-1.17 1.13-2.3 1.15-2.36-.03-.01-2.2-.85-2.2-3.36zM14.3 6.6c.58-.7.97-1.68.86-2.65-.83.03-1.84.55-2.44 1.25-.54.62-1.01 1.61-.88 2.56.93.07 1.88-.47 2.46-1.16z"/></svg>
+                                <span><small>Coming soon to the</small>App Store</span>
+                            </span>
+                            <div class="tag-row">
+                                <span class="tag">No ads</span>
+                                <span class="tag">Zero data collection</span>
+                            </div>
+                        </div>
+                        <p class="appblock-note reveal">A metric with no data is left out of the maths instead of being guessed, so "we don't know" never moves the score up or down. Prices come live from Binance, everything else is pre-computed and served from our own gateway. It is an orientation tool built from public data - not investment advice.</p>
+                    </div>
+                    <div class="appblock-shots">
+                        <figure class="appblock-shot reveal">
+                            <div class="phone-frame"><div class="phone-screen"><img src="assets/cma-shot-list.webp" alt="CmA coin list with the Fear and Greed index and a score ring next to every coin" width="720" height="1606" loading="lazy"></div></div>
+                            <figcaption>The whole market, sorted by market cap, CmA score or 24h change.</figcaption>
+                        </figure>
+                        <figure class="appblock-shot raised reveal">
+                            <div class="phone-frame"><div class="phone-screen"><img src="assets/cma-shot-detail.webp" alt="CmA coin detail with a price chart and a plain-language note on what the project is for" width="720" height="1606" loading="lazy"></div></div>
+                            <figcaption>Live price, history from a day to all-time, and what the project is actually for.</figcaption>
+                        </figure>
+                        <figure class="appblock-shot reveal">
+                            <div class="phone-frame"><div class="phone-screen"><img src="assets/cma-shot-breakdown.webp" alt="CmA score breakdown showing all fourteen metrics with their weights" width="720" height="1606" loading="lazy"></div></div>
+                            <figcaption>The full breakdown - every metric, its weight and the numbers behind it.</figcaption>
+                        </figure>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================================================== -->
+            <!-- PBH -->
+            <!-- ===================================================== -->
+            <div class="appblock tint-green container" id="pbh">
+                <div class="appblock-grid is-flipped">
+                    <div class="appblock-text">
+                        <p class="eyebrow reveal">03 · New from Kruen</p>
+                        <div class="app-head reveal">
+                            <div class="app-icon"><img src="assets/pbh-icon.webp" alt="PBH app icon" width="512" height="512"></div>
+                            <h2>PBH<span>Phone Battery Health</span></h2>
+                            <div class="buy-badge">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 11V8a5 5 0 0 0-10 0v3"/><rect x="4.5" y="11" width="15" height="9.5" rx="2.5"/><path d="M12 15v2"/></svg>
+                                <p>
+                                    <strong>PRO is a one-time purchase</strong>
+                                    Pay once for unlimited readings, history, live power draw and the widget.
+                                </p>
+                            </div>
+                        </div>
+                        <p class="lead reveal">How much of its factory capacity has your battery actually lost? PBH reads the <strong>fuel gauge chip</strong> directly - charge counter, voltage, temperature - estimates the real full capacity in mAh and follows it over time.</p>
+                        <div class="cta-row reveal">
+                            <a class="play-btn" href="https://play.google.com/store/apps/details?id=com.kruen.pbh" target="_blank" rel="noopener">
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.6 1.8c-.4.2-.6.6-.6 1.1v18.2c0 .5.2.9.6 1.1l10-10.2L3.6 1.8zm11.3 8.9l2.7-2.7-11-6.3 8.3 9zm3.9-1.5l-3 3 3 3 2.6-1.5c.8-.5.8-2.5 0-3l-2.6-1.5zm-4.2 4.2l-8.3 9 11-6.3-2.7-2.7z"/></svg>
+                                <span><small>Get it on</small>Google Play</span>
+                            </a>
+                            <div class="tag-row">
+                                <span class="tag">Android</span>
+                                <span class="tag">No ads</span>
+                                <span class="tag">Zero data collection</span>
+                            </div>
+                        </div>
+                        <p class="appblock-note reveal">Every reading stays on the phone - there is no account, no server and nothing to upload. The free version covers the home screen and five readings; PRO unlocks the rest, once and for good.</p>
+                    </div>
+                    <div class="appblock-shots">
+                        <figure class="appblock-shot reveal">
+                            <div class="phone-frame"><div class="phone-screen"><img src="assets/pbh-shot-health.webp" alt="PBH home screen with a battery health ring at 86 percent and the current status" width="720" height="1600" loading="lazy"></div></div>
+                            <figcaption>Battery health, charge, temperature, voltage and estimated full capacity.</figcaption>
+                        </figure>
+                        <figure class="appblock-shot raised reveal">
+                            <div class="phone-frame"><div class="phone-screen"><img src="assets/pbh-shot-power.webp" alt="PBH live power draw screen showing current in milliamps next to display, network and thermal context" width="720" height="1600" loading="lazy"></div></div>
+                            <figcaption>Live power draw next to everything that explains it.</figcaption>
+                        </figure>
+                        <figure class="appblock-shot reveal">
+                            <div class="phone-frame"><div class="phone-screen"><img src="assets/pbh-shot-widget.webp" alt="The PBH Pulse home-screen widget with a power draw graph and 60S, 24H and 1W ranges" width="720" height="1600" loading="lazy"></div></div>
+                            <figcaption>PBH Pulse on the home screen, with 60&nbsp;s, 24&nbsp;h and 1&nbsp;week ranges.</figcaption>
+                        </figure>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================================================== -->
             <!-- AMW -->
             <!-- ===================================================== -->
             <div class="amw container" id="amw">
                 <div class="amw-grid">
                     <div>
-                        <p class="eyebrow reveal">02 · Also by Kruen</p>
+                        <p class="eyebrow reveal">04 · Also by Kruen</p>
                         <div class="app-head reveal">
                             <div class="app-icon"><img src="assets/amw-icon.webp" alt="CaF app icon" width="512" height="512"></div>
                             <h2>CaF<span>Crypto and Forex Widget</span></h2>

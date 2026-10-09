@@ -469,7 +469,7 @@
         display: inline-flex;
         align-items: center;
         gap: 10px;
-        padding: 12px 22px;
+        padding: 7px 18px 7px 7px;
         border-radius: 999px;
         font-size: 15px;
         font-weight: 600;
@@ -487,7 +487,10 @@
         box-shadow: 0 12px 30px rgba(255, 138, 30, 0.18);
     }
 
-    .hero-chip .arrow { color: var(--accent); }
+    .hero-chip img {
+        width: 28px; height: 28px;
+        border-radius: 8px;
+    }
 
     .scroll-cue {
         position: absolute;
@@ -526,16 +529,16 @@
     .stage {
         position: relative;
         /* where the frost becomes full - the net stays visible above it while scrolling */
-        --frost-edge: clamp(280px, 50vh, 600px);
+        --frost-edge: clamp(420px, 85vh, 960px);
         color: var(--stage-text);
         padding: clamp(80px, 10vw, 140px) 0 0;
         /* clip instead of hidden so the sticky helix stage keeps sticking */
         overflow: clip;
     }
 
-    /* Frost ramp at the top of the stage, shaped like a plane laid back toward the
-       horizon (narrower far edge). Stacked layers blur more and more downward, so
-       the net sinks into the glass gradually instead of meeting a hard edge. */
+    /* Full-width frost ramp at the top of the stage. Stacked layers blur more and
+       more downward, so the net sinks into the glass gradually instead of meeting
+       a hard edge. */
     .stage-frost,
     .stage-glass {
         position: absolute;
@@ -547,16 +550,12 @@
     .stage-frost {
         top: 0;
         height: var(--frost-edge);
-        --plane: polygon(14% 0, 86% 0, 100% 100%, 0 100%);
     }
 
-    /* The clip sits on each layer, not on the wrapper: a clipped wrapper would become
-       a backdrop root and its layers would have nothing behind them to blur */
     .stage-frost span,
     .stage-frost::after {
         position: absolute;
         inset: 0;
-        clip-path: var(--plane);
     }
 
     .stage-frost span {
@@ -570,11 +569,11 @@
     .stage-frost::after {
         content: "";
         background:
-            radial-gradient(70% 60% at 50% 100%, rgba(255, 138, 30, 0.07), transparent 70%),
             linear-gradient(to bottom,
                 transparent 0%,
-                color-mix(in srgb, var(--stage-glass) 15%, transparent) 35%,
-                color-mix(in srgb, var(--stage-glass) 55%, transparent) 70%,
+                color-mix(in srgb, var(--stage-glass) 10%, transparent) 30%,
+                color-mix(in srgb, var(--stage-glass) 35%, transparent) 55%,
+                color-mix(in srgb, var(--stage-glass) 70%, transparent) 80%,
                 var(--stage-glass) 100%);
     }
 
@@ -1042,6 +1041,7 @@
         .helix-text h3 { font-size: 19px; margin-bottom: 8px; }
         .helix-text p { font-size: 13.5px; line-height: 1.55; }
         .helix-bar { display: none; }
+        .helix-stage { perspective: 2200px; }
     }
 
     /* Phone frames */
@@ -1473,7 +1473,17 @@
         box-shadow: 0 26px 55px rgba(0, 0, 0, 0.55);
     }
 
-    .appblock-shots .phone-screen { border-radius: clamp(12px, 1.7vw, 21px); }
+    .appblock-shots .phone-frame { flex: none; width: 100%; }
+
+    /* Inset the screen absolutely instead of height: 100% - WebKit (Safari, iOS
+       Brave) treats the aspect-ratio height as indefinite inside the swipe strip
+       and the frame blew up to the shots' intrinsic 1600px height */
+    .appblock-shots .phone-screen {
+        position: absolute;
+        inset: 5px;
+        width: auto; height: auto;
+        border-radius: clamp(12px, 1.7vw, 21px);
+    }
 
     /* these frames hold one still shot each - no crossfade to wait for */
     .appblock-shots .phone-screen img { opacity: 1; transition: none; }
@@ -1784,11 +1794,11 @@
                 <p class="hero-subtitle">Android and iOS App Design &amp; Development</p>
                 <p class="hero-description">We create modern and user-friendly applications that combine quality design with perfect functionality.</p>
                 <div class="hero-cta">
-                    <a class="hero-chip" href="#swr">SwR - Global Radio <span class="arrow">↓</span></a>
-                    <a class="hero-chip" href="#swr-watch">SwR Watch - for Apple Watch <span class="arrow">↓</span></a>
-                    <a class="hero-chip" href="#cma">CmA - Crypto Market Analysis <span class="arrow">↓</span></a>
-                    <a class="hero-chip" href="#pbh">PBH - Phone Battery Health <span class="arrow">↓</span></a>
-                    <a class="hero-chip" href="#amw">CaF - Crypto and Forex Widget <span class="arrow">↓</span></a>
+                    <a class="hero-chip" href="#swr" title="SwR - Global Radio" aria-label="SwR - Global Radio"><img src="assets/swr-icon.webp" alt="" width="28" height="28">SwR</a>
+                    <a class="hero-chip" href="#swr-watch" title="SwR Watch - for Apple Watch" aria-label="SwR Watch - for Apple Watch"><img src="assets/swrw-icon.webp" alt="" width="28" height="28">SwR Watch</a>
+                    <a class="hero-chip" href="#cma" title="CmA - Crypto Market Analysis" aria-label="CmA - Crypto Market Analysis"><img src="assets/cma-icon.webp" alt="" width="28" height="28">CmA</a>
+                    <a class="hero-chip" href="#pbh" title="PBH - Phone Battery Health" aria-label="PBH - Phone Battery Health"><img src="assets/pbh-icon.webp" alt="" width="28" height="28">PBH</a>
+                    <a class="hero-chip" href="#amw" title="CaF - Crypto and Forex Widget" aria-label="CaF - Crypto and Forex Widget"><img src="assets/amw-icon.webp" alt="" width="28" height="28">CaF</a>
                 </div>
             </div>
             <div class="scroll-cue" aria-hidden="true"></div>
@@ -1799,11 +1809,13 @@
         <!-- ========================================================= -->
         <section class="stage" id="swr">
             <div class="stage-frost" aria-hidden="true">
-                <span style="--blur: 1px; --from: 0%; --to: 30%"></span>
-                <span style="--blur: 3px; --from: 15%; --to: 50%"></span>
-                <span style="--blur: 7px; --from: 35%; --to: 70%"></span>
-                <span style="--blur: 14px; --from: 55%; --to: 88%"></span>
-                <span style="--blur: 26px; --from: 72%; --to: 100%"></span>
+                <span style="--blur: 1px; --from: 0%; --to: 25%"></span>
+                <span style="--blur: 2px; --from: 10%; --to: 38%"></span>
+                <span style="--blur: 4px; --from: 22%; --to: 52%"></span>
+                <span style="--blur: 7px; --from: 36%; --to: 66%"></span>
+                <span style="--blur: 12px; --from: 50%; --to: 80%"></span>
+                <span style="--blur: 18px; --from: 64%; --to: 92%"></span>
+                <span style="--blur: 26px; --from: 76%; --to: 100%"></span>
             </div>
             <div class="stage-glass" aria-hidden="true"></div>
 
@@ -2440,10 +2452,11 @@
 
         function layout() {
             const narrow = window.innerWidth <= 700;
-            const radius = narrow ? Math.min(300, window.innerWidth * 0.75) : Math.min(560, window.innerWidth * 0.42);
+            // Phones get a gentler stair: tighter radius and a shallower turn
+            const radius = narrow ? Math.min(160, window.innerWidth * 0.4) : Math.min(560, window.innerWidth * 0.42);
             // A full step of rise keeps the neighbours clear of the front step's text
             const rise = window.innerHeight * (narrow ? 0.78 : 0.72);
-            const turn = narrow ? 38 : 46;
+            const turn = narrow ? 20 : 46;
             if (pole) pole.style.transform = `translateZ(${-radius}px)`;
 
             steps.forEach((step, k) => {

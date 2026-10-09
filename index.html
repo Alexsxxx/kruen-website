@@ -1624,6 +1624,7 @@
             display: flex;
             overflow-x: auto;
             scroll-snap-type: x mandatory;
+            overscroll-behavior-x: contain;
             margin: 0 -24px;
             padding: 0 24px 8px;
         }
@@ -2651,12 +2652,17 @@
         if (!strips.length) return;
         let idle = 0;
         const setPan = value => strips.forEach(s => { s.style.touchAction = value; });
-
-        window.addEventListener('scroll', () => {
+        const moving = () => {
             if (!idle) setPan('pan-y');
             clearTimeout(idle);
             idle = setTimeout(() => { idle = 0; setPan(''); }, 180);
-        }, { passive: true });
+        };
+
+        window.addEventListener('scroll', moving, { passive: true });
+        // A strip still gliding or snapping after a sideways swipe would grab the next
+        // touch too - treat its own scrolling the same way, so a drag up or down
+        // right after a swipe moves the page
+        strips.forEach(s => s.addEventListener('scroll', moving, { passive: true }));
     }
 
     function initScrollFX() {

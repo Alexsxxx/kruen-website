@@ -1403,6 +1403,26 @@
 
     .appblock .app-head h2 { font-size: clamp(30px, 4.6vw, 52px); }
 
+    /* "FREE" sticker on the corner of the app icon */
+    .app-icon-wrap { position: relative; flex-shrink: 0; }
+    .free-badge {
+        position: absolute;
+        top: -9px;
+        right: -14px;
+        padding: 4px 9px;
+        border-radius: 999px;
+        background: #146b34;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        line-height: 1;
+        transform: rotate(12deg);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+    }
+
     .appblock .lead { font-size: clamp(15px, 2vw, 18px); }
 
     .appblock-note {
@@ -2198,7 +2218,7 @@
                     <div class="appblock-text">
                         <p class="eyebrow reveal">03 · New from Kruen</p>
                         <div class="app-head reveal">
-                            <div class="app-icon"><img src="assets/cma-icon.webp" alt="CmA app icon" width="512" height="512"></div>
+                            <div class="app-icon-wrap"><div class="app-icon"><img src="assets/cma-icon.webp" alt="CmA app icon" width="512" height="512"></div><span class="free-badge">Free</span></div>
                             <h2>CmA<span>Crypto Market Analysis</span></h2>
                         </div>
                         <p class="lead reveal">Every coin traded on Binance gets a single score from <strong>0 to 100&nbsp;%</strong> - and the app shows you exactly where that number comes from. Fourteen metrics across market, price, supply, fundamentals, development, community and risk, each with its own weight, all one tap away.</p>
@@ -2243,7 +2263,7 @@
                     <div class="appblock-text">
                         <p class="eyebrow reveal">04 · New from Kruen</p>
                         <div class="app-head reveal">
-                            <div class="app-icon"><img src="assets/pbh-icon.webp" alt="PBH app icon" width="512" height="512"></div>
+                            <div class="app-icon-wrap"><div class="app-icon"><img src="assets/pbh-icon.webp" alt="PBH app icon" width="512" height="512"></div><span class="free-badge">Free</span></div>
                             <h2>PBH<span>Phone Battery Health</span></h2>
                         </div>
                         <p class="lead reveal">How much of its factory capacity has your battery actually lost? PBH reads the <strong>fuel gauge chip</strong> directly - charge counter, voltage, temperature - estimates the real full capacity in mAh and follows it over time.</p>

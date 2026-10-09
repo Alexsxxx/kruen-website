@@ -1656,7 +1656,51 @@
             flex: 0 0 60%;
             scroll-snap-align: center;
         }
+
+        /* the same coat rack as the SwR feature shots */
+        .appblock-shots.is-rack {
+            display: block;
+            overflow: hidden;
+            scroll-snap-type: none;
+            padding: 0;
+            perspective: 1100px;
+            perspective-origin: 50% 35%;
+            touch-action: pan-y;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            cursor: grab;
+        }
+        .appblock-shots.is-rack.is-dragging { cursor: grabbing; }
+        .is-rack .appblock-shot {
+            position: absolute;
+            left: 50%; top: 0;
+            width: min(210px, 52vw);
+            backface-visibility: hidden;
+            will-change: transform, opacity;
+            transition: none;
+        }
+        #swr-watch .is-rack .appblock-shot { width: min(230px, 60vw); }
+        .is-rack .appblock-shot img { -webkit-user-drag: none; }
+        .is-rack figcaption { transition: opacity 0.35s ease; }
+        .is-rack .appblock-shot:not(.active) figcaption { opacity: 0; }
+        .is-rack + .rack-meta { display: flex; }
     }
+
+    .rack-meta {
+        display: none;
+        order: 3;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        margin-top: 10px;
+        font-size: 14px;
+        letter-spacing: 0.08em;
+        color: var(--stage-text-2);
+    }
+    .rack-counter { font-family: 'Space Grotesk', sans-serif; }
+    .rack-counter .cur { color: var(--accent); font-size: 22px; font-weight: 700; }
+    .rack-hint { font-size: 12px; text-transform: uppercase; }
 
     /* ================================================================= */
     /* ABOUT / FOOTER (themed) */
@@ -2529,143 +2573,31 @@
             }
         }
 
-        // --- Phones: the steps hang around a coat rack. A sideways drag spins it,
-        // the step in front faces the viewer square on, its neighbours turn away.
+        // Phones get the coat rack instead of the staircase
         const scene = helix.querySelector('.helix-scene');
-        const n = steps.length;
-        const rackAngle = 360 / n;
-        let rackPos = -1.6;       // starts turned away, spins into place when first seen
-        let rackTarget = rackPos;
-        let rackRadius = 300;
-        let rackStep = 200;       // px of drag that turns the rack by one step
-        let rackRunning = false;
-        let rackLast = 0;
-        let drag = null;
-        let draggedAt = 0;
+        const rack = createRack(scene, {
+            pole,
+            onActive: i => { if (counter) counter.textContent = steps[i].dataset.num; }
+        });
+        rack.setItems(steps);
         let mode = '';
 
         function isNarrow() { return window.innerWidth <= 700; }
-        const wrap = d => d - Math.round(d / n) * n;
-
-        function rackMeasure() {
-            const frame = steps[0].querySelector('.phone-frame');
-            const w = frame.offsetWidth;
-            rackStep = w + 24;
-            // just enough radius that neighbouring phones don't cut into each other
-            rackRadius = (w / 2 + 16) / Math.tan(Math.PI / n);
-            scene.style.height = Math.max(...steps.map(s => s.offsetHeight)) + 'px';
-            if (pole) {
-                pole.style.height = frame.offsetHeight + 40 + 'px';
-                pole.style.transform = `translateZ(${(-rackRadius).toFixed(1)}px)`;
-            }
-        }
-
-        function rackLayout() {
-            steps.forEach((step, k) => {
-                const d = wrap(k - rackPos);
-                const far = Math.abs(d);
-                step.style.transform =
-                    `translateX(-50%) translateZ(${(-rackRadius).toFixed(1)}px) rotateY(${(d * rackAngle).toFixed(2)}deg) translateZ(${rackRadius.toFixed(1)}px)`;
-                step.style.opacity = Math.max(0, 1 - far * 0.3).toFixed(3);
-                step.style.visibility = far > 2.6 ? 'hidden' : 'visible';
-                step.style.zIndex = String(100 - Math.round(far * 10));
-            });
-            setActive(((Math.round(rackPos) % n) + n) % n);
-        }
-
-        function rackTick(now) {
-            const dt = rackLast ? Math.min(0.05, (now - rackLast) / 1000) : 1 / 60;
-            rackLast = now;
-            if (!drag || !drag.live) {
-                rackPos += (rackTarget - rackPos) * (1 - Math.exp(-dt * 6));
-                if (Math.abs(rackTarget - rackPos) < 0.0005) rackPos = rackTarget;
-            }
-            rackLayout();
-            if (rackPos !== rackTarget || (drag && drag.live)) {
-                requestAnimationFrame(rackTick);
-            } else {
-                rackRunning = false;
-                rackLast = 0;
-            }
-        }
-
-        function rackRun() {
-            if (rackRunning) return;
-            rackRunning = true;
-            requestAnimationFrame(rackTick);
-        }
-
-        scene.addEventListener('pointerdown', e => {
-            if (!isNarrow() || (e.pointerType === 'mouse' && e.button !== 0)) return;
-            drag = { id: e.pointerId, x: e.clientX, y: e.clientY, start: rackPos, live: false, lastX: e.clientX, lastT: e.timeStamp, v: 0 };
-        });
-
-        scene.addEventListener('pointermove', e => {
-            if (!drag || e.pointerId !== drag.id) return;
-            const dx = e.clientX - drag.x;
-            if (!drag.live) {
-                if (Math.abs(dx) < 8) return;
-                // mostly vertical: leave it to the page scroll
-                if (Math.abs(e.clientY - drag.y) > Math.abs(dx)) { drag = null; return; }
-                drag.live = true;
-                drag.start = rackPos;
-                drag.x = e.clientX;
-                scene.setPointerCapture(e.pointerId);
-                scene.classList.add('is-dragging');
-                rackRun();
-                return;
-            }
-            const dt = e.timeStamp - drag.lastT;
-            if (dt > 0) drag.v = 0.7 * ((e.clientX - drag.lastX) / dt) + 0.3 * drag.v;
-            drag.lastX = e.clientX;
-            drag.lastT = e.timeStamp;
-            rackPos = rackTarget = drag.start - dx / rackStep;
-        });
-
-        function release(e) {
-            if (!drag || e.pointerId !== drag.id) return;
-            const live = drag.live;
-            // a finger that stopped before lifting carries no fling
-            const v = e.timeStamp - drag.lastT > 90 ? 0 : drag.v;
-            drag = null;
-            if (!live) return;
-            draggedAt = performance.now();
-            scene.classList.remove('is-dragging');
-            const fling = Math.max(-3, Math.min(3, -v * 1000 / rackStep * 0.28));
-            rackTarget = Math.round(rackPos + fling);
-            rackRun();
-        }
-        scene.addEventListener('pointerup', release);
-        scene.addEventListener('pointercancel', release);
-
-        // a tap on a side step turns it to the front
-        scene.addEventListener('click', e => {
-            if (!isNarrow() || performance.now() - draggedAt < 350) return;
-            const step = e.target.closest('.helix-step');
-            if (!step || step.classList.contains('active')) return;
-            rackTarget = Math.round(rackPos + wrap(steps.indexOf(step) - rackPos));
-            rackRun();
-        });
-
-        new IntersectionObserver((entries, io) => {
-            if (!entries[0].isIntersecting) return;
-            io.disconnect();
-            if (rackTarget === -1.6) { rackTarget = 0; if (isNarrow()) rackRun(); else rackPos = 0; }
-        }, { threshold: 0.3 }).observe(scene);
 
         function applyMode() {
             const next = isNarrow() ? 'rack' : 'stair';
             if (next !== mode) {
                 mode = next;
                 activeIndex = -1;
+                rack.enable(mode === 'rack');
                 if (mode === 'stair') {
                     scene.style.height = '';
                     if (pole) pole.style.height = '';
                 }
             }
             if (mode === 'rack') {
-                rackMeasure();
-                rackLayout();
+                rack.measure();
+                rack.layout();
             } else {
                 readScroll();
                 layout();
@@ -2810,25 +2742,216 @@
     // SCROLL-DRIVEN TRANSFORMS: panel 3D tilt, AmW collage
     // ===================================================================
     // ===================================================================
-    // SHOT STRIPS: while the page is still moving, a touch on a sideways strip
-    // keeps scrolling the page; the strip swipes only once the page has stopped
+    // COAT RACK: on phones the shots hang round a vertical axis. A sideways
+    // drag spins it, the shot in front faces the viewer square on and its
+    // neighbours turn away; a vertical drag is left to the page scroll.
+    // Each item's first child is its frame (phone or watch).
     // ===================================================================
-    function initShotStrips() {
-        const strips = document.querySelectorAll('.appblock-shots');
-        if (!strips.length) return;
-        let idle = 0;
-        const setPan = value => strips.forEach(s => { s.style.touchAction = value; });
-        const moving = () => {
-            if (!idle) setPan('pan-y');
-            clearTimeout(idle);
-            idle = setTimeout(() => { idle = 0; setPan(''); }, 180);
-        };
+    function createRack(scene, { pole, onActive } = {}) {
+        let items = [];
+        let n = 1;
+        let angle = 360;
+        let pos = -1.6;           // starts turned away, spins into place when first seen
+        let target = pos;
+        let radius = 300;
+        let stepPx = 200;         // px of drag that turns the rack by one item
+        let running = false;
+        let last = 0;
+        let drag = null;
+        let draggedAt = 0;
+        let active = -1;
+        let enabled = false;
 
-        window.addEventListener('scroll', moving, { passive: true });
-        // A strip still gliding or snapping after a sideways swipe would grab the next
-        // touch too - treat its own scrolling the same way, so a drag up or down
-        // right after a swipe moves the page
-        strips.forEach(s => s.addEventListener('scroll', moving, { passive: true }));
+        const wrap = d => d - Math.round(d / n) * n;
+
+        function setItems(list) {
+            items = list;
+            n = items.length;
+            angle = 360 / n;
+            active = -1;
+        }
+
+        function measure() {
+            const frame = items[0].firstElementChild;
+            const w = frame.offsetWidth;
+            stepPx = w + 24;
+            // just enough radius that neighbouring frames don't cut into each other
+            radius = (w / 2 + 16) / Math.tan(Math.PI / n);
+            scene.style.height = Math.max(...items.map(s => s.offsetHeight)) + 'px';
+            if (pole) {
+                pole.style.height = frame.offsetHeight + 40 + 'px';
+                pole.style.transform = `translateZ(${(-radius).toFixed(1)}px)`;
+            }
+        }
+
+        function layout() {
+            items.forEach((item, k) => {
+                const d = wrap(k - pos);
+                const far = Math.abs(d);
+                item.style.transform =
+                    `translateX(-50%) translateZ(${(-radius).toFixed(1)}px) rotateY(${(d * angle).toFixed(2)}deg) translateZ(${radius.toFixed(1)}px)`;
+                item.style.opacity = Math.max(0, 1 - far * 0.3).toFixed(3);
+                item.style.visibility = far > 2.6 ? 'hidden' : 'visible';
+                item.style.zIndex = String(100 - Math.round(far * 10));
+            });
+            const current = ((Math.round(pos) % n) + n) % n;
+            if (current !== active) {
+                active = current;
+                items.forEach((item, k) => item.classList.toggle('active', k === current));
+                if (onActive) onActive(current);
+            }
+        }
+
+        function tick(now) {
+            const dt = last ? Math.min(0.05, (now - last) / 1000) : 1 / 60;
+            last = now;
+            if (!drag || !drag.live) {
+                pos += (target - pos) * (1 - Math.exp(-dt * 6));
+                if (Math.abs(target - pos) < 0.0005) pos = target;
+            }
+            if (enabled) layout();
+            if (enabled && (pos !== target || (drag && drag.live))) {
+                requestAnimationFrame(tick);
+            } else {
+                running = false;
+                last = 0;
+            }
+        }
+
+        function run() {
+            if (running || !enabled) return;
+            running = true;
+            requestAnimationFrame(tick);
+        }
+
+        scene.addEventListener('pointerdown', e => {
+            if (!enabled || (e.pointerType === 'mouse' && e.button !== 0)) return;
+            drag = { id: e.pointerId, x: e.clientX, y: e.clientY, start: pos, live: false, lastX: e.clientX, lastT: e.timeStamp, v: 0 };
+        });
+
+        scene.addEventListener('pointermove', e => {
+            if (!drag || e.pointerId !== drag.id) return;
+            const dx = e.clientX - drag.x;
+            if (!drag.live) {
+                if (Math.abs(dx) < 8) return;
+                // mostly vertical: leave it to the page scroll
+                if (Math.abs(e.clientY - drag.y) > Math.abs(dx)) { drag = null; return; }
+                drag.live = true;
+                drag.start = pos;
+                drag.x = e.clientX;
+                scene.setPointerCapture(e.pointerId);
+                scene.classList.add('is-dragging');
+                run();
+                return;
+            }
+            const dt = e.timeStamp - drag.lastT;
+            if (dt > 0) drag.v = 0.7 * ((e.clientX - drag.lastX) / dt) + 0.3 * drag.v;
+            drag.lastX = e.clientX;
+            drag.lastT = e.timeStamp;
+            pos = target = drag.start - dx / stepPx;
+        });
+
+        function release(e) {
+            if (!drag || e.pointerId !== drag.id) return;
+            const live = drag.live;
+            // a finger that stopped before lifting carries no fling
+            const v = e.timeStamp - drag.lastT > 90 ? 0 : drag.v;
+            drag = null;
+            if (!live) return;
+            draggedAt = performance.now();
+            scene.classList.remove('is-dragging');
+            const fling = Math.max(-3, Math.min(3, -v * 1000 / stepPx * 0.28));
+            target = Math.round(pos + fling);
+            run();
+        }
+        scene.addEventListener('pointerup', release);
+        scene.addEventListener('pointercancel', release);
+
+        // a tap on a side item turns it to the front
+        scene.addEventListener('click', e => {
+            if (!enabled || performance.now() - draggedAt < 350) return;
+            const item = items.find(it => it.contains(e.target));
+            if (!item || item.classList.contains('active')) return;
+            target = Math.round(pos + wrap(items.indexOf(item) - pos));
+            run();
+        });
+
+        new IntersectionObserver((entries, io) => {
+            if (!entries[0].isIntersecting) return;
+            io.disconnect();
+            if (target !== -1.6) return;
+            target = 0;
+            if (enabled) run(); else pos = 0;
+        }, { threshold: 0.3 }).observe(scene);
+
+        function enable(on) {
+            enabled = on;
+            active = -1;
+            if (on) run();
+        }
+
+        return { setItems, measure, layout, enable };
+    }
+
+    // ===================================================================
+    // SHOT RACKS: the three shots of SwR Watch, CmA and PBH spin on a coat
+    // rack on phones. Three is too few for a ring, so they hang there three
+    // times over - the copies are hidden from screen readers.
+    // ===================================================================
+    function initShotRacks() {
+        const query = window.matchMedia('(max-width: 599px)');
+        const racks = Array.from(document.querySelectorAll('.appblock-shots')).map(shots => {
+            const originals = Array.from(shots.querySelectorAll(':scope > .appblock-shot'));
+            const meta = document.createElement('div');
+            meta.className = 'rack-meta';
+            meta.setAttribute('aria-hidden', 'true');
+            meta.innerHTML = `<span class="rack-counter"><span class="cur">01</span> / ${String(originals.length).padStart(2, '0')}</span><span class="rack-hint">&larr; Drag to turn &rarr;</span>`;
+            shots.after(meta);
+            const cur = meta.querySelector('.cur');
+            const rack = createRack(shots, {
+                onActive: i => { cur.textContent = String(i % originals.length + 1).padStart(2, '0'); }
+            });
+            return { shots, originals, rack, clones: [] };
+        });
+
+        function apply() {
+            const on = query.matches;
+            racks.forEach(r => {
+                if (on && !r.clones.length) {
+                    const copies = Math.ceil(8 / r.originals.length) - 1;
+                    for (let c = 0; c < copies; c++) {
+                        r.originals.forEach(fig => {
+                            const clone = fig.cloneNode(true);
+                            clone.classList.add('in');
+                            clone.setAttribute('aria-hidden', 'true');
+                            r.shots.appendChild(clone);
+                            r.clones.push(clone);
+                        });
+                    }
+                    r.shots.classList.add('is-rack');
+                    r.rack.setItems(r.originals.concat(r.clones));
+                    r.rack.enable(true);
+                } else if (!on && r.clones.length) {
+                    r.rack.enable(false);
+                    r.clones.forEach(c => c.remove());
+                    r.clones = [];
+                    r.shots.classList.remove('is-rack');
+                    r.shots.style.height = '';
+                    r.originals.forEach(fig => {
+                        fig.classList.remove('active');
+                        ['transform', 'opacity', 'visibility', 'zIndex'].forEach(p => { fig.style[p] = ''; });
+                    });
+                }
+                if (on) {
+                    r.rack.measure();
+                    r.rack.layout();
+                }
+            });
+        }
+
+        window.addEventListener('resize', apply);
+        window.addEventListener('load', apply);
+        apply();
     }
 
     function initScrollFX() {
@@ -4102,7 +4225,7 @@
         initHelix();
         initUpcoming();
         initScrollFX();
-        initShotStrips();
+        initShotRacks();
         initSkinCompare();
     });
     </script>

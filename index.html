@@ -2642,6 +2642,23 @@
     // ===================================================================
     // SCROLL-DRIVEN TRANSFORMS: panel 3D tilt, AmW collage
     // ===================================================================
+    // ===================================================================
+    // SHOT STRIPS: while the page is still moving, a touch on a sideways strip
+    // keeps scrolling the page; the strip swipes only once the page has stopped
+    // ===================================================================
+    function initShotStrips() {
+        const strips = document.querySelectorAll('.appblock-shots');
+        if (!strips.length) return;
+        let idle = 0;
+        const setPan = value => strips.forEach(s => { s.style.touchAction = value; });
+
+        window.addEventListener('scroll', () => {
+            if (!idle) setPan('pan-y');
+            clearTimeout(idle);
+            idle = setTimeout(() => { idle = 0; setPan(''); }, 180);
+        }, { passive: true });
+    }
+
     function initScrollFX() {
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         if (reduced) return;
@@ -3497,96 +3514,100 @@
                 }
             });
 
-            // Touch events for mobile with passive: false to allow preventDefault
-            window.addEventListener('touchstart', (e) => {
-                if (!this.interactive) return;
-                // Check if touch is on a UI element (toggles)
-                const target = e.target;
-                const isUIElement = target.closest('.theme-toggle') || target.closest('.manual-rotate-toggle') || target.closest('a, button');
+            // The net ignores touch on phones; skip these blocking (non-passive)
+            // listeners there so they cannot hold up page scrolling
+            if (!this.mobileQuery.matches) {
+                // Touch events for mobile with passive: false to allow preventDefault
+                window.addEventListener('touchstart', (e) => {
+                    if (!this.interactive) return;
+                    // Check if touch is on a UI element (toggles)
+                    const target = e.target;
+                    const isUIElement = target.closest('.theme-toggle') || target.closest('.manual-rotate-toggle') || target.closest('a, button');
 
-                if (this.manualRotateEnabled && !isUIElement) {
-                    e.preventDefault();
-                    const touch = e.touches[0];
-                    this.isMouseDown = true;
-                    this.isDragging = true;
-                    this.lastMouseX = touch.clientX;
-                    this.lastMouseY = touch.clientY;
-                    this.mouse.x = touch.clientX;
-                    this.mouse.y = touch.clientY;
-                    this.rotationVelocityZ = 0;
-                    this.rotationVelocityX = 0;
-                    this.mouseTrail = [];
-                } else {
-                    // Allow normal scrolling and UI interaction when manual rotate is disabled or touching UI
-                    const touch = e.touches[0];
-                    this.mouse.x = touch.clientX;
-                    this.mouse.y = touch.clientY;
-                }
-            }, { passive: false });
-
-            window.addEventListener('touchmove', (e) => {
-                if (!this.interactive) return;
-                const touch = e.touches[0];
-                this.mouse.x = touch.clientX;
-                this.mouse.y = touch.clientY;
-
-                // Check if touch is on a UI element (toggles)
-                const target = e.target;
-                const isUIElement = target.closest('.theme-toggle') || target.closest('.manual-rotate-toggle') || target.closest('a, button');
-
-                if (this.manualRotateEnabled && !isUIElement) {
-                    e.preventDefault();
-
-                    if (this.isDragging) {
-                        const centerY = window.innerHeight / 2;
-                        const deltaX = touch.clientX - this.lastMouseX;
-                        const deltaY = touch.clientY - this.lastMouseY;
-
-                        // Z-axis rotation (left/right movement)
-                        const rotationMultiplier = touch.clientY > centerY ? -0.005 : 0.005;
-                        const rotationDeltaZ = deltaX * rotationMultiplier;
-
-                        // X-axis rotation (up/down movement)
-                        const rotationDeltaX = -deltaY * 0.005;
-
-                        this.manualRotationZ += rotationDeltaZ;
-                        this.manualRotationX += rotationDeltaX;
-
-                        this.rotationVelocityZ = rotationDeltaZ;
-                        this.rotationVelocityX = rotationDeltaX;
-
+                    if (this.manualRotateEnabled && !isUIElement) {
+                        e.preventDefault();
+                        const touch = e.touches[0];
+                        this.isMouseDown = true;
+                        this.isDragging = true;
                         this.lastMouseX = touch.clientX;
                         this.lastMouseY = touch.clientY;
+                        this.mouse.x = touch.clientX;
+                        this.mouse.y = touch.clientY;
+                        this.rotationVelocityZ = 0;
+                        this.rotationVelocityX = 0;
+                        this.mouseTrail = [];
                     } else {
-                        // Add to trail when not dragging and manual rotate is enabled
-                        this.mouseTrail.push({
-                            x: touch.clientX,
-                            y: touch.clientY,
-                            age: 0,
-                            maxAge: 180
-                        });
+                        // Allow normal scrolling and UI interaction when manual rotate is disabled or touching UI
+                        const touch = e.touches[0];
+                        this.mouse.x = touch.clientX;
+                        this.mouse.y = touch.clientY;
+                    }
+                }, { passive: false });
 
-                        if (this.mouseTrail.length > 200) {
-                            this.mouseTrail.shift();
+                window.addEventListener('touchmove', (e) => {
+                    if (!this.interactive) return;
+                    const touch = e.touches[0];
+                    this.mouse.x = touch.clientX;
+                    this.mouse.y = touch.clientY;
+
+                    // Check if touch is on a UI element (toggles)
+                    const target = e.target;
+                    const isUIElement = target.closest('.theme-toggle') || target.closest('.manual-rotate-toggle') || target.closest('a, button');
+
+                    if (this.manualRotateEnabled && !isUIElement) {
+                        e.preventDefault();
+
+                        if (this.isDragging) {
+                            const centerY = window.innerHeight / 2;
+                            const deltaX = touch.clientX - this.lastMouseX;
+                            const deltaY = touch.clientY - this.lastMouseY;
+
+                            // Z-axis rotation (left/right movement)
+                            const rotationMultiplier = touch.clientY > centerY ? -0.005 : 0.005;
+                            const rotationDeltaZ = deltaX * rotationMultiplier;
+
+                            // X-axis rotation (up/down movement)
+                            const rotationDeltaX = -deltaY * 0.005;
+
+                            this.manualRotationZ += rotationDeltaZ;
+                            this.manualRotationX += rotationDeltaX;
+
+                            this.rotationVelocityZ = rotationDeltaZ;
+                            this.rotationVelocityX = rotationDeltaX;
+
+                            this.lastMouseX = touch.clientX;
+                            this.lastMouseY = touch.clientY;
+                        } else {
+                            // Add to trail when not dragging and manual rotate is enabled
+                            this.mouseTrail.push({
+                                x: touch.clientX,
+                                y: touch.clientY,
+                                age: 0,
+                                maxAge: 180
+                            });
+
+                            if (this.mouseTrail.length > 200) {
+                                this.mouseTrail.shift();
+                            }
                         }
                     }
-                }
-                // If manual rotate is disabled or touching UI, don't preventDefault - allow normal scrolling and UI interaction
-            }, { passive: false });
+                    // If manual rotate is disabled or touching UI, don't preventDefault - allow normal scrolling and UI interaction
+                }, { passive: false });
 
-            window.addEventListener('touchend', (e) => {
-                if (!this.interactive) return;
-                // Check if touch is on a UI element (toggles)
-                const target = e.target;
-                const isUIElement = target.closest('.theme-toggle') || target.closest('.manual-rotate-toggle') || target.closest('a, button');
+                window.addEventListener('touchend', (e) => {
+                    if (!this.interactive) return;
+                    // Check if touch is on a UI element (toggles)
+                    const target = e.target;
+                    const isUIElement = target.closest('.theme-toggle') || target.closest('.manual-rotate-toggle') || target.closest('a, button');
 
-                if (this.manualRotateEnabled && !isUIElement) {
-                    e.preventDefault();
-                }
-                this.isMouseDown = false;
-                this.isDragging = false;
-                // Don't reset velocity here - let inertia continue
-            }, { passive: false });
+                    if (this.manualRotateEnabled && !isUIElement) {
+                        e.preventDefault();
+                    }
+                    this.isMouseDown = false;
+                    this.isDragging = false;
+                    // Don't reset velocity here - let inertia continue
+                }, { passive: false });
+            }
 
             // Listen for scroll events
             window.addEventListener('scroll', () => {
@@ -3909,6 +3930,7 @@
         initHelix();
         initUpcoming();
         initScrollFX();
+        initShotStrips();
         initSkinCompare();
     });
     </script>

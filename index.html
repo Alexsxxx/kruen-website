@@ -1449,6 +1449,8 @@
 
     /* these frames hold one still shot each - no crossfade to wait for */
     .appblock-shots .phone-screen img { opacity: 1; transition: none; }
+    /* a crossfading pair starts hidden, the animation brings each one in */
+    .appblock-shots .shot-cycle img { opacity: 0; }
 
     .appblock-shot figcaption {
         font-size: 12.5px;
@@ -2217,16 +2219,16 @@
                     </div>
                     <div class="appblock-shots">
                         <figure class="appblock-shot reveal">
-                            <div class="phone-frame"><div class="phone-screen"><img src="assets/cma-shot-list.webp" alt="CmA coin list with the Fear and Greed index and a score ring next to every coin" width="720" height="1606" loading="lazy"></div></div>
-                            <figcaption>The whole market, sorted by market cap, CmA score or 24h change.</figcaption>
+                            <div class="phone-frame"><div class="phone-screen"><img src="assets/cma-shot-list.webp" alt="CmA coin list with the Fear and Greed index and a Radar score ring next to every coin" width="720" height="1600" loading="lazy"></div></div>
+                            <figcaption>The whole market, sorted by market cap, Radar score or 24h change.</figcaption>
                         </figure>
                         <figure class="appblock-shot raised reveal">
-                            <div class="phone-frame"><div class="phone-screen"><img src="assets/cma-shot-detail.webp" alt="CmA coin detail with a price chart and a plain-language note on what the project is for" width="720" height="1606" loading="lazy"></div></div>
-                            <figcaption>Live price, history from a day to all-time, and what the project is actually for.</figcaption>
+                            <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle"><img src="assets/cma-shot-radar.webp" alt="CmA Fundamental Radar for Solana with its score and the metrics behind it" width="720" height="1600" loading="lazy"><img src="assets/cma-shot-detail.webp" alt="CmA coin detail with a price chart and a plain-language note on what the project is for" width="720" height="1600" loading="lazy"></div></div></div>
+                            <figcaption>The Fundamental Radar behind every score, live price history and what the project is actually for.</figcaption>
                         </figure>
                         <figure class="appblock-shot reveal">
-                            <div class="phone-frame"><div class="phone-screen"><img src="assets/cma-shot-breakdown.webp" alt="CmA score breakdown showing all fourteen metrics with their weights" width="720" height="1606" loading="lazy"></div></div>
-                            <figcaption>The full breakdown - every metric, its weight and the numbers behind it.</figcaption>
+                            <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle"><img src="assets/cma-shot-widget.webp" alt="CmA home-screen widget with live prices for a watchlist of coins" width="720" height="1600" loading="lazy"><img src="assets/cma-shot-widget-2.webp" alt="CmA home-screen widget with the Solana price chart" width="720" height="1600" loading="lazy"></div></div></div>
+                            <figcaption>Home-screen widgets - a watchlist of prices or one coin's chart.</figcaption>
                         </figure>
                     </div>
                 </div>

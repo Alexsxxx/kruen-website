@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-site-verification" content="0c-hmtOEQ5Lbyy8KcHhiSP3Y-jO0mCeDEr_tyvdrUfw" />
-    <meta name="description" content="Kruen - Android app design & development from the Czech Republic. Makers of SwR Global Radio, CmA Crypto Market Analysis, PBH Phone Battery Health and CaF Crypto and Forex Widget.">
-    <title>Kruen - SwR Global Radio, CmA, PBH &amp; CaF</title>
+    <meta name="description" content="Kruen - Android app design & development from the Czech Republic. Makers of SwR Global Radio, CmA Crypto Market Analysis and PBH Phone Battery Health.">
+    <title>Kruen - SwR Global Radio, CmA &amp; PBH</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1362,74 +1362,15 @@
     }
 
     /* ================================================================= */
-    /* AMW SECTION */
-    /* ================================================================= */
-    .amw {
-        margin-top: clamp(90px, 12vw, 170px);
-        padding-bottom: clamp(90px, 11vw, 150px);
-        position: relative;
-    }
-
-    .amw::before {
-        content: "";
-        position: absolute;
-        inset: -80px -300px;
-        background: radial-gradient(700px 380px at 70% 55%, rgba(120, 70, 30, 0.16), transparent 70%);
-        pointer-events: none;
-    }
-
-    .amw-grid {
-        position: relative;
-        display: grid;
-        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-        gap: clamp(40px, 6vw, 80px);
-        align-items: center;
-    }
-
-    .amw .app-icon {
-        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 50px rgba(63, 184, 245, 0.1);
-    }
-
-    .amw .app-head h2 { font-size: clamp(30px, 4.6vw, 52px); }
-
-    .amw .lead { font-size: clamp(15px, 2vw, 18px); }
-
-    .amw-collage {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        gap: 18px;
-        align-items: stretch;
-    }
-
-    .amw-shot {
-        border-radius: 18px;
-        overflow: hidden;
-        border: 1px solid var(--stage-line);
-        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
-        will-change: transform;
-        transition: border-color 0.3s ease;
-    }
-
-    .amw-shot:hover { border-color: rgba(63, 245, 130, 0.35); }
-
-    .amw-shot img { width: 100%; }
-
-    .amw-shot.narrow { width: 72%; }
-    .amw-shot.offset { align-self: flex-end; width: 82%; }
-
-    @media (max-width: 899px) {
-        .amw-grid { grid-template-columns: 1fr; }
-        .amw-shot.narrow, .amw-shot.offset { width: 100%; align-self: stretch; }
-    }
-
-    /* ================================================================= */
     /* APP BLOCKS (CmA, PBH) */
     /* ================================================================= */
     .appblock {
         margin-top: clamp(90px, 12vw, 170px);
         position: relative;
     }
+
+    /* the last app closes the stage */
+    .appblock:last-child { padding-bottom: clamp(90px, 11vw, 150px); }
 
     .appblock::before {
         content: "";
@@ -1828,7 +1769,6 @@
                         <a href="#swr-watch">SwR Watch</a>
                         <a href="#cma">CmA</a>
                         <a href="#pbh">PBH</a>
-                        <a href="#amw">CaF</a>
                         <a href="#about">About</a>
                     </div>
                     <div class="theme-toggle">
@@ -1863,7 +1803,6 @@
                     <a class="hero-chip" href="#swr-watch" title="SwR Watch - for Apple Watch" aria-label="SwR Watch - for Apple Watch"><img src="assets/swrw-icon.webp" alt="" width="28" height="28">SwR Watch</a>
                     <a class="hero-chip" href="#cma" title="CmA - Crypto Market Analysis" aria-label="CmA - Crypto Market Analysis"><img src="assets/cma-icon.webp" alt="" width="28" height="28">CmA</a>
                     <a class="hero-chip" href="#pbh" title="PBH - Phone Battery Health" aria-label="PBH - Phone Battery Health"><img src="assets/pbh-icon.webp" alt="" width="28" height="28">PBH</a>
-                    <a class="hero-chip" href="#amw" title="CaF - Crypto and Forex Widget" aria-label="CaF - Crypto and Forex Widget"><img src="assets/amw-icon.webp" alt="" width="28" height="28">CaF</a>
                 </div>
             </div>
             <div class="scroll-cue" aria-hidden="true"></div>
@@ -2334,38 +2273,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- ===================================================== -->
-            <!-- AMW -->
-            <!-- ===================================================== -->
-            <div class="amw container" id="amw">
-                <div class="amw-grid">
-                    <div>
-                        <p class="eyebrow reveal">05 · Also by Kruen</p>
-                        <div class="app-head reveal">
-                            <div class="app-icon"><img src="assets/amw-icon.webp" alt="CaF app icon" width="512" height="512"></div>
-                            <h2>CaF<span>Crypto and Forex Widget</span></h2>
-                        </div>
-                        <p class="lead reveal">Crypto and forex - as clean, glanceable <strong>home-screen widgets</strong>. One look at your home screen and you know where the market stands.</p>
-                        <div class="cta-row reveal">
-                            <a class="play-btn" href="https://play.google.com/store/apps/details?id=com.pricewidget" target="_blank" rel="noopener">
-                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.6 1.8c-.4.2-.6.6-.6 1.1v18.2c0 .5.2.9.6 1.1l10-10.2L3.6 1.8zm11.3 8.9l2.7-2.7-11-6.3 8.3 9zm3.9-1.5l-3 3 3 3 2.6-1.5c.8-.5.8-2.5 0-3l-2.6-1.5zm-4.2 4.2l-8.3 9 11-6.3-2.7-2.7z"/></svg>
-                                <span><small>Get it on</small>Google Play</span>
-                            </a>
-                            <div class="tag-row">
-                                <span class="tag">Widgets</span>
-                                <span class="tag">Live charts</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="amw-collage">
-                        <div class="amw-shot narrow" data-depth="0.05"><img src="assets/amw-tickers.webp" alt="CaF compact ticker widgets for Bitcoin and EUR/USD" loading="lazy"></div>
-                        <div class="amw-shot offset" data-depth="-0.06"><img src="assets/amw-duo.webp" alt="CaF widgets showing Solana and GBP/USD charts" loading="lazy"></div>
-                        <div class="amw-shot" style="width: 67%;" data-depth="0.04"><img src="assets/amw-usdeur.webp" alt="CaF widget showing an Ethereum price chart" loading="lazy"></div>
-                        <div class="amw-shot offset" style="width: 55%;" data-depth="-0.05"><img src="assets/amw-gold.webp" alt="CaF widget showing a JPY/USD exchange rate chart" loading="lazy"></div>
-                    </div>
-                </div>
-            </div>
         </section>
 
         <!-- ========================================================= -->
@@ -2739,7 +2646,7 @@
     }
 
     // ===================================================================
-    // SCROLL-DRIVEN TRANSFORMS: panel 3D tilt, AmW collage
+    // SCROLL-DRIVEN TRANSFORMS: panel 3D tilt
     // ===================================================================
     // ===================================================================
     // COAT RACK: on phones the shots hang round a vertical axis. A sideways
@@ -2959,7 +2866,6 @@
         if (reduced) return;
 
         const panel = document.getElementById('panel3d');
-        const floaters = document.querySelectorAll('.amw-shot[data-depth]');
         let ticking = false;
 
         function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
@@ -2979,16 +2885,6 @@
                     panel.style.opacity = String(0.35 + 0.65 * p);
                 }
             }
-
-
-            floaters.forEach(el => {
-                const r = el.getBoundingClientRect();
-                if (r.top < vh && r.bottom > 0) {
-                    const depth = parseFloat(el.dataset.depth);
-                    const offset = (r.top + r.height / 2 - vh / 2) * depth;
-                    el.style.transform = `translateY(${offset}px)`;
-                }
-            });
         }
 
         window.addEventListener('scroll', () => {

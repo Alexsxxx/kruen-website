@@ -1428,6 +1428,7 @@
     }
 
     .appblock-shot.raised { margin-top: -26px; }
+    .appblock-shot[hidden] { display: none; }
 
     .appblock-shots .phone-frame {
         border-radius: clamp(16px, 2.2vw, 26px);
@@ -2217,7 +2218,7 @@
                         </div>
                         <p class="appblock-note reveal">A metric with no data is left out of the maths instead of being guessed, so "we don't know" never moves the score up or down. Prices come live from Binance, everything else is pre-computed and served from our own gateway. It is an orientation tool built from public data - not investment advice.</p>
                     </div>
-                    <div class="appblock-shots">
+                    <div class="appblock-shots" data-rack-split>
                         <figure class="appblock-shot reveal">
                             <div class="phone-frame"><div class="phone-screen"><img src="assets/cma-shot-list.webp" alt="CmA coin list with the Fear and Greed index and a Radar score ring next to every coin" width="720" height="1600" loading="lazy"></div></div>
                             <figcaption>The whole market, sorted by market cap, Radar score or 24h change.</figcaption>
@@ -2803,9 +2804,10 @@
     }
 
     // ===================================================================
-    // SHOT RACKS: the three shots of SwR Watch, CmA and PBH spin on a coat
-    // rack on phones. Three is too few for a ring, so they hang there three
-    // times over - the copies are hidden from screen readers.
+    // SHOT RACKS: the shots of SwR Watch, CmA and PBH spin on a coat rack on
+    // phones. A strip marked data-rack-split hangs each shot of a crossfading
+    // pair in its own frame. Too few frames for a ring hang there twice or
+    // three times over - the copies are hidden from screen readers.
     // ===================================================================
     function initShotRacks() {
         const query = window.matchMedia('(max-width: 599px)');
@@ -2814,39 +2816,67 @@
             const meta = document.createElement('div');
             meta.className = 'rack-meta';
             meta.setAttribute('aria-hidden', 'true');
-            meta.innerHTML = `<span class="rack-counter"><span class="cur">01</span> / ${String(originals.length).padStart(2, '0')}</span><span class="rack-hint">&larr; Drag to turn &rarr;</span>`;
+            meta.innerHTML = '<span class="rack-counter"><span class="cur">01</span> / <span class="total"></span></span><span class="rack-hint">&larr; Drag to turn &rarr;</span>';
             shots.after(meta);
             const cur = meta.querySelector('.cur');
-            const rack = createRack(shots, {
-                onActive: i => { cur.textContent = String(i % originals.length + 1).padStart(2, '0'); }
+            const r = { shots, originals, meta, extra: [], base: 1 };
+            r.rack = createRack(shots, {
+                onActive: i => { cur.textContent = String(i % r.base + 1).padStart(2, '0'); }
             });
-            return { shots, originals, rack, clones: [] };
+            return r;
         });
+
+        // one frame per shot: a crossfading pair becomes two still frames
+        function splitShots(r) {
+            if (!('rackSplit' in r.shots.dataset)) return r.originals;
+            const out = [];
+            r.originals.forEach(fig => {
+                const cycle = fig.querySelector('.shot-cycle');
+                if (!cycle) { out.push(fig); return; }
+                Array.from(cycle.querySelectorAll('img')).forEach(img => {
+                    const single = fig.cloneNode(true);
+                    single.querySelector('.shot-cycle').replaceWith(img.cloneNode());
+                    single.classList.add('in');
+                    r.shots.insertBefore(single, fig);
+                    r.extra.push(single);
+                    out.push(single);
+                });
+                fig.hidden = true;
+            });
+            return out;
+        }
 
         function apply() {
             const on = query.matches;
             racks.forEach(r => {
-                if (on && !r.clones.length) {
-                    const copies = Math.ceil(8 / r.originals.length) - 1;
+                if (on && !r.extra.length && !r.shots.classList.contains('is-rack')) {
+                    const base = splitShots(r);
+                    r.base = base.length;
+                    r.meta.querySelector('.total').textContent = String(r.base).padStart(2, '0');
+                    const copies = Math.ceil(8 / base.length) - 1;
+                    const items = base.slice();
                     for (let c = 0; c < copies; c++) {
-                        r.originals.forEach(fig => {
+                        base.forEach(fig => {
                             const clone = fig.cloneNode(true);
+                            clone.hidden = false;
                             clone.classList.add('in');
                             clone.setAttribute('aria-hidden', 'true');
                             r.shots.appendChild(clone);
-                            r.clones.push(clone);
+                            r.extra.push(clone);
+                            items.push(clone);
                         });
                     }
                     r.shots.classList.add('is-rack');
-                    r.rack.setItems(r.originals.concat(r.clones));
+                    r.rack.setItems(items);
                     r.rack.enable(true);
-                } else if (!on && r.clones.length) {
+                } else if (!on && r.shots.classList.contains('is-rack')) {
                     r.rack.enable(false);
-                    r.clones.forEach(c => c.remove());
-                    r.clones = [];
+                    r.extra.forEach(el => el.remove());
+                    r.extra = [];
                     r.shots.classList.remove('is-rack');
                     r.shots.style.height = '';
                     r.originals.forEach(fig => {
+                        fig.hidden = false;
                         fig.classList.remove('active');
                         ['transform', 'opacity', 'visibility', 'zIndex'].forEach(p => { fig.style[p] = ''; });
                     });

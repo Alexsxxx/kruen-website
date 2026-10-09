@@ -3178,6 +3178,186 @@
     }
 
     // ===================================================================
+    // NET SILHOUETTE - which part of the net is grown at the moment
+    // ===================================================================
+    // The net keeps its size, but its outline slowly grows and recedes between
+    // random organic and geometric shapes. Shapes are signed distance fields in
+    // grid units; blending two fields morphs one outline into the next.
+    class NetSilhouette {
+        constructor(cols, rows, noise) {
+            this.halfX = (cols - 1) / 2;
+            this.halfY = (rows - 1) / 2;
+            // Shapes are designed for a 40-cell net; a bigger net scales them up
+            this.k = Math.max(1, Math.min(cols, rows) / 40);
+            // Shapes wander over the whole net, so they reach past the core into free space
+            this.spanX = this.halfX / this.k * 0.6;
+            this.spanY = this.halfY / this.k * 0.6;
+            this.noise = noise;
+            this.time = 0;
+            this.names = ['box', 'circle', 'ellipse', 'ring', 'diamond', 'cross', 'star', 'hexagon',
+                          'crescent', 'blob', 'metaballs', 'islands', 'spiral', 'dots', 'rings', 'stripes', 'band'];
+            // Nothing extra at first - the square core grows in alone, then pieces follow
+            this.current = { name: 'empty', t: 0, hold: 4, p: { organic: 0, seed: 0, cx: 0, cy: 0, rot: 0, spin: 0 } };
+            this.previous = null;
+            this.morph = 1;
+            this.morphDuration = 1;
+        }
+
+        rand(min, max) {
+            return min + Math.random() * (max - min);
+        }
+
+        makeShape(exclude) {
+            const names = this.names.filter(n => n !== exclude);
+            const name = names[Math.floor(Math.random() * names.length)];
+            const r = (a, b) => this.rand(a, b);
+            const p = {
+                cx: r(-1, 1) * this.spanX, cy: r(-1, 1) * this.spanY,
+                rot: r(0, Math.PI * 2), spin: r(-0.04, 0.04),
+                // Some shapes stay crisp, others get a soft, living edge
+                organic: Math.random() < 0.35 ? 0 : r(0.8, 3.5),
+                seed: r(0, 500)
+            };
+            switch (name) {
+                case 'box': p.w = r(10, 18); p.h = r(6, 10); break;
+                case 'circle': p.r = r(8, 13); break;
+                case 'ellipse': p.a = r(13, 21); p.b = r(7, 11); break;
+                case 'ring': p.r = r(7, 12); p.th = r(2.2, 4); break;
+                case 'diamond': p.a = r(15, 23); p.b = r(9, 13); break;
+                case 'cross': p.a = r(14, 21); p.b = r(9, 12); p.th = r(2.6, 4.5); break;
+                case 'star': p.r = r(10, 15); p.n = Math.floor(r(4, 8)); break;
+                case 'hexagon': p.r = r(8, 12); break;
+                case 'crescent': p.r = r(9, 13); break;
+                case 'blob': p.r = r(9, 14); break;
+                case 'metaballs':
+                    p.balls = Array.from({ length: Math.floor(r(4, 8)) }, () => ({
+                        x: r(-14, 14), y: r(-6, 6), r: r(4, 7),
+                        w: r(0.08, 0.2), phase: r(0, Math.PI * 2), ax: r(2, 6), ay: r(1, 3)
+                    }));
+                    break;
+                case 'islands': p.thr = r(0.5, 0.65); p.scale = r(0.1, 0.18); break;
+                case 'spiral': p.arms = Math.floor(r(1, 4)); p.pitch = r(3.5, 5.5); p.r = r(13, 18); break;
+                case 'dots': p.cell = r(4, 6); p.r = r(14, 20); break;
+                case 'rings': p.period = r(3.5, 5); p.r = r(14, 20); break;
+                case 'stripes': p.period = r(3.5, 6); break;
+                case 'band': p.amp = r(2.5, 5); p.freq = r(0.2, 0.45); p.th = r(3.5, 5.5); break;
+            }
+            return { name, t: 0, hold: r(7, 13), p };
+        }
+
+        update(dt) {
+            this.time += dt;
+            this.current.t += dt;
+            if (this.morph < 1) {
+                this.morph = Math.min(1, this.morph + dt / this.morphDuration);
+                if (this.morph >= 1) this.previous = null;
+            } else if (this.current.t > this.current.hold) {
+                this.previous = this.current;
+                this.current = this.makeShape(this.current.name);
+                this.morph = 0;
+                this.morphDuration = this.rand(5, 9);
+            }
+            if (this.previous) this.previous.t += dt;
+        }
+
+        sdf(shape, x, y) {
+            const p = shape.p;
+            const t = shape.t;
+            const len = (a, b) => Math.sqrt(a * a + b * b);
+            const box = (qx, qy, w, h) => {
+                const dx = Math.abs(qx) - w, dy = Math.abs(qy) - h;
+                return len(Math.max(dx, 0), Math.max(dy, 0)) + Math.min(Math.max(dx, dy), 0);
+            };
+            const fract = v => v - Math.floor(v);
+
+            // Local, slowly spinning frame of the shape
+            const a = -(p.rot + p.spin * t);
+            const ox = x - p.cx, oy = y - p.cy;
+            const px = ox * Math.cos(a) - oy * Math.sin(a);
+            const py = ox * Math.sin(a) + oy * Math.cos(a);
+            const radius = len(px, py);
+            const angle = Math.atan2(py, px);
+
+            let d;
+            switch (shape.name) {
+                case 'empty': d = 100; break;
+                case 'box': d = box(px, py, p.w, p.h) - 1; break;
+                case 'circle': d = radius - p.r; break;
+                case 'ellipse': d = (len(px / p.a, py / p.b) - 1) * Math.min(p.a, p.b); break;
+                case 'ring': d = Math.abs(radius - p.r) - p.th; break;
+                case 'diamond': d = (Math.abs(px) / p.a + Math.abs(py) / p.b - 1) * Math.min(p.a, p.b) * 0.8; break;
+                case 'cross': d = Math.min(box(px, py, p.a, p.th), box(px, py, p.th, p.b)); break;
+                case 'star': d = (radius - p.r * (0.66 + 0.34 * Math.cos(p.n * angle))) * 0.8; break;
+                case 'hexagon': {
+                    const qx = Math.abs(px), qy = Math.abs(py);
+                    d = Math.max(qx * 0.866 + qy * 0.5, qy) - p.r;
+                    break;
+                }
+                case 'crescent':
+                    d = Math.max(radius - p.r, -(len(px - p.r * 0.45, py) - p.r * 0.85));
+                    break;
+                case 'blob': {
+                    const n = this.noise(Math.cos(angle) * 1.3 + t * 0.05 + p.seed, Math.sin(angle) * 1.3 + p.seed);
+                    d = radius - p.r * (0.6 + 0.65 * n);
+                    break;
+                }
+                case 'metaballs': {
+                    // Smooth union of drifting circles
+                    let sum = 0;
+                    p.balls.forEach(b => {
+                        const bx = b.x + Math.sin(t * b.w + b.phase) * b.ax;
+                        const by = b.y + Math.cos(t * b.w * 1.3 + b.phase) * b.ay;
+                        sum += Math.exp(-(len(x - bx, y - by) - b.r) / 1.5);
+                    });
+                    d = -1.5 * Math.log(Math.max(sum, 1e-6));
+                    break;
+                }
+                case 'islands':
+                    d = (p.thr - this.noise(x * p.scale + t * 0.03 + p.seed, y * p.scale + p.seed)) * 14;
+                    break;
+                case 'spiral': {
+                    const f = fract(angle / (Math.PI * 2) * p.arms + radius / p.pitch - t * 0.05);
+                    d = Math.max(Math.abs(f - 0.5) * p.pitch - p.pitch * 0.22, radius - p.r);
+                    break;
+                }
+                case 'dots': {
+                    const qx = fract(px / p.cell + 0.5) - 0.5, qy = fract(py / p.cell + 0.5) - 0.5;
+                    d = Math.max((len(qx, qy) - 0.36) * p.cell, radius - p.r);
+                    break;
+                }
+                case 'rings':
+                    d = Math.max(Math.abs(fract(radius / p.period - t * 0.04) - 0.5) * p.period - p.period * 0.2, radius - p.r);
+                    break;
+                case 'stripes':
+                    d = Math.max(Math.abs(fract(px / p.period) - 0.5) * p.period - p.period * 0.22, box(px, py, 15, 9));
+                    break;
+                case 'band':
+                    d = Math.abs(py - p.amp * Math.sin(px * p.freq + t * 0.2)) - p.th;
+                    break;
+                default: d = 0;
+            }
+            if (p.organic) {
+                d += (this.noise(x * 0.22 + t * 0.04 + p.seed, y * 0.22 + p.seed) - 0.5) * p.organic * 2;
+            }
+            return d;
+        }
+
+        // Signed distance (in cells) to the current shape at grid point (x, y), centred grid units
+        distance(x, y) {
+            const xs = x / this.k, ys = y / this.k;
+            let d = this.sdf(this.current, xs, ys);
+            if (this.previous) {
+                const m = this.morph * this.morph * (3 - 2 * this.morph);
+                const between = this.sdf(this.previous, xs, ys);
+                // A little extra noise mid-morph so the edge grows rather than slides
+                d = between * (1 - m) + d * m +
+                    Math.sin(Math.PI * m) * (this.noise(xs * 0.3 + 50, ys * 0.3 + this.time * 0.1) - 0.5) * 4;
+            }
+            return d * this.k;
+        }
+    }
+
+    // ===================================================================
     // INTERACTIVE NETWORK BACKGROUND
     // ===================================================================
     class NetworkBackground {
@@ -3198,15 +3378,19 @@
             this.rotationVelocityX = 0;
             this.manualRotateEnabled = false; // Default: disabled
             // Equalizer columns stand on every second node of the net
-            this.field = new SpectrumField(20, 10);
-            this.columnOrder = [];
-            for (let k = 0; k < 200; k++) this.columnOrder.push(k);
             this.lastFrame = performance.now();
             this.heroDot = document.querySelector('.hero h1 .dot');
             this.heroBeats = 0;
             this.heroPulse = 0;
             this.lastWave = 0;
             this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+            // Perspective: the far side lies down toward the horizon, the near side rises
+            // toward the viewer. Smaller = stronger effect (px of virtual camera distance)
+            this.perspective = 1300;
+            // The heart of the net (about this many cells across). It swells and shrinks
+            // like a living body: when pieces grow out of it, it gives up some of its mass
+            this.core = 30;
+            this.coreHalf = 2;
             // The net is decoration only on phones - no touch/pointer interaction there
             this.mobileQuery = window.matchMedia('(max-width: 768px)');
             if (this.mobileQuery.matches) this.parkMouse();
@@ -3281,11 +3465,28 @@
             this.ctx.scale(dpr, dpr);
         }
 
+        // A square grid of fixed-size cells, big enough that its side corners reach the
+        // screen edges; the free space around the core is where pieces grow and recede
+        gridSize() {
+            const cellWidth = 18 * Math.cos(Math.PI / 6);
+            const size = Math.max(this.core + 4, Math.ceil((window.innerWidth / (2 * cellWidth) + 2) / 4) * 4);
+            return { cols: size, rows: size };
+        }
+
         createNodes() {
             const spacing = 18;
-            const cols = 40;
-            const rows = 20;
+            const { cols, rows } = this.gridSize();
             this.nodes = [];
+
+            // Equalizer columns stand on every second node; rebuild them only when the grid changes
+            if (cols !== this.cols || rows !== this.rows) {
+                this.cols = cols;
+                this.rows = rows;
+                this.field = new SpectrumField(cols / 2, rows / 2);
+                this.silhouette = new NetSilhouette(cols, rows, (x, y) => this.field.noise(x, y));
+                this.columnOrder = [];
+                for (let k = 0; k < this.field.cols * this.field.rows; k++) this.columnOrder.push(k);
+            }
 
             const centerX = window.innerWidth / 2;
             const centerY = window.innerHeight / 2;
@@ -3311,6 +3512,7 @@
                         x3d: x3d,
                         y3d: y3d,
                         z3d: z3d,
+                        mask: 0,
                         radius: 1.5
                     });
                 }
@@ -3367,25 +3569,6 @@
                         this.mouseTrail.shift();
                     }
                 }
-            });
-
-            window.addEventListener('mousedown', (e) => {
-                if (!this.interactive) return;
-                // Only start net-dragging in the hero area, not over links/buttons
-                if (e.target.closest('a, button, label, input')) return;
-                this.isMouseDown = true;
-                this.isDragging = true;
-                this.lastMouseX = e.clientX;
-                this.lastMouseY = e.clientY;
-                this.rotationVelocityZ = 0; // Reset velocity when starting new drag
-                this.rotationVelocityX = 0;
-                this.mouseTrail = []; // Clear trail when dragging
-            });
-
-            window.addEventListener('mouseup', () => {
-                this.isMouseDown = false;
-                this.isDragging = false;
-                // Don't reset velocity here - let inertia continue
             });
 
             // Touch events for mobile with passive: false to allow preventDefault
@@ -3504,180 +3687,177 @@
 
             const time = Date.now() * 0.001;
 
-            // Apply inertia when not dragging
-            if (!this.isDragging) {
-                if (Math.abs(this.rotationVelocityZ) > 0.0001) {
-                    this.manualRotationZ += this.rotationVelocityZ;
-                    this.rotationVelocityZ *= 0.95; // Friction/damping
-                }
-                if (Math.abs(this.rotationVelocityX) > 0.0001) {
-                    this.manualRotationX += this.rotationVelocityX;
-                    this.rotationVelocityX *= 0.95; // Friction/damping
-                }
-            }
+            // The net stays put - no drag or scroll rotation. Its outline grows and
+            // recedes between shapes; each node eases toward its share of the shape.
+            this.silhouette.update(dt);
+            const growRate = 1 - Math.exp(-dt * 1.4);
+            const sil = this.silhouette;
+            const noise = (x, y) => this.field.noise(x, y);
+            const coreHalf = this.coreHalf;
+            const blend = 4;   // how softly pieces fuse with the core
+            const halfX = (this.cols - 1) / 2, halfY = (this.rows - 1) / 2;
 
-            // Calculate scroll-based rotation and zoom - very gradual
-            const scrollFactor = Math.min(this.scrollY / 4000, 1); // Normalize scroll to 0-1 over 4000px
-            const scrollRotationZ = scrollFactor * Math.PI * 0.25; // Rotate up to 45 degrees from scroll
-            const totalRotationZ = scrollRotationZ + this.manualRotationZ; // Combine scroll and manual rotation
-            const totalRotationX = this.manualRotationX; // Only manual X rotation
-            const zoom = 1 + scrollFactor * 0.8; // Zoom from 1x to 1.8x
+            // The core has no fixed form: it drifts, turns, and its outline flows freely
+            // between diamond, circle and square (the norm exponent) with a wandering edge
+            const exponent = 1 + 5 * noise(time * 0.03, 7.7);
+            const coreX = (noise(time * 0.02, 1.3) - 0.5) * 10;
+            const coreY = (noise(time * 0.02, 4.1) - 0.5) * 10;
+            const turn = (noise(time * 0.015, 9.9) - 0.5) * Math.PI;
+            const turnCos = Math.cos(turn), turnSin = Math.sin(turn);
+            let outside = 0;
+            this.nodes.forEach(node => {
+                // Off-screen parts of the wide net keep their last state (saves the shape maths)
+                if (node.onScreen === false) return;
+                const gx = node.gridX - halfX, gy = node.gridY - halfY;
 
-            this.nodes.forEach((node, i) => {
-                // Create complex wave patterns like in the image - smoother
-                const waveZ1 = Math.sin(time * 0.8 + node.x3d * 0.008 + node.y3d * 0.006) * 80;
-                const waveZ2 = Math.cos(time * 0.5 + node.x3d * 0.010 + node.y3d * 0.004) * 60;
-                const waveZ3 = Math.sin(time * 0.3 + node.x3d * 0.005 + node.y3d * 0.012) * 40;
+                // Core: free-form body, no shape is held for long
+                const cx = (gx - coreX) * turnCos - (gy - coreY) * turnSin;
+                const cy = (gx - coreX) * turnSin + (gy - coreY) * turnCos;
+                const radius = Math.pow(Math.pow(Math.abs(cx), exponent) + Math.pow(Math.abs(cy), exponent), 1 / exponent);
+                const len = Math.hypot(cx, cy) || 1;
+                const lobes = 0.7 + 0.6 * noise(cx / len * 1.2 + time * 0.04, cy / len * 1.2 + time * 0.03);
+                const dCore = (radius - coreHalf * lobes) * 0.85 +
+                    (noise(gx * 0.12 + time * 0.05, gy * 0.12 + 90) - 0.5) * 3;
+                const dShape = sil.distance(gx, gy);
+                if (dShape < 0 && dCore > 0) outside++;
 
-                // Combine waves for complex surface
-                const totalWaveZ = waveZ1 + waveZ2 + waveZ3;
+                // Smooth union: pieces grow out of the core with a soft neck instead of floating beside it
+                const h = Math.min(1, Math.max(0, 0.5 + 0.5 * (dShape - dCore) / blend));
+                let d = dShape + (dCore - dShape) * h - blend * h * (1 - h);
+                d = Math.max(d, Math.abs(gx) - halfX - 0.5, Math.abs(gy) - halfY - 0.5);
 
-                // Mouse interaction - gentle push effect (calculated after rotation)
-                let mouseWaveZ = 0;
+                const target = Math.min(1, Math.max(0, 0.5 - d / 1.8));
+                node.mask += (target - node.mask) * growRate;
+            });
 
-                // Final Z position
-                const finalZ = totalWaveZ + mouseWaveZ;
+            // The whole organism breathes slowly; whatever has grown out is taken from the core
+            const coreArea = this.core * this.core;
+            const mass = coreArea * (0.7 + 0.6 * noise(time * 0.035, 5.5));
+            const area = Math.min(coreArea * 1.5, Math.max(coreArea * 0.3, mass - outside * 0.7));
+            this.coreHalf += (Math.sqrt(area) / 2 - this.coreHalf) * (1 - Math.exp(-dt * 0.35));
 
-                // Apply Z-axis rotation first (around Z axis)
-                let rotatedX = node.x3d * Math.cos(totalRotationZ) - node.y3d * Math.sin(totalRotationZ);
-                let rotatedY = node.x3d * Math.sin(totalRotationZ) + node.y3d * Math.cos(totalRotationZ);
-                let rotatedZ = finalZ;
+            const isoCos = Math.cos(Math.PI / 6), isoSin = Math.sin(Math.PI / 6);
+            const P = this.perspective;
+            const viewW = window.innerWidth, viewH = window.innerHeight;
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
 
-                // Then apply X-axis rotation (around X axis)
-                const tempY = rotatedY * Math.cos(totalRotationX) - rotatedZ * Math.sin(totalRotationX);
-                rotatedZ = rotatedY * Math.sin(totalRotationX) + rotatedZ * Math.cos(totalRotationX);
-                rotatedY = tempY;
+            // Pass 1: positions, depth and opacity of every node
+            const waveAt = n =>
+                Math.sin(time * 0.8 + n.x3d * 0.008 + n.y3d * 0.006) * 80 +
+                Math.cos(time * 0.5 + n.x3d * 0.010 + n.y3d * 0.004) * 60 +
+                Math.sin(time * 0.3 + n.x3d * 0.005 + n.y3d * 0.012) * 40;
 
-                // Convert 3D to isometric 2D with rotation and zoom
-                const centerX = window.innerWidth / 2;
-                const centerY = window.innerHeight / 2;
+            this.nodes.forEach(node => {
+                const totalWaveZ = waveAt(node);
+                node.wave = totalWaveZ;
+                // Nodes still growing in rise up from below
+                const finalZ = totalWaveZ - (1 - node.mask) * 70;
+                const sum = node.x3d + node.y3d;
+                const ground = sum * isoSin;                 // + toward the viewer
+                const f = P / Math.max(P * 0.25, P - ground);  // perspective scale
+                node.persp = f;
 
-                node.x = centerX + (rotatedX - rotatedY) * Math.cos(Math.PI / 6) * zoom;
-                node.y = centerY + (rotatedX + rotatedY) * Math.sin(Math.PI / 6) * zoom - finalZ * 0.3;
-                node.depth = rotatedX + rotatedY;
+                node.x = centerX + (node.x3d - node.y3d) * isoCos * f;
+                node.y = centerY + (ground - finalZ * 0.3) * f;
+                node.depth = sum;
 
-                // Now calculate mouse push effect based on rotated position
+                // Gentle push-down under the mouse
                 if (!this.isDragging) {
                     const dx = this.mouse.x - node.x;
                     const dy = this.mouse.y - node.y;
                     const distance = Math.sqrt(dx * dx + dy * dy);
-
                     if (distance < 200) {
                         const influence = (200 - distance) / 200;
-                        // Smooth falloff without pulsing
-                        const pushAmount = -influence * influence * 120; // Negative to push down
-
-                        // Apply push by adjusting the final Z and recalculating position
-                        const newFinalZ = finalZ + pushAmount;
-                        node.y = centerY + (rotatedX + rotatedY) * Math.sin(Math.PI / 6) * zoom - newFinalZ * 0.3;
+                        node.y += influence * influence * 120 * 0.3 * f;
                     }
                 }
 
-                // Calculate visibility and size based on rotated Z
-                const normalizedZ = (rotatedZ + 200) / 400; // Normalize to 0-1
-                const pointSize = Math.max(0.1, (0.5 + normalizedZ * 2) * zoom * 0.8); // Prevent negative radius
-                const opacity = 0.3 + normalizedZ * 0.7;
-                node.opacity = opacity;
-
-                // Draw connections first (behind points)
-                // Nodes are stored column by column, so neighbours are a fixed index away
-                const rightNode = node.gridX < 39 ? this.nodes[i + 20] : null;
-                const bottomNode = node.gridY < 19 ? this.nodes[i + 1] : null;
-
-                if (node.gridX < 39 && node.gridY < 19) {
-
-                    if (rightNode) {
-                        const lineOpacity = (opacity + (rightNode.y + 200) / 400 * 0.7) * 0.4;
-                        this.ctx.strokeStyle = this.isDark ?
-                            `rgba(255, 255, 255, ${lineOpacity})` :
-                            `rgba(80, 80, 80, ${lineOpacity})`;
-                        this.ctx.lineWidth = 0.5;
-                        this.ctx.beginPath();
-                        this.ctx.moveTo(node.x, node.y);
-                        this.ctx.lineTo(rightNode.x, rightNode.y);
-                        this.ctx.stroke();
-                    }
-
-                    if (bottomNode) {
-                        const lineOpacity = (opacity + (bottomNode.y + 200) / 400 * 0.7) * 0.4;
-                        this.ctx.strokeStyle = this.isDark ?
-                            `rgba(255, 255, 255, ${lineOpacity})` :
-                            `rgba(80, 80, 80, ${lineOpacity})`;
-                        this.ctx.lineWidth = 0.5;
-                        this.ctx.beginPath();
-                        this.ctx.moveTo(node.x, node.y);
-                        this.ctx.lineTo(bottomNode.x, bottomNode.y);
-                        this.ctx.stroke();
-                    }
-                }
-
-                // Calculate real surface normal based on neighboring points
-                let normalX3d = 0, normalY3d = 0, normalZ3d = 1; // Default normal pointing up
-
-                if (rightNode && bottomNode) {
-                    // Calculate surface vectors
-                    const rightZ = Math.sin(time * 0.8 + rightNode.x3d * 0.008 + rightNode.y3d * 0.006) * 80 +
-                                  Math.cos(time * 0.5 + rightNode.x3d * 0.010 + rightNode.y3d * 0.004) * 60 +
-                                  Math.sin(time * 0.3 + rightNode.x3d * 0.005 + rightNode.y3d * 0.012) * 40;
-
-                    const bottomZ = Math.sin(time * 0.8 + bottomNode.x3d * 0.008 + bottomNode.y3d * 0.006) * 80 +
-                                   Math.cos(time * 0.5 + bottomNode.x3d * 0.010 + bottomNode.y3d * 0.004) * 60 +
-                                   Math.sin(time * 0.3 + bottomNode.x3d * 0.005 + bottomNode.y3d * 0.012) * 40;
-
-                    // Calculate surface normal using cross product
-                    const dx1 = 18, dy1 = 0, dz1 = rightZ - finalZ;
-                    const dx2 = 0, dy2 = 18, dz2 = bottomZ - finalZ;
-
-                    // Cross product for normal vector
-                    normalX3d = dy1 * dz2 - dz1 * dy2;
-                    normalY3d = dz1 * dx2 - dx1 * dz2;
-                    normalZ3d = dx1 * dy2 - dy1 * dx2;
-
-                    // Normalize the normal vector
-                    const normalLength3d = Math.sqrt(normalX3d * normalX3d + normalY3d * normalY3d + normalZ3d * normalZ3d);
-                    if (normalLength3d > 0) {
-                        normalX3d /= normalLength3d;
-                        normalY3d /= normalLength3d;
-                        normalZ3d /= normalLength3d;
-                    }
-                }
-
-                // Convert 3D normal to 2D screen coordinates with zoom
-                const normalLength = Math.max(5, (30 + normalizedZ * 20) * zoom * 0.8); // Prevent negative length
-                const normalEndX = node.x + (normalX3d - normalY3d) * Math.cos(Math.PI / 6) * normalLength;
-                const normalEndY = node.y + (normalX3d + normalY3d) * Math.sin(Math.PI / 6) * normalLength - normalZ3d * normalLength;
-
-                // Draw normal line
-                const normalOpacity = opacity * 0.8;
-                const gradient = this.ctx.createLinearGradient(node.x, node.y, normalEndX, normalEndY);
-
-                if (this.isDark) {
-                    gradient.addColorStop(0, `rgba(255, 255, 255, ${normalOpacity})`);
-                    gradient.addColorStop(0.7, `rgba(255, 255, 255, ${normalOpacity * 0.3})`);
-                    gradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
-                } else {
-                    gradient.addColorStop(0, `rgba(100, 100, 100, ${normalOpacity})`);
-                    gradient.addColorStop(0.7, `rgba(100, 100, 100, ${normalOpacity * 0.3})`);
-                    gradient.addColorStop(1, `rgba(100, 100, 100, 0)`);
-                }
-
-                this.ctx.strokeStyle = gradient;
-                this.ctx.lineWidth = 1;
-                this.ctx.beginPath();
-                this.ctx.moveTo(node.x, node.y);
-                this.ctx.lineTo(normalEndX, normalEndY);
-                this.ctx.stroke();
-
-                // Draw point
-                this.ctx.fillStyle = this.isDark ?
-                    `rgba(255, 255, 255, ${opacity})` :
-                    `rgba(80, 80, 80, ${opacity})`;
-                this.ctx.beginPath();
-                this.ctx.arc(node.x, node.y, pointSize, 0, Math.PI * 2);
-                this.ctx.fill();
+                node.onScreen = node.x > -120 && node.x < viewW + 120 && node.y > -160 && node.y < viewH + 160;
+                node.normalizedZ = (finalZ + 200) / 400;
+                node.opacity = (0.3 + node.normalizedZ * 0.7) * node.mask;
             });
 
-            this.drawColumns(dt, totalRotationZ, totalRotationX, zoom);
+            // Pass 2: collect lines, normals and points into a few alpha buckets,
+            // so thousands of segments cost a handful of strokes instead of one each
+            const BUCKETS = 16;
+            const bucket = alpha => Math.max(0, Math.min(BUCKETS - 1, Math.floor(alpha * BUCKETS)));
+            const lines = [], normalsNear = [], normalsFar = [], points = [];
+            for (let k = 0; k < BUCKETS; k++) {
+                lines.push(new Path2D());
+                normalsNear.push(new Path2D());
+                normalsFar.push(new Path2D());
+                points.push(new Path2D());
+            }
+
+            this.nodes.forEach((node, i) => {
+                const grown = node.mask;
+                if (grown < 0.01 || !node.onScreen) return;
+                const opacity = node.opacity;
+
+                // Nodes are stored column by column, so neighbours are a fixed index away
+                const rightNode = node.gridX < this.cols - 1 ? this.nodes[i + this.rows] : null;
+                const bottomNode = node.gridY < this.rows - 1 ? this.nodes[i + 1] : null;
+
+                [rightNode, bottomNode].forEach(other => {
+                    if (!other || other.mask <= 0.01) return;
+                    const lineOpacity = (opacity + (other.y + 200) / 400 * 0.7) * 0.4 * Math.min(grown, other.mask);
+                    const path = lines[bucket(lineOpacity)];
+                    path.moveTo(node.x, node.y);
+                    path.lineTo(other.x, other.y);
+                });
+
+                // Surface normal from the neighbouring wave heights
+                let normalX3d = 0, normalY3d = 0, normalZ3d = 1;
+                if (rightNode && bottomNode) {
+                    const dz1 = rightNode.wave - node.wave;
+                    const dz2 = bottomNode.wave - node.wave;
+                    normalX3d = -dz1 * 18;
+                    normalY3d = -18 * dz2;
+                    normalZ3d = 18 * 18;
+                    const length3d = Math.sqrt(normalX3d * normalX3d + normalY3d * normalY3d + normalZ3d * normalZ3d);
+                    normalX3d /= length3d;
+                    normalY3d /= length3d;
+                    normalZ3d /= length3d;
+                }
+
+                // Normal whisker fading out toward its tip (two segments instead of a gradient)
+                const normalLength = Math.max(1, (30 + node.normalizedZ * 20) * 0.8 * grown);
+                const f = node.persp;
+                const endX = node.x + (normalX3d - normalY3d) * isoCos * normalLength * f;
+                const endY = node.y + ((normalX3d + normalY3d) * isoSin - normalZ3d) * normalLength * f;
+                const midX = node.x + (endX - node.x) * 0.6, midY = node.y + (endY - node.y) * 0.6;
+                const normalOpacity = opacity * 0.8;
+                let path = normalsNear[bucket(normalOpacity * 0.7)];
+                path.moveTo(node.x, node.y);
+                path.lineTo(midX, midY);
+                path = normalsFar[bucket(normalOpacity * 0.18)];
+                path.moveTo(midX, midY);
+                path.lineTo(endX, endY);
+
+                const pointSize = Math.max(0.1, (0.5 + node.normalizedZ * 2) * 0.8 * grown * f);
+                path = points[bucket(opacity)];
+                path.moveTo(node.x + pointSize, node.y);
+                path.arc(node.x, node.y, pointSize, 0, Math.PI * 2);
+            });
+
+            const lineRgb = this.isDark ? '255, 255, 255' : '80, 80, 80';
+            const normalRgb = this.isDark ? '255, 255, 255' : '100, 100, 100';
+            const ctx = this.ctx;
+            for (let k = 0; k < BUCKETS; k++) {
+                const alpha = ((k + 0.5) / BUCKETS).toFixed(3);
+                ctx.lineWidth = 0.5;
+                ctx.strokeStyle = `rgba(${lineRgb}, ${alpha})`;
+                ctx.stroke(lines[k]);
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = `rgba(${normalRgb}, ${alpha})`;
+                ctx.stroke(normalsNear[k]);
+                ctx.stroke(normalsFar[k]);
+                ctx.fillStyle = `rgba(${lineRgb}, ${alpha})`;
+                ctx.fill(points[k]);
+            }
+
+            this.drawColumns(dt, 0, 0, 1);
             this.updateHeroDot(dt);
 
             requestAnimationFrame(() => this.animate());
@@ -3733,36 +3913,43 @@
                 if (a.y + b.y > 0) faces.push({ a, b, shade: a.x + b.x < 0 ? 1 : 2 });
             }
 
-            const block = (bx, by, h, fills) => {
+            // f = perspective scale of the column (near columns are drawn bigger)
+            const block = (bx, by, h, fills, f) => {
                 faces.forEach(({ a, b, shade }) => {
                     ctx.fillStyle = fills[shade];
                     ctx.beginPath();
-                    ctx.moveTo(bx + a.x, by + a.y);
-                    ctx.lineTo(bx + b.x, by + b.y);
-                    ctx.lineTo(bx + b.x, by + b.y - h);
-                    ctx.lineTo(bx + a.x, by + a.y - h);
+                    ctx.moveTo(bx + a.x * f, by + a.y * f);
+                    ctx.lineTo(bx + b.x * f, by + b.y * f);
+                    ctx.lineTo(bx + b.x * f, by + b.y * f - h);
+                    ctx.lineTo(bx + a.x * f, by + a.y * f - h);
                     ctx.closePath();
                     ctx.fill();
                 });
                 ctx.fillStyle = fills[0];
                 ctx.beginPath();
-                ctx.moveTo(bx + corners[0].x, by + corners[0].y - h);
-                for (let k = 1; k < 4; k++) ctx.lineTo(bx + corners[k].x, by + corners[k].y - h);
+                ctx.moveTo(bx + corners[0].x * f, by + corners[0].y * f - h);
+                for (let k = 1; k < 4; k++) ctx.lineTo(bx + corners[k].x * f, by + corners[k].y * f - h);
                 ctx.closePath();
                 ctx.fill();
             };
 
             // Painter's order: columns further from the viewer first
-            const nodeIndex = k => (Math.floor(k / field.rows) * 2) * 20 + (k % field.rows) * 2;
+            const nodeIndex = k => (Math.floor(k / field.rows) * 2) * this.rows + (k % field.rows) * 2;
             this.columnOrder.sort((p, q) => this.nodes[nodeIndex(p)].depth - this.nodes[nodeIndex(q)].depth);
 
             const baseAlpha = this.isDark ? 0.6 : 0.75;
+            const viewW = window.innerWidth, viewH = window.innerHeight;
             this.columnOrder.forEach(k => {
                 const node = this.nodes[nodeIndex(k)];
                 if (node.depth === undefined) return;
-                const level = field.levels[k];
-                const peak = field.peaks[k];
-                const alpha = baseAlpha * Math.min(1, node.opacity + 0.15);
+                // Columns only stand where the net has grown, and only on screen
+                const grown = node.mask;
+                if (grown < 0.02) return;
+                const f = node.persp;
+                if (node.x < -60 * f || node.x > viewW + 60 * f || node.y < -20 || node.y > viewH + maxHeight * f) return;
+                const level = field.levels[k] * grown;
+                const peak = field.peaks[k] * grown;
+                const alpha = baseAlpha * Math.min(1, node.opacity + 0.15) * grown;
 
                 const lit = level * segments;
                 const full = Math.floor(lit);
@@ -3771,14 +3958,14 @@
                     const segAlpha = s < full ? 1 : lit - full;
                     if (segAlpha < 0.05) break;
                     ctx.globalAlpha = alpha * segAlpha;
-                    block(node.x, node.y - s * pitch, blockHeight, this.columnPalette[s]);
+                    block(node.x, node.y - s * pitch * f, blockHeight * f, this.columnPalette[s], f);
                 }
 
                 // Peak cap floats just above the column top
                 if (peak > 0.04) {
                     ctx.globalAlpha = alpha * Math.min(1, (peak - 0.04) * 10);
-                    const capY = node.y - peak * maxHeight - pitch * 0.35;
-                    block(node.x, capY, pitch * 0.2, this.peakPalette);
+                    const capY = node.y - (peak * maxHeight + pitch * 0.35) * f;
+                    block(node.x, capY, pitch * 0.2 * f, this.peakPalette, f);
                 }
             });
             ctx.globalAlpha = 1;

@@ -378,6 +378,9 @@
         padding: 100px 20px 60px;
         text-align: center;
         position: relative;
+        /* Dragging here rotates the net - don't select the hero text meanwhile */
+        -webkit-user-select: none;
+        user-select: none;
     }
 
     .hero-content {
@@ -2754,6 +2757,303 @@
     }
 
     // ===================================================================
+    // SPECTRUM FIELD - column levels for the bars standing on the net
+    // ===================================================================
+    // Cycles through animation modes (audio spectrum, waves, ripples, ...)
+    // with random parameters and crossfades, so every run looks different.
+    class SpectrumField {
+        constructor(cols, rows) {
+            this.cols = cols;
+            this.rows = rows;
+            const n = cols * rows;
+            this.levels = new Float32Array(n);
+            this.peaks = new Float32Array(n);
+            this.peakHold = new Float32Array(n);
+            this.peakVel = new Float32Array(n);
+            this.velocity = new Float32Array(n);
+            this.seed = Math.floor(Math.random() * 100000);
+            this.time = 0;
+
+            // Audio spectrum state: live bins plus a scrolling history (waterfall)
+            this.bins = new Float32Array(cols);
+            this.history = [];
+            for (let r = 0; r < rows; r++) this.history.push(new Float32Array(cols));
+            this.historyTimer = 0;
+            this.historyInterval = 0.09;
+            this.song = this.newSong();
+
+            this.drops = [];
+
+            this.modeWeights = { spectrum: 3, wave: 1, ripple: 1, plasma: 1, flow: 1, rain: 1, spiral: 1, scanner: 1, mountain: 1 };
+            this.current = this.startMode(this.pickMode(null));
+            this.previous = null;
+            this.fadeT = 1;
+        }
+
+        // ---- noise helpers ------------------------------------------------
+        hash(x, y) {
+            let h = Math.imul(x, 374761393) ^ Math.imul(y, 668265263) ^ Math.imul(this.seed, 2246822519);
+            h = Math.imul(h ^ (h >>> 13), 1274126177);
+            return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
+        }
+
+        noise(x, y) {
+            const xi = Math.floor(x), yi = Math.floor(y);
+            const xf = x - xi, yf = y - yi;
+            const sx = xf * xf * (3 - 2 * xf), sy = yf * yf * (3 - 2 * yf);
+            const a = this.hash(xi, yi), b = this.hash(xi + 1, yi);
+            const c = this.hash(xi, yi + 1), d = this.hash(xi + 1, yi + 1);
+            return (a + (b - a) * sx) + ((c + (d - c) * sx) - (a + (b - a) * sx)) * sy;
+        }
+
+        rand(min, max) {
+            return min + Math.random() * (max - min);
+        }
+
+        // ---- mode scheduling ----------------------------------------------
+        pickMode(exclude) {
+            const names = Object.keys(this.modeWeights).filter(n => n !== exclude);
+            const total = names.reduce((s, n) => s + this.modeWeights[n], 0);
+            let r = Math.random() * total;
+            for (const n of names) {
+                r -= this.modeWeights[n];
+                if (r <= 0) return n;
+            }
+            return names[0];
+        }
+
+        newSong() {
+            return {
+                bpm: this.rand(92, 138),
+                formants: this.rand(1.5, 4),
+                hats: Math.random() < 0.7,
+                offset: this.rand(0, 100)
+            };
+        }
+
+        startMode(name) {
+            const r = (a, b) => this.rand(a, b);
+            const m = { name, t: 0, duration: name === 'spectrum' ? r(11, 17) : r(7, 12), p: {} };
+            const p = m.p;
+            switch (name) {
+                case 'spectrum':
+                    this.song = this.newSong();
+                    break;
+                case 'wave':
+                    p.a1 = r(0, Math.PI * 2); p.a2 = p.a1 + r(0.6, 2.2);
+                    p.f1 = r(0.35, 0.8); p.f2 = r(0.2, 0.6);
+                    p.s1 = r(1.5, 3.5); p.s2 = r(-2.5, 2.5);
+                    p.mix = r(0, 0.5);
+                    break;
+                case 'ripple':
+                    p.cx = r(-5, 5); p.cy = r(-2, 2);
+                    p.freq = r(0.7, 1.3); p.speed = r(3, 6);
+                    p.drift = r(0.2, 0.5);
+                    break;
+                case 'plasma':
+                    p.a = r(0.25, 0.6); p.b = r(0.3, 0.8); p.c = r(0.15, 0.4); p.d = r(0.3, 0.7);
+                    p.s = r(0.8, 1.6);
+                    break;
+                case 'flow':
+                    p.scale = r(0.15, 0.3);
+                    p.vx = r(-1, 1); p.vy = r(-0.6, 0.6);
+                    break;
+                case 'rain':
+                    p.rate = r(2, 5);
+                    this.drops = [];
+                    break;
+                case 'spiral':
+                    p.arms = Math.floor(r(1, 4));
+                    p.twist = r(0.3, 0.8) * (Math.random() < 0.5 ? -1 : 1);
+                    p.speed = r(2, 4);
+                    break;
+                case 'scanner':
+                    p.angle = r(0, Math.PI * 2);
+                    p.speed = r(0.7, 1.4);
+                    p.width = r(1.5, 3.5);
+                    break;
+                case 'mountain':
+                    p.cx = r(-4, 4); p.cy = r(-2, 2);
+                    p.speed = r(1.2, 2.2);
+                    break;
+            }
+            return m;
+        }
+
+        // ---- per-frame simulation -----------------------------------------
+        updateSpectrum(dt) {
+            const T = this.time;
+            const s = this.song;
+            const beat = 60 / s.bpm;
+            const phase = (T % beat) / beat;
+            // Pulses swell in briefly instead of jumping straight to full
+            const pulse = (ph, decay) => ph < 0.1 ? Math.sin(ph / 0.1 * Math.PI / 2) : Math.exp(-(ph - 0.1) * decay);
+            const kick = pulse(phase, 5);
+            const hatPhase = ((T + beat / 2) % beat) / beat;
+            const hat = s.hats ? pulse(hatPhase, 8) : 0;
+            // Slow song dynamics - quieter and louder passages
+            const gain = 0.6 + 0.5 * this.noise(T * 0.12 + s.offset, 7.3);
+
+            for (let k = 0; k < this.cols; k++) {
+                const f = k / (this.cols - 1);
+                const shape = 0.72 - 0.42 * f + 0.14 * Math.sin(f * Math.PI * s.formants + T * 0.4);
+                let v = shape * (0.2 + 0.8 * this.noise(k * 0.4 + s.offset, T * 1.1));
+                v += kick * Math.max(0, 1 - f * 3.5) * 0.55;
+                v += hat * Math.max(0, f - 0.55) * 0.9;
+                v = Math.min(1, Math.max(0, v * gain));
+                const rate = v > this.bins[k] ? 0.22 : 0.1;
+                this.bins[k] += (v - this.bins[k]) * (1 - Math.pow(1 - rate, dt * 60));
+            }
+
+            // Push the spectrum one row back every few frames
+            this.historyTimer += dt;
+            if (this.historyTimer > this.historyInterval) {
+                this.historyTimer -= this.historyInterval;
+                const last = this.history.pop();
+                last.set(this.bins);
+                this.history.unshift(last);
+            }
+        }
+
+        updateRain(m, dt) {
+            if (Math.random() < m.p.rate * dt) {
+                this.drops.push({
+                    x: this.rand(-(this.cols - 1) / 2, (this.cols - 1) / 2),
+                    y: this.rand(-(this.rows - 1) / 2, (this.rows - 1) / 2),
+                    age: 0,
+                    amp: this.rand(0.5, 1)
+                });
+            }
+            this.drops.forEach(d => { d.age += dt; });
+            this.drops = this.drops.filter(d => d.age < 3);
+        }
+
+        evaluate(m, x, y, i, j) {
+            const p = m.p;
+            const t = m.t;
+            switch (m.name) {
+                case 'spectrum': {
+                    // Front row (highest j) is the live spectrum, rows behind it are older frames.
+                    // Rows glide between stored frames so the waterfall scrolls without steps.
+                    const age = this.rows - 1 - j;
+                    if (age === 0) return this.bins[i];
+                    const frac = Math.min(1, this.historyTimer / this.historyInterval);
+                    const v = this.history[age][i] + (this.history[age - 1][i] - this.history[age][i]) * frac;
+                    return v * (1 - (age - frac) * 0.045);
+                }
+                case 'wave': {
+                    const w1 = Math.sin((x * Math.cos(p.a1) + y * Math.sin(p.a1)) * p.f1 - t * p.s1);
+                    const w2 = Math.sin((x * Math.cos(p.a2) + y * Math.sin(p.a2)) * p.f2 - t * p.s2);
+                    const v = 0.5 + 0.5 * (w1 * (1 - p.mix) + w2 * p.mix);
+                    return 0.08 + Math.pow(v, 1.4) * 0.82;
+                }
+                case 'ripple': {
+                    const cx = p.cx + Math.sin(t * p.drift) * 3;
+                    const cy = p.cy + Math.cos(t * p.drift * 1.3) * 1.5;
+                    const d = Math.hypot(x - cx, y - cy);
+                    const v = 0.5 + 0.5 * Math.sin(d * p.freq - t * p.speed);
+                    return v * (0.3 + 0.6 * Math.exp(-d * 0.12));
+                }
+                case 'plasma': {
+                    const ts = t * p.s;
+                    const v = Math.sin(x * p.a + ts) + Math.sin(y * p.b - ts * 1.3) +
+                              Math.sin((x + y) * p.c + ts * 0.7) + Math.sin(Math.hypot(x, y) * p.d - ts);
+                    return 0.05 + Math.pow((v + 4) / 8, 1.6) * 0.9;
+                }
+                case 'flow': {
+                    const n1 = this.noise(x * p.scale + t * p.vx + 50, y * p.scale + t * p.vy + 20);
+                    const n2 = this.noise(x * p.scale * 2.3 - t * 0.4 + 80, y * p.scale * 2.3 + 10);
+                    return Math.pow(n1 * 0.75 + n2 * 0.25, 1.8) * 1.1;
+                }
+                case 'rain': {
+                    let v = 0.04;
+                    for (const d of this.drops) {
+                        const grow = 1 - Math.exp(-d.age * 5);
+                        const dist = Math.hypot(x - d.x, y - d.y);
+                        const ring = dist - d.age * 5;
+                        v += grow * d.amp * Math.exp(-ring * ring * 0.4) * Math.exp(-d.age * 1.1);
+                        v += grow * d.amp * Math.exp(-dist * dist * 0.5) * Math.exp(-d.age * 2);
+                    }
+                    return v;
+                }
+                case 'spiral': {
+                    const d = Math.hypot(x, y * 1.6);
+                    const a = Math.atan2(y * 1.6, x);
+                    const v = 0.5 + 0.5 * Math.sin(a * p.arms + d * p.twist - t * p.speed);
+                    return Math.pow(v, 1.5) * (0.95 - d * 0.03);
+                }
+                case 'scanner': {
+                    const proj = x * Math.cos(p.angle) + y * Math.sin(p.angle);
+                    const pos = Math.sin(t * p.speed) * 10;
+                    const dd = proj - pos;
+                    return 0.06 + 0.9 * Math.exp(-dd * dd / (p.width * p.width)) +
+                           0.08 * this.noise(i * 0.7, j * 0.7 + t * 2);
+                }
+                case 'mountain': {
+                    const d = Math.hypot(x - p.cx, (y - p.cy) * 1.8);
+                    const bounce = 0.5 + 0.5 * Math.sin(t * p.speed);
+                    const radius = 3 + bounce * 6;
+                    return Math.max(0.03, (1 - d / radius) * (0.45 + bounce * 0.5));
+                }
+            }
+            return 0;
+        }
+
+        update(dt) {
+            this.time += dt;
+            this.current.t += dt;
+            if (this.previous) this.previous.t += dt;
+
+            if (this.current.t > this.current.duration) {
+                this.previous = this.current;
+                this.current = this.startMode(this.pickMode(this.current.name));
+                this.fadeT = 0;
+            }
+            this.fadeT += dt;
+            const fadeDuration = 4;
+            let mix = Math.min(1, this.fadeT / fadeDuration);
+            mix = mix * mix * (3 - 2 * mix);
+            if (mix >= 1) this.previous = null;
+
+            const active = [this.current, this.previous];
+            if (active.some(m => m && m.name === 'spectrum')) this.updateSpectrum(dt);
+            active.forEach(m => { if (m && m.name === 'rain') this.updateRain(m, dt); });
+
+            // Levels follow their targets on a soft spring - no velocity jumps
+            const omega = 7;
+            const damping = 2 * 0.9 * omega;
+
+            for (let i = 0; i < this.cols; i++) {
+                for (let j = 0; j < this.rows; j++) {
+                    const x = i - (this.cols - 1) / 2;
+                    const y = j - (this.rows - 1) / 2;
+                    let target = this.evaluate(this.current, x, y, i, j);
+                    if (this.previous) {
+                        target = this.evaluate(this.previous, x, y, i, j) * (1 - mix) + target * mix;
+                    }
+                    target = Math.min(1, Math.max(0, target));
+
+                    const idx = i * this.rows + j;
+                    this.velocity[idx] += ((target - this.levels[idx]) * omega * omega - this.velocity[idx] * damping) * dt;
+                    this.levels[idx] = Math.min(1, Math.max(0, this.levels[idx] + this.velocity[idx] * dt));
+
+                    // Equalizer-style peak cap: jumps up, holds, then falls with gravity
+                    if (this.levels[idx] >= this.peaks[idx]) {
+                        this.peaks[idx] = this.levels[idx];
+                        this.peakHold[idx] = 0.6;
+                        this.peakVel[idx] = 0;
+                    } else if (this.peakHold[idx] > 0) {
+                        this.peakHold[idx] -= dt;
+                    } else {
+                        this.peakVel[idx] += 0.8 * dt;
+                        this.peaks[idx] = Math.max(this.levels[idx], this.peaks[idx] - this.peakVel[idx] * dt);
+                    }
+                }
+            }
+        }
+    }
+
+    // ===================================================================
     // INTERACTIVE NETWORK BACKGROUND
     // ===================================================================
     class NetworkBackground {
@@ -2773,6 +3073,11 @@
             this.rotationVelocityZ = 0;
             this.rotationVelocityX = 0;
             this.manualRotateEnabled = false; // Default: disabled
+            // Equalizer columns stand on every second node of the net
+            this.field = new SpectrumField(20, 10);
+            this.columnOrder = [];
+            for (let k = 0; k < 200; k++) this.columnOrder.push(k);
+            this.lastFrame = performance.now();
             // The net is decoration only on phones - no touch/pointer interaction there
             this.mobileQuery = window.matchMedia('(max-width: 768px)');
             if (this.mobileQuery.matches) this.parkMouse();
@@ -2796,6 +3101,24 @@
 
         updateTheme() {
             this.isDark = document.documentElement.classList.contains('dark-theme');
+            this.buildColumnPalette();
+        }
+
+        // Fill colours per segment (bottom to top) and face: [top, left side, right side]
+        buildColumnPalette() {
+            const segments = 12;
+            const low = this.isDark ? [125, 130, 142] : [178, 178, 186];
+            const high = [255, 138, 30];
+            const shades = this.isDark ? [1, 0.72, 0.5] : [1, 0.86, 0.72];
+            this.columnPalette = [];
+            for (let s = 0; s < segments; s++) {
+                const t = Math.pow((s + 0.5) / segments, 2.2);
+                const rgb = low.map((c, k) => c + (high[k] - c) * t);
+                this.columnPalette.push(shades.map(f =>
+                    `rgb(${Math.round(rgb[0] * f)}, ${Math.round(rgb[1] * f)}, ${Math.round(rgb[2] * f)})`));
+            }
+            this.peakPalette = shades.map(f =>
+                `rgb(${Math.round(255 * f)}, ${Math.round(150 * f)}, ${Math.round(50 * f)})`);
         }
 
         setupManualRotateToggle() {
@@ -3043,6 +3366,10 @@
         }
 
         animate() {
+            const now = performance.now();
+            const dt = Math.min(0.05, (now - this.lastFrame) / 1000);
+            this.lastFrame = now;
+
             // Skip drawing entirely when the hero is scrolled out of view
             if (this.scrollY > window.innerHeight * 1.5) {
                 requestAnimationFrame(() => this.animate());
@@ -3071,6 +3398,13 @@
                 }
             }
 
+            // Calculate scroll-based rotation and zoom - very gradual
+            const scrollFactor = Math.min(this.scrollY / 4000, 1); // Normalize scroll to 0-1 over 4000px
+            const scrollRotationZ = scrollFactor * Math.PI * 0.25; // Rotate up to 45 degrees from scroll
+            const totalRotationZ = scrollRotationZ + this.manualRotationZ; // Combine scroll and manual rotation
+            const totalRotationX = this.manualRotationX; // Only manual X rotation
+            const zoom = 1 + scrollFactor * 0.8; // Zoom from 1x to 1.8x
+
             this.nodes.forEach((node, i) => {
                 // Create complex wave patterns like in the image - smoother
                 const waveZ1 = Math.sin(time * 0.8 + node.x3d * 0.008 + node.y3d * 0.006) * 80;
@@ -3085,13 +3419,6 @@
 
                 // Final Z position
                 const finalZ = totalWaveZ + mouseWaveZ;
-
-                // Calculate scroll-based rotation and zoom - very gradual
-                const scrollFactor = Math.min(this.scrollY / 4000, 1); // Normalize scroll to 0-1 over 4000px
-                const scrollRotationZ = scrollFactor * Math.PI * 0.25; // Rotate up to 45 degrees from scroll
-                const totalRotationZ = scrollRotationZ + this.manualRotationZ; // Combine scroll and manual rotation
-                const totalRotationX = this.manualRotationX; // Only manual X rotation
-                const zoom = 1 + scrollFactor * 0.8; // Zoom from 1x to 1.8x
 
                 // Apply Z-axis rotation first (around Z axis)
                 let rotatedX = node.x3d * Math.cos(totalRotationZ) - node.y3d * Math.sin(totalRotationZ);
@@ -3109,6 +3436,7 @@
 
                 node.x = centerX + (rotatedX - rotatedY) * Math.cos(Math.PI / 6) * zoom;
                 node.y = centerY + (rotatedX + rotatedY) * Math.sin(Math.PI / 6) * zoom - finalZ * 0.3;
+                node.depth = rotatedX + rotatedY;
 
                 // Now calculate mouse push effect based on rotated position
                 if (!this.isDragging) {
@@ -3131,11 +3459,14 @@
                 const normalizedZ = (rotatedZ + 200) / 400; // Normalize to 0-1
                 const pointSize = Math.max(0.1, (0.5 + normalizedZ * 2) * zoom * 0.8); // Prevent negative radius
                 const opacity = 0.3 + normalizedZ * 0.7;
+                node.opacity = opacity;
 
                 // Draw connections first (behind points)
+                // Nodes are stored column by column, so neighbours are a fixed index away
+                const rightNode = node.gridX < 39 ? this.nodes[i + 20] : null;
+                const bottomNode = node.gridY < 19 ? this.nodes[i + 1] : null;
+
                 if (node.gridX < 39 && node.gridY < 19) {
-                    const rightNode = this.nodes.find(n => n.gridX === node.gridX + 1 && n.gridY === node.gridY);
-                    const bottomNode = this.nodes.find(n => n.gridX === node.gridX && n.gridY === node.gridY + 1);
 
                     if (rightNode) {
                         const lineOpacity = (opacity + (rightNode.y + 200) / 400 * 0.7) * 0.4;
@@ -3164,10 +3495,6 @@
 
                 // Calculate real surface normal based on neighboring points
                 let normalX3d = 0, normalY3d = 0, normalZ3d = 1; // Default normal pointing up
-
-                // Find neighboring nodes to calculate surface normal
-                const rightNode = this.nodes.find(n => n.gridX === node.gridX + 1 && n.gridY === node.gridY);
-                const bottomNode = this.nodes.find(n => n.gridX === node.gridX && n.gridY === node.gridY + 1);
 
                 if (rightNode && bottomNode) {
                     // Calculate surface vectors
@@ -3232,7 +3559,88 @@
                 this.ctx.fill();
             });
 
+            this.drawColumns(dt, totalRotationZ, totalRotationX, zoom);
+
             requestAnimationFrame(() => this.animate());
+        }
+
+        // 3D equalizer columns made of stacked blocks, standing on the net
+        drawColumns(dt, rotZ, rotX, zoom) {
+            const field = this.field;
+            field.update(dt);
+
+            const ctx = this.ctx;
+            const segments = 12;
+            const maxHeight = 125 * zoom;
+            const pitch = maxHeight / segments;
+            const blockHeight = pitch * 0.68;
+            const half = 10; // half of the column footprint in net units
+
+            // The projection is linear, so one set of footprint corners fits every column
+            const cosZ = Math.cos(rotZ), sinZ = Math.sin(rotZ), cosX = Math.cos(rotX);
+            const isoX = Math.cos(Math.PI / 6) * zoom, isoY = Math.sin(Math.PI / 6) * zoom;
+            const corners = [[-half, -half], [half, -half], [half, half], [-half, half]].map(([x, y]) => {
+                const rx = x * cosZ - y * sinZ;
+                const ry = (x * sinZ + y * cosZ) * cosX;
+                return { x: (rx - ry) * isoX, y: (rx + ry) * isoY };
+            });
+
+            // Side faces whose edge lies on the lower half of the footprint face the viewer
+            const faces = [];
+            for (let k = 0; k < 4; k++) {
+                const a = corners[k], b = corners[(k + 1) % 4];
+                if (a.y + b.y > 0) faces.push({ a, b, shade: a.x + b.x < 0 ? 1 : 2 });
+            }
+
+            const block = (bx, by, h, fills) => {
+                faces.forEach(({ a, b, shade }) => {
+                    ctx.fillStyle = fills[shade];
+                    ctx.beginPath();
+                    ctx.moveTo(bx + a.x, by + a.y);
+                    ctx.lineTo(bx + b.x, by + b.y);
+                    ctx.lineTo(bx + b.x, by + b.y - h);
+                    ctx.lineTo(bx + a.x, by + a.y - h);
+                    ctx.closePath();
+                    ctx.fill();
+                });
+                ctx.fillStyle = fills[0];
+                ctx.beginPath();
+                ctx.moveTo(bx + corners[0].x, by + corners[0].y - h);
+                for (let k = 1; k < 4; k++) ctx.lineTo(bx + corners[k].x, by + corners[k].y - h);
+                ctx.closePath();
+                ctx.fill();
+            };
+
+            // Painter's order: columns further from the viewer first
+            const nodeIndex = k => (Math.floor(k / field.rows) * 2) * 20 + (k % field.rows) * 2;
+            this.columnOrder.sort((p, q) => this.nodes[nodeIndex(p)].depth - this.nodes[nodeIndex(q)].depth);
+
+            const baseAlpha = this.isDark ? 0.6 : 0.75;
+            this.columnOrder.forEach(k => {
+                const node = this.nodes[nodeIndex(k)];
+                if (node.depth === undefined) return;
+                const level = field.levels[k];
+                const peak = field.peaks[k];
+                const alpha = baseAlpha * Math.min(1, node.opacity + 0.15);
+
+                const lit = level * segments;
+                const full = Math.floor(lit);
+                for (let s = 0; s <= full && s < segments; s++) {
+                    // The topmost block fades in gradually instead of popping
+                    const segAlpha = s < full ? 1 : lit - full;
+                    if (segAlpha < 0.05) break;
+                    ctx.globalAlpha = alpha * segAlpha;
+                    block(node.x, node.y - s * pitch, blockHeight, this.columnPalette[s]);
+                }
+
+                // Peak cap floats just above the column top
+                if (peak > 0.04) {
+                    ctx.globalAlpha = alpha * Math.min(1, (peak - 0.04) * 10);
+                    const capY = node.y - peak * maxHeight - pitch * 0.35;
+                    block(node.x, capY, pitch * 0.2, this.peakPalette);
+                }
+            });
+            ctx.globalAlpha = 1;
         }
     }
 

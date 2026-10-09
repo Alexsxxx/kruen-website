@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="preload" as="image" href="assets/swr-panel-dark.webp">
     <link rel="preload" as="image" href="assets/swr-panel-white.webp">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111114'/%3E%3Ctext x='32' y='45' font-family='sans-serif' font-size='38' font-weight='bold' fill='%23fff' text-anchor='middle'%3EK%3C/text%3E%3Ccircle cx='50' cy='44' r='5' fill='%23ff8a1e'/%3E%3C/svg%3E">
+    <link rel="icon" type="image/svg+xml" href="assets/kruen-mark.svg">
 
     <!-- Anti-flicker script -->
     <script>
@@ -154,29 +154,19 @@
         padding: 14px 24px;
     }
 
-    /* Same technical face as the hero title */
+    /* Kruen mark: a sprayed K inside an enso brush circle */
     .nav-logo {
         display: flex;
-        align-items: baseline;
-        gap: 2px;
-        font-family: 'Orbitron', 'Space Grotesk', sans-serif;
-        font-size: 20px;
-        font-weight: 700;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        color: var(--text);
+        align-items: center;
         text-decoration: none;
     }
 
-    .nav-logo::after {
-        content: "";
-        width: 6px; height: 6px;
-        border-radius: 50%;
-        background: var(--accent);
-        margin-left: 3px;
-        align-self: flex-end;
-        margin-bottom: 4px;
+    .nav-logo img {
+        width: 40px; height: 40px;
+        transition: transform 0.4s ease;
     }
+
+    .nav-logo:hover img { transform: rotate(-12deg) scale(1.06); }
 
     .nav-links {
         display: flex;
@@ -1759,7 +1749,7 @@
     <div class="content-wrapper">
         <nav class="navbar">
             <div class="nav-container">
-                <a class="nav-logo" href="#top">Kruen</a>
+                <a class="nav-logo" href="#top" aria-label="Kruen - back to top"><img src="assets/kruen-mark.svg" alt="" width="40" height="40"></a>
                 <div class="nav-right">
                     <div class="nav-links">
                         <a class="nav-social" href="https://www.facebook.com/profile.php?id=61591433805080" target="_blank" rel="noopener" aria-label="Facebook">

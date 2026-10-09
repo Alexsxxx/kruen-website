@@ -147,25 +147,28 @@
         padding: 14px 24px;
     }
 
+    /* Same technical face as the hero title */
     .nav-logo {
         display: flex;
         align-items: baseline;
         gap: 2px;
-        font-size: 24px;
+        font-family: 'Orbitron', 'Space Grotesk', sans-serif;
+        font-size: 20px;
         font-weight: 700;
-        letter-spacing: -0.02em;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
         color: var(--text);
         text-decoration: none;
     }
 
     .nav-logo::after {
         content: "";
-        width: 7px; height: 7px;
+        width: 6px; height: 6px;
         border-radius: 50%;
         background: var(--accent);
-        margin-left: 4px;
-        align-self: center;
-        margin-top: 8px;
+        margin-left: 3px;
+        align-self: flex-end;
+        margin-bottom: 4px;
     }
 
     .nav-links {
@@ -518,20 +521,72 @@
     /* DARK PRODUCT STAGE (always dark, both themes) */
     /* ================================================================= */
     /* Frosted glass: the hero animation keeps playing behind, blurred and dimmed */
+    /* No z-index here: the glass layers below sit at z-index -1 and must stay in the
+       root stacking context, right above the background canvas */
     .stage {
         position: relative;
-        background:
-            radial-gradient(1200px 500px at 50% -100px, rgba(255, 138, 30, 0.08), transparent 60%),
-            var(--stage-glass);
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
-        -webkit-backdrop-filter: blur(26px) saturate(140%);
-        backdrop-filter: blur(26px) saturate(140%);
+        /* where the frost becomes full - the net stays visible above it while scrolling */
+        --frost-edge: clamp(280px, 50vh, 600px);
         color: var(--stage-text);
-        border-radius: clamp(20px, 4vw, 44px) clamp(20px, 4vw, 44px) 0 0;
         padding: clamp(80px, 10vw, 140px) 0 0;
         /* clip instead of hidden so the sticky helix stage keeps sticking */
         overflow: clip;
-        box-shadow: 0 -30px 80px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Frost ramp at the top of the stage, shaped like a plane laid back toward the
+       horizon (narrower far edge). Stacked layers blur more and more downward, so
+       the net sinks into the glass gradually instead of meeting a hard edge. */
+    .stage-frost,
+    .stage-glass {
+        position: absolute;
+        left: 0; right: 0;
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    .stage-frost {
+        top: 0;
+        height: var(--frost-edge);
+        --plane: polygon(14% 0, 86% 0, 100% 100%, 0 100%);
+    }
+
+    /* The clip sits on each layer, not on the wrapper: a clipped wrapper would become
+       a backdrop root and its layers would have nothing behind them to blur */
+    .stage-frost span,
+    .stage-frost::after {
+        position: absolute;
+        inset: 0;
+        clip-path: var(--plane);
+    }
+
+    .stage-frost span {
+        -webkit-backdrop-filter: blur(var(--blur)) saturate(140%);
+        backdrop-filter: blur(var(--blur)) saturate(140%);
+        -webkit-mask-image: linear-gradient(to bottom, transparent var(--from), #000 var(--to));
+        mask-image: linear-gradient(to bottom, transparent var(--from), #000 var(--to));
+    }
+
+    /* Tint eases in so the ramp ends exactly in the stage glass colour */
+    .stage-frost::after {
+        content: "";
+        background:
+            radial-gradient(70% 60% at 50% 100%, rgba(255, 138, 30, 0.07), transparent 70%),
+            linear-gradient(to bottom,
+                transparent 0%,
+                color-mix(in srgb, var(--stage-glass) 15%, transparent) 35%,
+                color-mix(in srgb, var(--stage-glass) 55%, transparent) 70%,
+                var(--stage-glass) 100%);
+    }
+
+    /* Full glass below the ramp; it overlaps the ramp and fades in, so no seam shows */
+    .stage-glass {
+        top: calc(var(--frost-edge) - 180px);
+        bottom: 0;
+        background: var(--stage-glass);
+        -webkit-backdrop-filter: blur(26px) saturate(140%);
+        backdrop-filter: blur(26px) saturate(140%);
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 180px);
+        mask-image: linear-gradient(to bottom, transparent 0, #000 180px);
     }
 
     /* Without backdrop blur the glass would show the animation sharp - keep it darker */
@@ -839,32 +894,6 @@
 
     .panel-caption strong { color: var(--accent); font-weight: 600; }
 
-    /* --- Neon digits marquee --- */
-    .digits-marquee {
-        margin: clamp(70px, 9vw, 120px) 0 0;
-        overflow: hidden;
-        -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
-        mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
-        opacity: 0.9;
-    }
-
-    .digits-track {
-        display: flex;
-        width: max-content;
-        animation: marquee 63s linear infinite;
-    }
-
-    .digits-track img {
-        height: clamp(44px, 6vw, 72px);
-        width: auto;
-        margin-right: clamp(30px, 4vw, 60px);
-    }
-
-    @keyframes marquee {
-        from { transform: translateX(0); }
-        to   { transform: translateX(-50%); }
-    }
-
     /* --- Feature helix: steps wind around a spiral staircase while scrolling --- */
     .features-title {
         font-size: clamp(28px, 4.5vw, 48px);
@@ -1057,59 +1086,6 @@
         50%, 95% { opacity: 0; }
         100%     { opacity: 1; }
     }
-    /* --- Warp banner --- */
-    .warp-banner {
-        position: relative;
-        margin-top: clamp(70px, 9vw, 130px);
-        height: clamp(360px, 60vh, 560px);
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-    }
-
-    .warp-banner > img {
-        position: absolute;
-        inset: 0;
-        width: 100%; height: 100%;
-        object-fit: cover;
-        object-position: center 40%;
-        will-change: transform;
-        transform: scale(1.15);
-    }
-
-    .warp-banner::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background:
-            linear-gradient(180deg, var(--stage-bg) 0%, transparent 22%, transparent 78%, var(--stage-bg) 100%),
-            rgba(4, 4, 8, 0.35);
-    }
-
-    .warp-quote {
-        position: relative;
-        z-index: 2;
-        padding: 0 24px;
-        max-width: 760px;
-    }
-
-    .warp-quote h3 {
-        font-size: clamp(26px, 5vw, 52px);
-        font-weight: 700;
-        letter-spacing: -0.02em;
-        line-height: 1.15;
-        text-shadow: 0 4px 40px rgba(0, 0, 0, 0.8);
-    }
-
-    .warp-quote p {
-        margin-top: 16px;
-        font-size: clamp(14px, 2vw, 17px);
-        color: rgba(255, 255, 255, 0.75);
-        text-shadow: 0 2px 20px rgba(0, 0, 0, 0.8);
-    }
-
     /* --- Free vs PRO comparison table --- */
     .compare {
         margin-top: clamp(60px, 8vw, 110px);
@@ -1250,41 +1226,6 @@
         color: rgba(255, 255, 255, 0.28);
     }
 
-    /* One-purchase-unlocks-everything strip under the table */
-    .compare-forever {
-        max-width: 880px;
-        margin: 18px auto 0;
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        padding: 18px clamp(16px, 2.4vw, 26px);
-        border: 1px solid rgba(255, 138, 30, 0.35);
-        border-radius: 18px;
-        background: var(--accent-soft);
-    }
-
-    .compare-forever svg {
-        flex: none;
-        width: 26px; height: 26px;
-        color: var(--accent);
-    }
-
-    .compare-forever p {
-        font-size: 15px;
-        line-height: 1.65;
-        color: var(--stage-text-2);
-    }
-
-    .compare-forever strong {
-        display: block;
-        font-family: 'Space Grotesk', 'Inter', sans-serif;
-        font-size: 17px;
-        font-weight: 700;
-        letter-spacing: -0.01em;
-        color: var(--stage-text);
-        margin-bottom: 3px;
-    }
-
     @media (max-width: 640px) {
         .compare-table { font-size: 14px; }
         .compare-table th,
@@ -1293,10 +1234,6 @@
         .compare-table .col-val { width: 74px; }
         .compare-table .col-val small { font-size: 11px; }
         .compare-table thead th { font-size: 11px; letter-spacing: 0.1em; }
-        .compare-forever { gap: 13px; padding: 16px 16px; }
-        .compare-forever svg { width: 22px; height: 22px; }
-        .compare-forever p { font-size: 14px; }
-        .compare-forever strong { font-size: 16px; }
     }
 
     /* --- Upcoming: two phones that take turns playing --- */
@@ -1792,7 +1729,6 @@
 
     @media (prefers-reduced-motion: reduce) {
         html { scroll-behavior: auto; }
-        .digits-track { animation: none; }
         .reveal { opacity: 1; transform: none; transition: none; }
         .scroll-cue::after { animation: none; }
     }
@@ -1862,6 +1798,14 @@
         <!-- PRODUCT STAGE (always dark) -->
         <!-- ========================================================= -->
         <section class="stage" id="swr">
+            <div class="stage-frost" aria-hidden="true">
+                <span style="--blur: 1px; --from: 0%; --to: 30%"></span>
+                <span style="--blur: 3px; --from: 15%; --to: 50%"></span>
+                <span style="--blur: 7px; --from: 35%; --to: 70%"></span>
+                <span style="--blur: 14px; --from: 55%; --to: 88%"></span>
+                <span style="--blur: 26px; --from: 72%; --to: 100%"></span>
+            </div>
+            <div class="stage-glass" aria-hidden="true"></div>
 
             <!-- SwR intro -->
             <div class="container">
@@ -2029,28 +1973,6 @@
                 <p class="panel-caption"><strong>Panel One</strong> - one hand-crafted radio skin, two finishes. Drag the divider to switch. Every knob, switch and needle actually works.</p>
             </div>
 
-            <!-- Neon digits marquee -->
-            <div class="digits-marquee" aria-hidden="true">
-                <div class="digits-track">
-                    <img src="assets/swr-digits.webp" alt="">
-                    <img src="assets/swr-digits-2.webp" alt="">
-                    <img src="assets/swr-digits-3.webp" alt="">
-                    <img src="assets/swr-digits-4.webp" alt="">
-                    <img src="assets/swr-digits-5.webp" alt="">
-                    <img src="assets/swr-digits-6.webp" alt="">
-                    <img src="assets/swr-digits-7.webp" alt="">
-                    <img src="assets/swr-digits-8.webp" alt="">
-                    <img src="assets/swr-digits.webp" alt="">
-                    <img src="assets/swr-digits-2.webp" alt="">
-                    <img src="assets/swr-digits-3.webp" alt="">
-                    <img src="assets/swr-digits-4.webp" alt="">
-                    <img src="assets/swr-digits-5.webp" alt="">
-                    <img src="assets/swr-digits-6.webp" alt="">
-                    <img src="assets/swr-digits-7.webp" alt="">
-                    <img src="assets/swr-digits-8.webp" alt="">
-                </div>
-            </div>
-
             <!-- Free vs PRO -->
             <div class="compare container">
                 <div class="compare-head reveal">
@@ -2170,23 +2092,6 @@
                             </tr>
                         </tbody>
                     </table>
-                </div>
-
-                <div class="compare-forever reveal">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 11V8a5 5 0 0 0-10 0v3"/><rect x="4.5" y="11" width="15" height="9.5" rx="2.5"/><path d="M12 15v2"/></svg>
-                    <p>
-                        <strong>One purchase unlocks everything - now and in the future.</strong>
-                        Pay once and PRO stays yours. Every new client, visual and feature we add later is included - no subscription, no ads, no extra payments.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Warp banner -->
-            <div class="warp-banner">
-                <img src="assets/swr-shot-warp.webp" alt="" id="warpImg" aria-hidden="true">
-                <div class="warp-quote reveal">
-                    <h3>Signals from the other side of the planet.</h3>
-                    <p>Broadcast, amateur, maritime, utility - everything between 0 and 30&nbsp;MHz, streamed live from real antennas.</p>
                 </div>
             </div>
 
@@ -2721,14 +2626,13 @@
     }
 
     // ===================================================================
-    // SCROLL-DRIVEN TRANSFORMS: panel 3D tilt, warp parallax, AmW collage
+    // SCROLL-DRIVEN TRANSFORMS: panel 3D tilt, AmW collage
     // ===================================================================
     function initScrollFX() {
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         if (reduced) return;
 
         const panel = document.getElementById('panel3d');
-        const warp = document.getElementById('warpImg');
         const floaters = document.querySelectorAll('.amw-shot[data-depth]');
         let ticking = false;
 
@@ -2750,13 +2654,6 @@
                 }
             }
 
-            if (warp) {
-                const r = warp.parentElement.getBoundingClientRect();
-                if (r.top < vh && r.bottom > 0) {
-                    const p = (r.top + r.height / 2 - vh / 2) / (vh / 2 + r.height / 2);
-                    warp.style.transform = `scale(1.15) translateY(${p * -6}%)`;
-                }
-            }
 
             floaters.forEach(el => {
                 const r = el.getBoundingClientRect();

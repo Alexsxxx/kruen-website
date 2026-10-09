@@ -3377,8 +3377,17 @@
 
         resize() {
             const dpr = (window.devicePixelRatio || 1) * 0.5 + 0.5; // Halfway between 1 and devicePixelRatio
+            // Phone browsers resize the viewport while scrolling (the address bar slides
+            // in and out). Keep the tallest height seen for this width, so scrolling never
+            // clears the canvas, shifts the net or makes it regrow from nothing.
             const displayWidth = window.innerWidth;
-            const displayHeight = window.innerHeight;
+            let displayHeight = window.innerHeight;
+            if (displayWidth === this.viewW) {
+                if (displayHeight <= this.viewH) return false;
+                displayHeight = Math.max(displayHeight, this.viewH);
+            }
+            this.viewW = displayWidth;
+            this.viewH = displayHeight;
 
             this.canvas.width = displayWidth * dpr;
             this.canvas.height = displayHeight * dpr;
@@ -3386,19 +3395,22 @@
             this.canvas.style.height = displayHeight + 'px';
 
             this.ctx.scale(dpr, dpr);
+            return true;
         }
 
         // A square grid of fixed-size cells, big enough that its side corners reach the
         // screen edges; the free space around the core is where pieces grow and recede
         gridSize() {
             const cellWidth = 18 * Math.cos(Math.PI / 6);
-            const size = Math.max(this.core + 4, Math.ceil((window.innerWidth / this.zoom / (2 * cellWidth) + 2) / 4) * 4);
+            const size = Math.max(this.core + 4, Math.ceil((this.viewW / this.zoom / (2 * cellWidth) + 2) / 4) * 4);
             return { cols: size, rows: size };
         }
 
         createNodes() {
             const spacing = 18;
             const { cols, rows } = this.gridSize();
+            // Same grid: carry over how far each node has grown instead of starting at 0
+            const oldMasks = cols === this.cols && rows === this.rows && this.nodes ? this.nodes.map(n => n.mask) : null;
             this.nodes = [];
 
             // Equalizer columns stand on every second node; rebuild them only when the grid changes
@@ -3411,8 +3423,8 @@
                 for (let k = 0; k < this.field.cols * this.field.rows; k++) this.columnOrder.push(k);
             }
 
-            const centerX = window.innerWidth / 2;
-            const centerY = window.innerHeight / 2;
+            const centerX = this.viewW / 2;
+            const centerY = this.viewH / 2;
 
             for (let i = 0; i < cols; i++) {
                 for (let j = 0; j < rows; j++) {
@@ -3435,7 +3447,7 @@
                         x3d: x3d,
                         y3d: y3d,
                         z3d: z3d,
-                        mask: 0,
+                        mask: oldMasks ? oldMasks[this.nodes.length] : 0,
                         radius: 1.5
                     });
                 }
@@ -3444,8 +3456,7 @@
 
         setupEventListeners() {
             window.addEventListener('resize', () => {
-                this.resize();
-                this.createNodes();
+                if (this.resize()) this.createNodes();
             });
 
             this.mobileQuery.addEventListener('change', () => {
@@ -3608,7 +3619,7 @@
             this.lastFrame = now;
 
             this.ctx.fillStyle = this.isDark ? '#000000' : '#ffffff';
-            this.ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+            this.ctx.fillRect(0, 0, this.viewW, this.viewH);
 
             const time = Date.now() * 0.001;
 
@@ -3663,9 +3674,9 @@
 
             const isoCos = Math.cos(Math.PI / 6), isoSin = Math.sin(Math.PI / 6);
             const P = this.perspective;
-            const viewW = window.innerWidth, viewH = window.innerHeight;
-            const centerX = window.innerWidth / 2;
-            const centerY = window.innerHeight / 2;
+            const viewW = this.viewW, viewH = this.viewH;
+            const centerX = viewW / 2;
+            const centerY = viewH / 2;
 
             // Pass 1: positions, depth and opacity of every node
             const waveAt = n =>
@@ -3863,7 +3874,7 @@
             this.columnOrder.sort((p, q) => this.nodes[nodeIndex(p)].depth - this.nodes[nodeIndex(q)].depth);
 
             const baseAlpha = this.isDark ? 0.6 : 0.75;
-            const viewW = window.innerWidth, viewH = window.innerHeight;
+            const viewW = this.viewW, viewH = this.viewH;
             this.columnOrder.forEach(k => {
                 const node = this.nodes[nodeIndex(k)];
                 if (node.depth === undefined) return;

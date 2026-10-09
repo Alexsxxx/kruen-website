@@ -1462,6 +1462,114 @@
         text-align: center;
     }
 
+
+    /* SwR Watch: warm tint so it reads as part of the SwR family */
+    .appblock.tint-orange::before {
+        background: radial-gradient(700px 380px at 30% 55%, rgba(255, 138, 30, 0.1), transparent 70%);
+    }
+
+    /* "Also on Apple Watch" link under the SwR intro */
+    .family-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 22px;
+        padding: 10px 16px;
+        border: 1px solid rgba(255, 138, 30, 0.3);
+        border-radius: 999px;
+        font-size: 14px;
+        color: var(--stage-text-2);
+        text-decoration: none;
+        transition: border-color 0.25s ease, color 0.25s ease;
+    }
+    .family-link:hover { color: var(--stage-text); border-color: rgba(255, 138, 30, 0.6); }
+    .family-link b { color: var(--stage-text); font-weight: 600; }
+    .family-link svg { width: 18px; height: 18px; flex: none; color: var(--accent); }
+
+    /* Apple Watch frame: band stubs, case, crown and side button around a 416x496 screen */
+    .watch {
+        position: relative;
+        padding: 16% 0;
+    }
+
+    .watch::before,
+    .watch::after {
+        content: "";
+        position: absolute;
+        left: 17%; right: 17%;
+        height: 22%;
+        background: linear-gradient(90deg, #17171b, #25252b 50%, #17171b);
+    }
+    .watch::before {
+        top: 0;
+        border-radius: 0 0 6px 6px;
+        -webkit-mask-image: linear-gradient(to top, #000 55%, transparent);
+                mask-image: linear-gradient(to top, #000 55%, transparent);
+    }
+    .watch::after {
+        bottom: 0;
+        border-radius: 6px 6px 0 0;
+        -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent);
+                mask-image: linear-gradient(to bottom, #000 55%, transparent);
+    }
+
+    .watch-case {
+        position: relative;
+        z-index: 1;
+        padding: 3.2%;
+        border-radius: 25% / 21%;
+        background: linear-gradient(145deg, #4a4a52, #1c1c21 45%, #2e2e35);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.18),
+            0 26px 55px rgba(0, 0, 0, 0.55),
+            0 0 60px rgba(255, 138, 30, 0.06);
+    }
+
+    /* Digital Crown */
+    .watch-case::before {
+        content: "";
+        position: absolute;
+        right: -4.2%; top: 22%;
+        width: 5%; height: 17%;
+        border-radius: 0 5px 5px 0;
+        background: repeating-linear-gradient(180deg, #55555e 0 2px, #2a2a30 2px 4px);
+        box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.15);
+    }
+
+    /* side button */
+    .watch-case::after {
+        content: "";
+        position: absolute;
+        right: -2%; top: 46%;
+        width: 2.4%; height: 22%;
+        border-radius: 0 4px 4px 0;
+        background: linear-gradient(90deg, #2a2a30, #44444c);
+    }
+
+    .watch-glass {
+        padding: 4.5%;
+        border-radius: 22% / 18.5%;
+        background: #000;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+    }
+
+    .watch-screen {
+        position: relative;
+        aspect-ratio: 416 / 496;
+        border-radius: 17% / 14%;
+        overflow: hidden;
+        background: #000;
+    }
+
+    .watch-screen img {
+        position: absolute;
+        inset: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;
+    }
+    /* a crossfading pair starts hidden, the animation brings each one in */
+    .watch-screen .shot-cycle img { opacity: 0; }
+
     /* Store button for an app that is not published yet */
     .play-btn.is-soon {
         background: transparent;
@@ -1619,6 +1727,7 @@
                             <svg viewBox="0 0 24 24" role="img" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                         </a>
                         <a href="#swr">SwR</a>
+                        <a href="#swr-watch">SwR Watch</a>
                         <a href="#cma">CmA</a>
                         <a href="#pbh">PBH</a>
                         <a href="#amw">CaF</a>
@@ -1654,6 +1763,7 @@
                 <p class="hero-description">We create modern and user-friendly applications that combine quality design with perfect functionality.</p>
                 <div class="hero-cta">
                     <a class="hero-chip" href="#swr">SwR - Global Radio <span class="arrow">↓</span></a>
+                    <a class="hero-chip" href="#swr-watch">SwR Watch - for Apple Watch <span class="arrow">↓</span></a>
                     <a class="hero-chip" href="#cma">CmA - Crypto Market Analysis <span class="arrow">↓</span></a>
                     <a class="hero-chip" href="#pbh">PBH - Phone Battery Health <span class="arrow">↓</span></a>
                     <a class="hero-chip" href="#amw">CaF - Crypto and Forex Widget <span class="arrow">↓</span></a>
@@ -1698,6 +1808,10 @@
                         <span class="tag">Zero data collection</span>
                     </div>
                 </div>
+                <a class="family-link reveal" href="#swr-watch">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="3.5"/><path d="M9 6l.6-3h4.8l.6 3M9 18l.6 3h4.8l.6-3M18 10.5h1"/></svg>
+                    <span>Also on Apple Watch: <b>SwR Watch</b> - a separate, standalone app</span>
+                </a>
             </div>
 
             <!-- Dominant panel image with 3D scroll tilt -->
@@ -1839,7 +1953,15 @@
                         </div>
                     </div>
 
-                    <div class="feature-step" data-num="10" data-shot="shot-free">
+                    <div class="feature-step" data-num="10" data-shot="shot-planes">
+                        <h3>Plane tracking and listening</h3>
+                        <p>Follow air traffic anywhere in the world. Live aircraft on the map with flight, type, altitude and speed - plus the nearest airport and its tower frequency, so you can tune in and hear the pilots.</p>
+                        <div class="step-media">
+                            <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-planes.webp" alt="SwR map of live air traffic over Italy with a Boeing 787 flight detail and the nearest tower frequency" loading="lazy"></div></div>
+                        </div>
+                    </div>
+
+                    <div class="feature-step" data-num="11" data-shot="shot-free">
                         <h3>Free version</h3>
                         <p>Enjoy listening to stations around the world completely free and without ads.</p>
                         <div class="step-media">
@@ -1875,6 +1997,7 @@
                                 <img src="assets/swr-shot-satellite.webp" alt="SwR tracking the Orbcomm FM112 satellite with receivers in range" loading="lazy">
                                 <img src="assets/swr-shot-satellite-2.webp" alt="SwR showing the ISS pass with its downlink frequency" loading="lazy">
                             </div>
+                            <img data-shot="shot-planes" src="assets/swr-shot-planes.webp" alt="SwR map of live air traffic with a flight detail" loading="lazy">
                             <img data-shot="shot-free" src="assets/swr-shot-free.webp" alt="SwR free version" loading="lazy">
                         </div>
                     </div>
@@ -1983,6 +2106,21 @@
                                 <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden">Not included</span></span></td>
                                 <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden">Included</span></span></td>
                             </tr>
+                            <tr>
+                                <th scope="row">Satellites<small>Live tracking and listening</small></th>
+                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden">Not included</span></span></td>
+                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden">Included</span></span></td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Planes<small>Live air traffic and tower frequencies</small></th>
+                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden">Not included</span></span></td>
+                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden">Included</span></span></td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Detailed maps<small>Powered by OpenFreeMap</small></th>
+                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden">Not included</span></span></td>
+                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden">Included</span></span></td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -2031,12 +2169,62 @@
             </div>
 
             <!-- ===================================================== -->
+            <!-- SWR WATCH -->
+            <!-- ===================================================== -->
+            <div class="appblock tint-orange container" id="swr-watch">
+                <div class="appblock-grid is-flipped">
+                    <div class="appblock-text">
+                        <p class="eyebrow reveal">02 · SwR family · Apple Watch</p>
+                        <div class="app-head reveal">
+                            <div class="app-icon"><img src="assets/swrw-icon.webp" alt="SwR Watch app icon" width="512" height="512"></div>
+                            <h2>SwR Watch<span>Shortwave on your wrist</span></h2>
+                            <div class="buy-badge">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 11V8a5 5 0 0 0-10 0v3"/><rect x="4.5" y="11" width="15" height="9.5" rx="2.5"/><path d="M12 15v2"/></svg>
+                                <p>
+                                    <strong>One-time purchase</strong>
+                                    Pay once, keep it forever - no subscription.
+                                </p>
+                            </div>
+                        </div>
+                        <p class="lead reveal">A real shortwave radio on your <strong>Apple Watch</strong>. SwR Watch connects to public KiwiSDR and Web-888 receivers around the world - tune them with the Digital Crown, watch the band and listen, right on your wrist. A standalone watch app: no iPhone, no account, no sign-up.</p>
+                        <div class="cta-row reveal">
+                            <a class="play-btn" href="https://apps.apple.com/app/id6815200455" target="_blank" rel="noopener">
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.36 12.68c.02-2.1 1.72-3.11 1.79-3.16-.98-1.43-2.5-1.62-3.04-1.65-1.29-.13-2.53.76-3.18.76-.66 0-1.67-.74-2.75-.72-1.41.02-2.72.82-3.44 2.09-1.47 2.54-.38 6.3 1.05 8.36.7 1.01 1.53 2.14 2.62 2.1 1.05-.04 1.45-.68 2.72-.68 1.27 0 1.63.68 2.74.66 1.13-.02 1.85-1.03 2.54-2.04.8-1.17 1.13-2.3 1.15-2.36-.03-.01-2.2-.85-2.2-3.36zM14.3 6.6c.58-.7.97-1.68.86-2.65-.83.03-1.84.55-2.44 1.25-.54.62-1.01 1.61-.88 2.56.93.07 1.88-.47 2.46-1.16z"/></svg>
+                                <span><small>Download on the</small>App Store</span>
+                            </a>
+                            <div class="tag-row">
+                                <span class="tag">Apple Watch only</span>
+                                <span class="tag">Standalone</span>
+                                <span class="tag">No account</span>
+                            </div>
+                        </div>
+                        <p class="appblock-note reveal">AM, LSB, USB, CW and NBFM with adjustable bandwidth, volume and squelch. Audio keeps playing with your wrist down, and if a receiver drops you, SwR Watch reconnects or moves to the next best one. A separate app from SwR - Global Radio, with the same spectrum and waterfall look.</p>
+                    </div>
+
+                    <div class="appblock-shots">
+                        <figure class="appblock-shot reveal">
+                            <div class="watch"><div class="watch-case"><div class="watch-glass"><div class="watch-screen"><img src="assets/swrw-shot-list.webp" alt="SwR Watch receiver list grouped by country" width="416" height="496" loading="lazy"></div></div></div></div>
+                            <figcaption>Hundreds of receivers, filed by country - nearest first.</figcaption>
+                        </figure>
+                        <figure class="appblock-shot raised reveal">
+                            <div class="watch"><div class="watch-case"><div class="watch-glass"><div class="watch-screen"><div class="shot-cycle"><img src="assets/swrw-shot-spectrum.webp" alt="SwR Watch live spectrum and waterfall tuned to 9755 kHz" width="416" height="496" loading="lazy"><img src="assets/swrw-shot-spectrum-2.webp" alt="SwR Watch tuned to Voice of Turkey on 9765 kHz" width="416" height="496" loading="lazy"></div></div></div></div></div>
+                            <figcaption>Live spectrum and waterfall, tuned with the Digital Crown.</figcaption>
+                        </figure>
+                        <figure class="appblock-shot reveal">
+                            <div class="watch"><div class="watch-case"><div class="watch-glass"><div class="watch-screen"><div class="shot-cycle"><img src="assets/swrw-shot-map.webp" alt="SwR Watch map of receivers in Florida" width="416" height="496" loading="lazy"><img src="assets/swrw-shot-controls.webp" alt="SwR Watch volume and squelch controls" width="416" height="496" loading="lazy"></div></div></div></div></div>
+                            <figcaption>The whole fleet on a map, plus volume, squelch and bandwidth.</figcaption>
+                        </figure>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================================================== -->
             <!-- CMA -->
             <!-- ===================================================== -->
             <div class="appblock container" id="cma">
                 <div class="appblock-grid">
                     <div class="appblock-text">
-                        <p class="eyebrow reveal">02 · New from Kruen</p>
+                        <p class="eyebrow reveal">03 · New from Kruen</p>
                         <div class="app-head reveal">
                             <div class="app-icon"><img src="assets/cma-icon.webp" alt="CmA app icon" width="512" height="512"></div>
                             <h2>CmA<span>Crypto Market Analysis</span></h2>
@@ -2081,7 +2269,7 @@
             <div class="appblock tint-green container" id="pbh">
                 <div class="appblock-grid is-flipped">
                     <div class="appblock-text">
-                        <p class="eyebrow reveal">03 · New from Kruen</p>
+                        <p class="eyebrow reveal">04 · New from Kruen</p>
                         <div class="app-head reveal">
                             <div class="app-icon"><img src="assets/pbh-icon.webp" alt="PBH app icon" width="512" height="512"></div>
                             <h2>PBH<span>Phone Battery Health</span></h2>
@@ -2123,7 +2311,7 @@
             <div class="amw container" id="amw">
                 <div class="amw-grid">
                     <div>
-                        <p class="eyebrow reveal">04 · Also by Kruen</p>
+                        <p class="eyebrow reveal">05 · Also by Kruen</p>
                         <div class="app-head reveal">
                             <div class="app-icon"><img src="assets/amw-icon.webp" alt="CaF app icon" width="512" height="512"></div>
                             <h2>CaF<span>Crypto and Forex Widget</span></h2>

@@ -595,6 +595,10 @@
 
     .play-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
 
+    /* badge sitting next to a store button instead of the title */
+    .cta-row .buy-badge { margin-left: 0; padding: 10px 16px; flex: 1 1 220px; }
+    .cta-row .buy-badge ~ .tag-row { flex-basis: 100%; }
+
     .play-btn small {
         display: block;
         font-size: 10px;
@@ -2178,13 +2182,6 @@
                         <div class="app-head reveal">
                             <div class="app-icon"><img src="assets/swrw-icon.webp" alt="SwR Watch app icon" width="512" height="512"></div>
                             <h2>SwR Watch<span>Shortwave on your wrist</span></h2>
-                            <div class="buy-badge">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 11V8a5 5 0 0 0-10 0v3"/><rect x="4.5" y="11" width="15" height="9.5" rx="2.5"/><path d="M12 15v2"/></svg>
-                                <p>
-                                    <strong>One-time purchase</strong>
-                                    Pay once, keep it forever - no subscription.
-                                </p>
-                            </div>
                         </div>
                         <p class="lead reveal">A real shortwave radio on your <strong>Apple Watch</strong>. SwR Watch connects to public KiwiSDR and Web-888 receivers around the world - tune them with the Digital Crown, watch the band and listen, right on your wrist. A standalone watch app: no iPhone, no account, no sign-up.</p>
                         <div class="cta-row reveal">
@@ -2192,6 +2189,13 @@
                                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.36 12.68c.02-2.1 1.72-3.11 1.79-3.16-.98-1.43-2.5-1.62-3.04-1.65-1.29-.13-2.53.76-3.18.76-.66 0-1.67-.74-2.75-.72-1.41.02-2.72.82-3.44 2.09-1.47 2.54-.38 6.3 1.05 8.36.7 1.01 1.53 2.14 2.62 2.1 1.05-.04 1.45-.68 2.72-.68 1.27 0 1.63.68 2.74.66 1.13-.02 1.85-1.03 2.54-2.04.8-1.17 1.13-2.3 1.15-2.36-.03-.01-2.2-.85-2.2-3.36zM14.3 6.6c.58-.7.97-1.68.86-2.65-.83.03-1.84.55-2.44 1.25-.54.62-1.01 1.61-.88 2.56.93.07 1.88-.47 2.46-1.16z"/></svg>
                                 <span><small>Download on the</small>App Store</span>
                             </a>
+                            <div class="buy-badge">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 11V8a5 5 0 0 0-10 0v3"/><rect x="4.5" y="11" width="15" height="9.5" rx="2.5"/><path d="M12 15v2"/></svg>
+                                <p>
+                                    <strong>One-time purchase</strong>
+                                    Pay once, keep it forever - no subscription.
+                                </p>
+                            </div>
                             <div class="tag-row">
                                 <span class="tag">Apple Watch only</span>
                                 <span class="tag">Standalone</span>

@@ -3627,7 +3627,7 @@
             this.mobileQuery = window.matchMedia('(max-width: 768px)');
             if (this.mobileQuery.matches) this.parkMouse();
             // Phones draw the whole net at half size around the screen centre
-            this.zoom = this.mobileQuery.matches ? 0.5 : 1;
+            this.zoom = this.mobileQuery.matches ? 0.85 : 1;
             this.updateTheme();
 
             this.init();
@@ -3772,7 +3772,12 @@
         // screen edges; the free space around the core is where pieces grow and recede
         gridSize() {
             const cellWidth = 18 * Math.cos(Math.PI / 6);
-            const size = Math.max(this.core + 4, Math.ceil((this.viewW / this.zoom / (2 * cellWidth) + 2) / 4) * 4);
+            let size = Math.max(this.core + 4, Math.ceil((this.viewW / this.zoom / (2 * cellWidth) + 2) / 4) * 4);
+            // On a tall screen the diamond also has to reach most of the way up and down;
+            // its sides then run off the screen edges. Capped, to stay light on phones.
+            if (this.viewH > this.viewW) {
+                size = Math.min(52, Math.max(size, Math.ceil((this.viewH * 0.9 / (18 * this.zoom) + 2) / 4) * 4));
+            }
             return { cols: size, rows: size };
         }
 
@@ -3831,7 +3836,7 @@
 
             this.mobileQuery.addEventListener('change', () => {
                 if (!this.interactive) this.parkMouse();
-                this.zoom = this.mobileQuery.matches ? 0.5 : 1;
+                this.zoom = this.mobileQuery.matches ? 0.85 : 1;
                 this.createNodes();
             });
 
@@ -4020,11 +4025,18 @@
             // swelling, shrinking and fusing where they meet. One keeps nearer the middle
             // so the view is never left empty.
             const roam = (seed, reach) => Math.max(-1, Math.min(1, (noise(time * 0.03, seed) - 0.5) * 3.4)) * reach;
-            const bubbles = [0.32, 0.7, 0.7].map((reach, i) => ({
-                x: roam(1.3 + i * 11.1, halfX * reach),
-                y: roam(4.1 + i * 13.7, halfY * reach),
-                r: coreHalf * 0.66 * (0.55 + 0.9 * noise(time * 0.06, 20 + i * 7.3))
-            }));
+            // They roam in screen directions: up/down over the whole diamond, sideways only
+            // as far as the screen shows - on a phone that is a tall, narrow strip
+            const sideCells = this.viewW / 2 / (2 * 18 * Math.cos(Math.PI / 6) * this.zoom);
+            const bubbles = [0.32, 0.7, 0.7].map((reach, i) => {
+                const up = roam(1.3 + i * 11.1, halfX * reach);
+                const side = roam(4.1 + i * 13.7, Math.min(halfX * reach, sideCells * 0.8));
+                return {
+                    x: up + side,
+                    y: up - side,
+                    r: coreHalf * 0.66 * (0.55 + 0.9 * noise(time * 0.06, 20 + i * 7.3))
+                };
+            });
             let outside = 0;
             this.nodes.forEach(node => {
                 // Off-screen parts of the wide net keep their last state (saves the shape maths)

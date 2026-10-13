@@ -3339,7 +3339,7 @@
             this.time = 0;
             this.names = ['box', 'circle', 'ellipse', 'ring', 'diamond', 'cross', 'star', 'hexagon',
                           'crescent', 'blob', 'metaballs', 'islands', 'spiral', 'dots', 'rings', 'stripes', 'band'];
-            // Nothing extra at first - the square core grows in alone, then pieces follow
+            // Nothing extra at first - the roaming bubbles grow in alone, then pieces follow
             this.current = { name: 'empty', t: 0, hold: 4, p: { organic: 0, seed: 0, cx: 0, cy: 0, rot: 0, spin: 0 } };
             this.previous = null;
             this.morph = 1;
@@ -3889,27 +3889,28 @@
             const blend = 4;   // how softly pieces fuse with the core
             const halfX = (this.cols - 1) / 2, halfY = (this.rows - 1) / 2;
 
-            // The core has no fixed form: it drifts, turns, and its outline flows freely
-            // between diamond, circle and square (the norm exponent) with a wandering edge
-            const exponent = 1 + 5 * noise(time * 0.03, 7.7);
-            const coreX = (noise(time * 0.02, 1.3) - 0.5) * 10;
-            const coreY = (noise(time * 0.02, 4.1) - 0.5) * 10;
-            const turn = (noise(time * 0.015, 9.9) - 0.5) * Math.PI;
-            const turnCos = Math.cos(turn), turnSin = Math.sin(turn);
+            // There is no central body any more: three soft bubbles roam the whole net,
+            // swelling, shrinking and fusing where they meet. One keeps nearer the middle
+            // so the view is never left empty.
+            const roam = (seed, reach) => Math.max(-1, Math.min(1, (noise(time * 0.03, seed) - 0.5) * 3.4)) * reach;
+            const bubbles = [0.32, 0.7, 0.7].map((reach, i) => ({
+                x: roam(1.3 + i * 11.1, halfX * reach),
+                y: roam(4.1 + i * 13.7, halfY * reach),
+                r: coreHalf * 0.66 * (0.55 + 0.9 * noise(time * 0.06, 20 + i * 7.3))
+            }));
             let outside = 0;
             this.nodes.forEach(node => {
                 // Off-screen parts of the wide net keep their last state (saves the shape maths)
                 if (node.onScreen === false) return;
                 const gx = node.gridX - halfX, gy = node.gridY - halfY;
 
-                // Core: free-form body, no shape is held for long
-                const cx = (gx - coreX) * turnCos - (gy - coreY) * turnSin;
-                const cy = (gx - coreX) * turnSin + (gy - coreY) * turnCos;
-                const radius = Math.pow(Math.pow(Math.abs(cx), exponent) + Math.pow(Math.abs(cy), exponent), 1 / exponent);
-                const len = Math.hypot(cx, cy) || 1;
-                const lobes = 0.7 + 0.6 * noise(cx / len * 1.2 + time * 0.04, cy / len * 1.2 + time * 0.03);
-                const dCore = (radius - coreHalf * lobes) * 0.85 +
-                    (noise(gx * 0.12 + time * 0.05, gy * 0.12 + 90) - 0.5) * 3;
+                // Smooth union of the bubbles, with a wandering, bubbling edge
+                let sum = 0;
+                for (const bubble of bubbles) {
+                    sum += Math.exp(-(Math.hypot(gx - bubble.x, gy - bubble.y) - bubble.r) / 5);
+                }
+                const dCore = -5 * Math.log(sum) * 0.85 +
+                    (noise(gx * 0.12 + time * 0.05, gy * 0.12 + 90) - 0.5) * 5;
                 const dShape = sil.distance(gx, gy);
                 if (dShape < 0 && dCore > 0) outside++;
 

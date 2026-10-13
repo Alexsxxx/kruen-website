@@ -1132,12 +1132,21 @@
         color: var(--accent);
     }
 
+    /* A pane of glass: barely tinted, lit along its top edge, floating on a soft shadow */
     .compare-table-wrap {
-        max-width: 880px;
+        max-width: 920px;
         margin: 0 auto;
-        border: 1px solid var(--stage-line);
-        border-radius: 22px;
-        background: var(--stage-panel);
+        padding: clamp(6px, 1.2vw, 14px) clamp(4px, 1vw, 12px);
+        border: 1px solid rgba(255, 255, 255, 0.13);
+        border-radius: 30px;
+        background:
+            linear-gradient(155deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.035) 38%, rgba(255, 255, 255, 0.02) 100%);
+        -webkit-backdrop-filter: blur(22px) saturate(150%);
+        backdrop-filter: blur(22px) saturate(150%);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.22),
+            inset 0 -1px 0 rgba(255, 255, 255, 0.04),
+            0 30px 70px rgba(0, 0, 0, 0.45);
         overflow: hidden;
     }
 
@@ -1149,9 +1158,9 @@
 
     .compare-table th,
     .compare-table td {
-        padding: 14px clamp(12px, 2vw, 22px);
+        padding: 20px clamp(14px, 2.4vw, 28px);
         text-align: left;
-        border-bottom: 1px solid var(--stage-line);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.055);
         vertical-align: middle;
     }
 
@@ -1199,10 +1208,15 @@
         color: var(--stage-text-2);
     }
 
+    /* The PRO column is a second, warmer sheet of glass laid into the pane */
     .compare-table .col-pro {
-        background: rgba(255, 138, 30, 0.06);
+        background: linear-gradient(to right, rgba(255, 138, 30, 0.04), rgba(255, 138, 30, 0.1));
+        box-shadow: inset 1px 0 0 rgba(255, 170, 90, 0.14);
         color: var(--stage-text);
     }
+
+    .compare-table thead .col-pro { border-top-right-radius: 20px; }
+    .compare-table tbody tr:last-child .col-pro { border-bottom-right-radius: 20px; }
 
     .compare-table thead th {
         font-family: 'Space Grotesk', 'Inter', sans-serif;
@@ -1211,8 +1225,8 @@
         letter-spacing: 0.14em;
         text-transform: uppercase;
         color: var(--stage-text-2);
-        padding-top: 20px;
-        padding-bottom: 20px;
+        padding-top: 24px;
+        padding-bottom: 24px;
     }
 
     .compare-table thead .col-pro {
@@ -1252,8 +1266,9 @@
 
     @media (max-width: 640px) {
         .compare-table { font-size: 14px; }
+        .compare-table-wrap { border-radius: 22px; }
         .compare-table th,
-        .compare-table td { padding: 12px 10px; }
+        .compare-table td { padding: 16px 10px; }
         .compare-table tbody th small { font-size: 12px; }
         .compare-table .col-val { width: 74px; }
         .compare-table .col-val small { font-size: 11px; }

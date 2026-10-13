@@ -551,35 +551,35 @@
         mask-image: linear-gradient(to bottom, transparent 0, #000 180px);
     }
 
-    /* A second, living frost above the stage glass. Nothing in it is fixed: blurred
-       patches drift, swell and shrink through the whole space down to the glass, and
-       between them the net is sharp. They follow nothing on the page - not the net, not the scroll -
-       and never repeat. The stage glass below stays as it is. */
+    /* A second frost at the top of the screen: the far side of the net dissolves upward
+       into blur. The band slowly slides a little down and back up again; it starts
+       above the screen so no clear strip opens at the top while it is down. */
     .top-frost {
         position: fixed;
-        top: 0; left: 0; right: 0;
-        height: 100vh;
-        overflow: hidden;
+        top: -10vh; left: 0; right: 0;
+        height: 50vh;
         z-index: -1;
         pointer-events: none;
+        animation: top-frost-slide 16s ease-in-out infinite alternate;
+    }
+
+    @keyframes top-frost-slide {
+        from { transform: translateY(0); }
+        to   { transform: translateY(10vh); }
     }
 
     .top-frost span {
         position: absolute;
+        inset: 0;
         opacity: var(--top-frost, 1);
         -webkit-backdrop-filter: blur(var(--blur)) saturate(140%);
         backdrop-filter: blur(var(--blur)) saturate(140%);
+        -webkit-mask-image: linear-gradient(to top, transparent var(--from), #000 var(--to));
+        mask-image: linear-gradient(to top, transparent var(--from), #000 var(--to));
     }
 
-    .top-frost .patch {
-        left: var(--x); top: var(--y);
-        width: var(--w); height: var(--h);
-        min-width: 300px;
-        -webkit-mask-image: radial-gradient(closest-side, #000 22%, transparent 100%);
-        mask-image: radial-gradient(closest-side, #000 22%, transparent 100%);
-        /* moved by initTopFrost(); --life is how strongly this patch is there right now */
-        opacity: calc(var(--top-frost, 1) * var(--life, 1));
-        will-change: transform, opacity;
+    @media (prefers-reduced-motion: reduce) {
+        .top-frost { animation: none; }
     }
 
     /* Without backdrop blur the glass would show the animation sharp - keep it darker */
@@ -1784,12 +1784,10 @@
 
     <div class="content-wrapper">
         <div class="top-frost" aria-hidden="true">
-            <span class="patch" style="--blur: 12px; --x: 4vw; --y: 4vh; --w: 55vw; --h: 40vh"></span>
-            <span class="patch" style="--blur: 10px; --x: 26vw; --y: 12vh; --w: 48vw; --h: 34vh"></span>
-            <span class="patch" style="--blur: 16px; --x: 48vw; --y: -4vh; --w: 60vw; --h: 46vh"></span>
-            <span class="patch" style="--blur: 9px; --x: 18vw; --y: 34vh; --w: 50vw; --h: 38vh"></span>
-            <span class="patch" style="--blur: 13px; --x: 58vw; --y: 38vh; --w: 46vw; --h: 40vh"></span>
-            <span class="patch" style="--blur: 7px; --x: -8vw; --y: 50vh; --w: 52vw; --h: 36vh"></span>
+            <span style="--blur: 2px; --from: 0%; --to: 22%"></span>
+            <span style="--blur: 5px; --from: 12%; --to: 40%"></span>
+            <span style="--blur: 10px; --from: 26%; --to: 58%"></span>
+            <span style="--blur: 18px; --from: 42%; --to: 78%"></span>
         </div>
         <nav class="navbar">
             <div class="nav-container">
@@ -2381,37 +2379,6 @@
     // ===================================================================
     // NAVBAR: blur on scroll + hide on scroll down / show on scroll up
     // ===================================================================
-    // ===================================================================
-    // TOP FROST: blur patches with a life of their own
-    // ===================================================================
-    // Every patch wanders, breathes and fades on its own slow rhythms, drawn at random
-    // on each visit. Nothing here reads the net or the scroll position.
-    function initTopFrost() {
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-        const r = (a, b) => a + Math.random() * (b - a);
-        // two slow sines of unrelated speeds - smooth, but with no visible loop
-        const drift = () => {
-            const f1 = r(0.035, 0.08), f2 = r(0.09, 0.17), p1 = r(0, 6.28), p2 = r(0, 6.28);
-            return t => 0.62 * Math.sin(t * f1 + p1) + 0.38 * Math.sin(t * f2 + p2);
-        };
-        const patches = [...document.querySelectorAll('.top-frost .patch')].map(el => ({
-            el, x: drift(), y: drift(), size: drift(), life: drift()
-        }));
-        const start = performance.now() - r(0, 600000);
-        const frame = now => {
-            requestAnimationFrame(frame);
-            if (document.hidden) return;
-            const t = (now - start) / 1000;
-            for (const patch of patches) {
-                const x = patch.x(t) * 30, y = patch.y(t) * 24;
-                const scale = 1.05 + 0.4 * patch.size(t);
-                patch.el.style.transform = `translate(${x.toFixed(2)}vw, ${y.toFixed(2)}vh) scale(${scale.toFixed(3)})`;
-                patch.el.style.setProperty('--life', (0.6 + 0.4 * patch.life(t)).toFixed(3));
-            }
-        };
-        requestAnimationFrame(frame);
-    }
-
     function initNavbar() {
         const navbar = document.querySelector('.navbar');
         const stage = document.querySelector('.stage');
@@ -4240,7 +4207,6 @@
         new DarkModeManager();
         new NetworkBackground();
         initNavbar();
-        initTopFrost();
         initReveals();
         initHelix();
         initUpcoming();

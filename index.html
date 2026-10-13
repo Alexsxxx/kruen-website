@@ -3559,13 +3559,15 @@
         }
 
         // The two colour scales of the flat SwR waterfall (classic, neon), sampled above their dark
-        // floor so even the lowest caps stay visible on the net
+        // floor so even the lowest caps stay visible on the net, plus a warm scale of our own:
+        // green, yellow, amber and red
         buildColumnPalette() {
             const stops = [
                 [[0.2, [0, 0, 90]], [0.35, [0, 30, 180]], [0.5, [0, 180, 200]], [0.65, [0, 220, 60]],
                  [0.8, [240, 230, 0]], [0.92, [240, 70, 0]], [1, [255, 255, 255]]],
                 [[0.15, [6, 14, 60]], [0.32, [10, 40, 130]], [0.48, [16, 110, 210]], [0.62, [40, 200, 245]],
-                 [0.74, [150, 235, 255]], [0.84, [225, 130, 255]], [0.92, [255, 70, 190]], [1, [255, 255, 255]]]
+                 [0.74, [150, 235, 255]], [0.84, [225, 130, 255]], [0.92, [255, 70, 190]], [1, [255, 255, 255]]],
+                [[0.3, [0, 200, 60]], [0.52, [245, 225, 0]], [0.74, [255, 150, 0]], [1, [235, 15, 15]]]
             ];
             this.scales = stops.map(map => {
                 const lut = [];

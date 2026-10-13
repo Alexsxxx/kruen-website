@@ -3558,13 +3558,12 @@
             this.buildColumnPalette();
         }
 
-        // Three warm scales for the caps, low to high: a sunset from rose to cream, embers
-        // from wine red to gold, and a soft terracotta-to-apricot
+        // Two scales for the caps, taking turns: a saturated yellow and a saturated green,
+        // each a little deeper on low caps and brighter on high ones
         buildColumnPalette() {
             const stops = [
-                [[0.3, [214, 76, 96]], [0.52, [240, 112, 82]], [0.74, [255, 160, 60]], [0.9, [255, 205, 110]], [1, [255, 236, 190]]],
-                [[0.3, [158, 38, 52]], [0.5, [222, 62, 40]], [0.7, [255, 122, 28]], [0.88, [255, 176, 40]], [1, [255, 220, 120]]],
-                [[0.3, [186, 92, 70]], [0.52, [228, 128, 92]], [0.74, [246, 168, 112]], [0.9, [252, 198, 130]], [1, [255, 226, 170]]]
+                [[0.3, [226, 176, 0]], [0.65, [255, 214, 0]], [1, [255, 236, 60]]],
+                [[0.3, [0, 150, 48]], [0.65, [16, 214, 64]], [1, [96, 255, 96]]]
             ];
             this.scales = stops.map(map => {
                 const lut = [];

@@ -411,6 +411,20 @@
 
     html.dark-theme .hero h1 img { filter: none; }
 
+    /* Scrolling down dissolves the wordmark into drifting sand (see WordmarkSand). The
+       canvas takes over from the image while that happens and reaches past it, so
+       the grains have room to float away. */
+    .hero h1 { position: relative; }
+
+    .hero h1 canvas {
+        position: absolute;
+        pointer-events: none;
+        filter: invert(1);
+    }
+
+    html.dark-theme .hero h1 canvas { filter: none; }
+    .hero h1.is-sand img { visibility: hidden; }
+
     .hero-subtitle {
         font-size: clamp(18px, 3vw, 24px);
         font-weight: 600;
@@ -1843,7 +1857,7 @@
         <!-- ========================================================= -->
         <section class="hero">
             <div class="hero-content">
-                <h1><img src="assets/kruen-wordmark.svg" alt="Kruen" width="286" height="78"></h1>
+                <h1><!-- assets/kruen-wordmark.svg, inlined so the sand canvas may read its pixels --><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyODYgNzgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiI+PGRlZnM+PGNsaXBQYXRoIGlkPSJiMCI+PHJlY3Qgd2lkdGg9IjQ0IiBoZWlnaHQ9IjUwIi8+PC9jbGlwUGF0aD48Y2xpcFBhdGggaWQ9ImIxIj48cmVjdCB3aWR0aD0iNDMiIGhlaWdodD0iNTAiLz48L2NsaXBQYXRoPjxjbGlwUGF0aCBpZD0iYjIiPjxyZWN0IHdpZHRoPSI0NyIgaGVpZ2h0PSI1MCIvPjwvY2xpcFBhdGg+PGNsaXBQYXRoIGlkPSJiMyI+PHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjUwIi8+PC9jbGlwUGF0aD48Y2xpcFBhdGggaWQ9ImI0Ij48cmVjdCB3aWR0aD0iNDgiIGhlaWdodD0iNTAiLz48L2NsaXBQYXRoPjwvZGVmcz48cGF0aCBkPSJNMTYgNlY3Mk02MCA2VjcyTTY4IDZWNzJNMTExIDZWNzJNMTE5IDZWNzJNMTY2IDZWNzJNMTc0IDZWNzJNMjE0IDZWNzJNMjIyIDZWNzJNMjcwIDZWNzJNNCAxNEgyODJNNCAyNS40SDI4Mk00IDQySDI4Mk00IDY0SDI4MiIgc3Ryb2tlLXdpZHRoPSIuMjgiIG9wYWNpdHk9Ii41Ii8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYgMTQpIiBjbGlwLXBhdGg9InVybCgjYjApIj48cGF0aCBkPSJNMC43NSAwVjUwIiBzdHJva2Utd2lkdGg9IjEuNSIvPjxwYXRoIGQ9Ik0wLjc1IDI5LjVMNTUuNTEyNSAtOC44NSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNMTUuMDcyNSAxOS40N0w1MS4yMTU3IDU5LjE1OSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjggMTQpIiBjbGlwLXBhdGg9InVybCgjYjEpIj48cGF0aCBkPSJNMi4xIDBWNTAiIHN0cm9rZS13aWR0aD0iNC4yIi8+PHBhdGggZD0iTTAgMi4xSDI5QTExLjkgMTEuOSAwIDAgMSAyOSAyNS45SDAiIHN0cm9rZS13aWR0aD0iNC4yIi8+PHBhdGggZD0iTTIxLjUgMjUuOUw0NS4zNTUgNTcuMjMiIHN0cm9rZS13aWR0aD0iNC4yIi8+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDExOSAxNCkiIGNsaXAtcGF0aD0idXJsKCNiMikiPjxwYXRoIGQ9Ik0wLjc1IDBWMjYuNUEyMi43NSAyMi43NSAwIDAgMCA0Ni4yNSAyNi41VjAiIHN0cm9rZS13aWR0aD0iMS41Ii8+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE3NCAxNCkiIGNsaXAtcGF0aD0idXJsKCNiMykiPjxwYXRoIGQ9Ik0yLjEgMFY1MCIgc3Ryb2tlLXdpZHRoPSI0LjIiLz48cGF0aCBkPSJNMCAyLjFINDAiIHN0cm9rZS13aWR0aD0iNC4yIi8+PHBhdGggZD0iTTAgMjVIMzYiIHN0cm9rZS13aWR0aD0iNC4yIi8+PHBhdGggZD0iTTAgNDcuOUg0MCIgc3Ryb2tlLXdpZHRoPSI0LjIiLz48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjIyIDE0KSIgY2xpcC1wYXRoPSJ1cmwoI2I0KSI+PHBhdGggZD0iTTAuNzUgMFY1MCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNNDcuMjUgMFY1MCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNLTEzLjIgLTE1TDYxLjIgNjUiIHN0cm9rZS13aWR0aD0iMS40NCIvPjwvZz48cGF0aCBkPSJNMjIwLjYyIDE0LjgwTDIzNS40OCA2LjIwTTI2OC42MiAxNC44MEwyODMuNDggNi4yME0yNjguNjIgNjQuODBMMjgzLjQ4IDU2LjIwTTIyMi44MSAxNC40MEwyMzYuMjkgNi42ME0yODIuMTAgNS40MEwyODIuMTAgNTguNjBNMjM1LjI3IDYuNjNMMjgwLjkzIDU3LjM3IiBzdHJva2Utd2lkdGg9Ii40MiIgb3BhY2l0eT0iLjgiLz48L3N2Zz4=" alt="Kruen" width="286" height="78"><canvas id="wordmarkSand" aria-hidden="true"></canvas></h1>
                 <p class="hero-subtitle">Android and iOS App Design &amp; Development</p>
                 <div class="hero-cta">
                     <a class="hero-chip" href="#swr" title="SwR - Global Radio" aria-label="SwR - Global Radio"><img src="assets/swr-icon.webp" alt="" width="28" height="28">SwR</a>
@@ -4217,10 +4231,151 @@
     }
 
     // ===================================================================
+    // WORDMARK SAND - KRUEN dissolves into levitating grains while scrolling
+    // ===================================================================
+    // The wordmark is cut into small grains. Scroll position alone decides how many
+    // have let go and how far they have drifted, so scrolling back up gathers them
+    // into the letters again; time only adds the gentle hovering.
+    class WordmarkSand {
+        static create() {
+            const canvas = document.getElementById('wordmarkSand');
+            const img = canvas && canvas.parentElement.querySelector('img');
+            if (!img || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return null;
+            const sand = new WordmarkSand(canvas, img);
+            if (img.complete && img.naturalWidth) sand.build(); else img.addEventListener('load', () => sand.build());
+            return sand;
+        }
+
+        constructor(canvas, img) {
+            this.canvas = canvas;
+            this.img = img;
+            this.ctx = canvas.getContext('2d');
+            this.grains = [];
+            this.running = false;
+            this.padX = 90; this.padTop = 240; this.padBottom = 50;
+            window.addEventListener('scroll', () => this.wake(), { passive: true });
+            window.addEventListener('resize', () => { this.build(); this.wake(); });
+        }
+
+        // Read the drawn wordmark and turn every inked cell into a grain
+        build() {
+            const img = this.img;
+            const w = Math.round(img.clientWidth), h = Math.round(img.clientHeight);
+            if (!w || !h) return;
+            this.w = w; this.h = h;
+            const probe = document.createElement('canvas');
+            probe.width = w; probe.height = h;
+            const pctx = probe.getContext('2d');
+            pctx.drawImage(img, 0, 0, w, h);
+            let data;
+            try {
+                data = pctx.getImageData(0, 0, w, h).data;
+            } catch (e) {
+                return; // the image cannot be read here - the wordmark simply stays as it is
+            }
+
+            // smooth value noise, so neighbouring grains let go at similar moments
+            const hash = (x, y) => { const v = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return v - Math.floor(v); };
+            const noise = (x, y) => {
+                const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+                const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+                return (hash(xi, yi) * (1 - u) + hash(xi + 1, yi) * u) * (1 - v) +
+                       (hash(xi, yi + 1) * (1 - u) + hash(xi + 1, yi + 1) * u) * v;
+            };
+
+            const step = Math.max(1.3, w / 250);
+            this.step = step;
+            this.grains = [];
+            for (let y = step / 2; y < h; y += step) {
+                for (let x = step / 2; x < w; x += step) {
+                    const alpha = data[(Math.floor(y) * w + Math.floor(x)) * 4 + 3] / 255;
+                    if (alpha < 0.08) continue;
+                    this.grains.push({
+                        x, y, alpha,
+                        // when it lets go: patches of the word crumble first, the rest follows
+                        at: (0.7 * noise(x / w * 9, y / h * 3.5) + 0.3 * Math.random()) * 0.62,
+                        rise: 50 + Math.random() * 170,
+                        side: (Math.random() - 0.5) * 150,
+                        size: step * (0.55 + Math.random() * 0.6),
+                        f1: 0.5 + Math.random() * 1.1, p1: Math.random() * 6.28,
+                        f2: 0.4 + Math.random() * 0.9, p2: Math.random() * 6.28
+                    });
+                }
+            }
+
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            const cw = w + this.padX * 2, ch = h + this.padTop + this.padBottom;
+            this.canvas.width = Math.round(cw * dpr);
+            this.canvas.height = Math.round(ch * dpr);
+            this.canvas.style.width = cw + 'px';
+            this.canvas.style.height = ch + 'px';
+            this.canvas.style.left = (img.offsetLeft - this.padX) + 'px';
+            this.canvas.style.top = (img.offsetTop - this.padTop) + 'px';
+            this.dpr = dpr;
+            this.wake();
+        }
+
+        // 0 at the top of the page, 1 once the wordmark has all but scrolled away
+        progress() {
+            return Math.min(1, Math.max(0, window.scrollY / (window.innerHeight * 0.45)));
+        }
+
+        wake() {
+            if (!this.running && this.grains.length && this.progress() > 0) {
+                this.running = true;
+                this.canvas.parentElement.classList.add('is-sand');
+                requestAnimationFrame(() => this.frame());
+            }
+        }
+
+        frame() {
+            const p = this.progress();
+            const ctx = this.ctx;
+            ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+            ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            if (p <= 0) {
+                // back at the top: the image itself returns
+                this.running = false;
+                this.canvas.parentElement.classList.remove('is-sand');
+                return;
+            }
+            requestAnimationFrame(() => this.frame());
+            if (document.hidden || this.canvas.getBoundingClientRect().bottom < 0) return;
+
+            const t = performance.now() / 1000;
+            const ox = this.padX, oy = this.padTop, cut = this.step + 1.5;
+            // the letters as they are ...
+            // (fading out once the last grains go, so no ghost of the edges stays behind)
+            ctx.globalAlpha = Math.min(1, Math.max(0, (0.68 - p) / 0.16));
+            ctx.drawImage(this.img, ox, oy, this.w, this.h);
+            ctx.globalAlpha = 1;
+            // ... minus every grain that has let go ...
+            ctx.globalCompositeOperation = 'destination-out';
+            for (const g of this.grains) {
+                if (p > g.at) ctx.fillRect(ox + g.x - cut / 2, oy + g.y - cut / 2, cut, cut);
+            }
+            // ... plus those grains, afloat
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.fillStyle = '#fff';
+            for (const g of this.grains) {
+                if (p <= g.at) continue;
+                const q = Math.min(1, (p - g.at) / 0.42);
+                const e = q * q * (3 - 2 * q);
+                const x = ox + g.x + g.side * e + Math.sin(t * g.f1 + g.p1) * 9 * q;
+                const y = oy + g.y - g.rise * e + Math.cos(t * g.f2 + g.p2) * 7 * q;
+                ctx.globalAlpha = g.alpha * (1 - 0.9 * q * q);
+                ctx.fillRect(x - g.size / 2, y - g.size / 2, g.size, g.size);
+            }
+            ctx.globalAlpha = 1;
+        }
+    }
+
+    // ===================================================================
     // INITIALIZATION
     // ===================================================================
     document.addEventListener('DOMContentLoaded', function() {
         new DarkModeManager();
+        WordmarkSand.create();
         new NetworkBackground();
         initNavbar();
         initReveals();

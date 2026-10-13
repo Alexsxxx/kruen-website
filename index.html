@@ -3602,12 +3602,13 @@
             this.buildColumnPalette();
         }
 
-        // Two scales for the caps, taking turns: a saturated yellow and a saturated green,
-        // each a little deeper on low caps and brighter on high ones
+        // Three scales for the caps, taking turns: a saturated yellow, a saturated green and
+        // a dark violet, each a little deeper on low caps and brighter on high ones
         buildColumnPalette() {
             const stops = [
                 [[0.3, [226, 176, 0]], [0.65, [255, 214, 0]], [1, [255, 236, 60]]],
-                [[0.3, [0, 150, 48]], [0.65, [16, 214, 64]], [1, [96, 255, 96]]]
+                [[0.3, [0, 150, 48]], [0.65, [16, 214, 64]], [1, [96, 255, 96]]],
+                [[0.3, [58, 14, 120]], [0.65, [92, 28, 176]], [1, [136, 62, 224]]]
             ];
             this.scales = stops.map(map => {
                 const lut = [];

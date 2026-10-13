@@ -3558,16 +3558,13 @@
             this.buildColumnPalette();
         }
 
-        // The two colour scales of the flat SwR waterfall (classic, neon), sampled above their dark
-        // floor so even the lowest caps stay visible on the net, plus a warm scale of our own:
-        // green, yellow, amber and red
+        // Three warm scales for the caps, low to high: a sunset from rose to cream, embers
+        // from wine red to gold, and a soft terracotta-to-apricot
         buildColumnPalette() {
             const stops = [
-                [[0.2, [0, 0, 90]], [0.35, [0, 30, 180]], [0.5, [0, 180, 200]], [0.65, [0, 220, 60]],
-                 [0.8, [240, 230, 0]], [0.92, [240, 70, 0]], [1, [255, 255, 255]]],
-                [[0.15, [6, 14, 60]], [0.32, [10, 40, 130]], [0.48, [16, 110, 210]], [0.62, [40, 200, 245]],
-                 [0.74, [150, 235, 255]], [0.84, [225, 130, 255]], [0.92, [255, 70, 190]], [1, [255, 255, 255]]],
-                [[0.3, [0, 200, 60]], [0.52, [245, 225, 0]], [0.74, [255, 150, 0]], [1, [235, 15, 15]]]
+                [[0.3, [214, 76, 96]], [0.52, [240, 112, 82]], [0.74, [255, 160, 60]], [0.9, [255, 205, 110]], [1, [255, 236, 190]]],
+                [[0.3, [158, 38, 52]], [0.5, [222, 62, 40]], [0.7, [255, 122, 28]], [0.88, [255, 176, 40]], [1, [255, 220, 120]]],
+                [[0.3, [186, 92, 70]], [0.52, [228, 128, 92]], [0.74, [246, 168, 112]], [0.9, [252, 198, 130]], [1, [255, 226, 170]]]
             ];
             this.scales = stops.map(map => {
                 const lut = [];
@@ -3603,10 +3600,10 @@
                 const high = lut[Math.floor(h * 63)];
                 this.columnPalette.push(fills(low.map((c, k) => c + (high[k] - c) * t)));
             }
-            // Caps wear the scale at full saturation: grey taken out, brightness pushed up
+            // Caps wear the scale a little richer: some grey taken out, brightness kept
             const vivid = c => {
-                const lo = Math.min(...c) * 0.7, hi = Math.max(...c) - lo || 1;
-                return c.map(v => (v - lo) / hi * 255);
+                const top = Math.max(...c), lo = Math.min(...c) * 0.3, hi = top - lo || 1;
+                return c.map(v => (v - lo) / hi * top);
             };
             this.peakPalette = lut.map(c => fills(vivid(c)));
         }
@@ -4062,7 +4059,7 @@
             const field = this.field;
             field.update(dt);
 
-            // Each new movement of the field brings in the next waterfall colour scale
+            // Each new movement of the field brings in the next colour scale
             if (field.current !== this.scaleMode) {
                 if (this.scaleMode) {
                     this.scaleFrom = this.scaleTo;

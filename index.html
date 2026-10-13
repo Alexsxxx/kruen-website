@@ -551,9 +551,9 @@
         mask-image: linear-gradient(to bottom, transparent 0, #000 180px);
     }
 
-    /* A second, living frost above the stage glass. A light ramp keeps the top of the
-       screen soft, and blurred patches drift, swell and shrink through the whole space
-       down to the glass. They follow nothing on the page - not the net, not the scroll -
+    /* A second, living frost above the stage glass. Nothing in it is fixed: blurred
+       patches drift, swell and shrink through the whole space down to the glass, and
+       between them the net is sharp. They follow nothing on the page - not the net, not the scroll -
        and never repeat. The stage glass below stays as it is. */
     .top-frost {
         position: fixed;
@@ -569,12 +569,6 @@
         opacity: var(--top-frost, 1);
         -webkit-backdrop-filter: blur(var(--blur)) saturate(140%);
         backdrop-filter: blur(var(--blur)) saturate(140%);
-    }
-
-    .top-frost .ramp {
-        inset: 0;
-        -webkit-mask-image: linear-gradient(to top, transparent var(--from), #000 var(--to));
-        mask-image: linear-gradient(to top, transparent var(--from), #000 var(--to));
     }
 
     .top-frost .patch {
@@ -1790,10 +1784,8 @@
 
     <div class="content-wrapper">
         <div class="top-frost" aria-hidden="true">
-            <span class="ramp" style="--blur: 2px; --from: 40%; --to: 58%"></span>
-            <span class="ramp" style="--blur: 4px; --from: 54%; --to: 76%"></span>
-            <span class="ramp" style="--blur: 8px; --from: 70%; --to: 96%"></span>
             <span class="patch" style="--blur: 12px; --x: 4vw; --y: 4vh; --w: 55vw; --h: 40vh"></span>
+            <span class="patch" style="--blur: 10px; --x: 26vw; --y: 12vh; --w: 48vw; --h: 34vh"></span>
             <span class="patch" style="--blur: 16px; --x: 48vw; --y: -4vh; --w: 60vw; --h: 46vh"></span>
             <span class="patch" style="--blur: 9px; --x: 18vw; --y: 34vh; --w: 50vw; --h: 38vh"></span>
             <span class="patch" style="--blur: 13px; --x: 58vw; --y: 38vh; --w: 46vw; --h: 40vh"></span>

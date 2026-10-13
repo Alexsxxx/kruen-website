@@ -3554,21 +3554,52 @@
             this.buildColumnPalette();
         }
 
-        // Fill colours per segment (bottom to top) and face: [top, left side, right side]
+        // The SwR waterfall colour scales (classic, neon, ridge), sampled above their dark
+        // floor so even the lowest caps stay visible on the net
         buildColumnPalette() {
+            const stops = [
+                [[0.2, [0, 0, 90]], [0.35, [0, 30, 180]], [0.5, [0, 180, 200]], [0.65, [0, 220, 60]],
+                 [0.8, [240, 230, 0]], [0.92, [240, 70, 0]], [1, [255, 255, 255]]],
+                [[0.15, [6, 14, 60]], [0.32, [10, 40, 130]], [0.48, [16, 110, 210]], [0.62, [40, 200, 245]],
+                 [0.74, [150, 235, 255]], [0.84, [225, 130, 255]], [0.92, [255, 70, 190]], [1, [255, 255, 255]]],
+                [[0.1, [0, 30, 190]], [0.25, [0, 70, 255]], [0.45, [0, 140, 255]], [0.58, [0, 210, 240]],
+                 [0.7, [40, 235, 90]], [0.8, [220, 240, 20]], [0.9, [255, 120, 0]], [0.96, [255, 35, 20]], [1, [255, 230, 230]]]
+            ];
+            this.scales = stops.map(map => {
+                const lut = [];
+                for (let i = 0; i < 64; i++) {
+                    const t = 0.36 + 0.6 * i / 63;
+                    let k = 0;
+                    while (k < map.length - 2 && t > map[k + 1][0]) k++;
+                    const [t0, c0] = map[k], [t1, c1] = map[k + 1];
+                    const f = Math.min(1, Math.max(0, (t - t0) / (t1 - t0)));
+                    lut.push(c0.map((c, n) => c + (c1[n] - c) * f));
+                }
+                return lut;
+            });
+            if (this.scaleTo === undefined) { this.scaleFrom = 0; this.scaleTo = 0; this.scaleMix = 1; }
+            this.mixScales();
+        }
+
+        // Fill colours per face [top, left side, right side]: columns per segment (bottom
+        // to top), caps per level - both read from the scale currently fading in
+        mixScales() {
             const segments = 12;
             const low = this.isDark ? [125, 130, 142] : [178, 178, 186];
-            const high = [255, 138, 30];
             const shades = this.isDark ? [1, 0.72, 0.5] : [1, 0.86, 0.72];
+            const m = this.scaleMix * this.scaleMix * (3 - 2 * this.scaleMix);
+            const from = this.scales[this.scaleFrom], to = this.scales[this.scaleTo];
+            const lut = from.map((c, i) => c.map((v, n) => v + (to[i][n] - v) * m));
+            const fills = rgb => shades.map(f =>
+                `rgb(${Math.round(rgb[0] * f)}, ${Math.round(rgb[1] * f)}, ${Math.round(rgb[2] * f)})`);
             this.columnPalette = [];
             for (let s = 0; s < segments; s++) {
-                const t = Math.pow((s + 0.5) / segments, 2.2);
-                const rgb = low.map((c, k) => c + (high[k] - c) * t);
-                this.columnPalette.push(shades.map(f =>
-                    `rgb(${Math.round(rgb[0] * f)}, ${Math.round(rgb[1] * f)}, ${Math.round(rgb[2] * f)})`));
+                const h = (s + 0.5) / segments;
+                const t = Math.pow(h, 2.2);
+                const high = lut[Math.floor(h * 63)];
+                this.columnPalette.push(fills(low.map((c, k) => c + (high[k] - c) * t)));
             }
-            this.peakPalette = shades.map(f =>
-                `rgb(${Math.round(255 * f)}, ${Math.round(150 * f)}, ${Math.round(50 * f)})`);
+            this.peakPalette = lut.map(fills);
         }
 
         setupManualRotateToggle() {
@@ -4021,6 +4052,20 @@
             const field = this.field;
             field.update(dt);
 
+            // Each new movement of the field brings in the next waterfall colour scale
+            if (field.current !== this.scaleMode) {
+                if (this.scaleMode) {
+                    this.scaleFrom = this.scaleTo;
+                    this.scaleTo = (this.scaleTo + 1) % this.scales.length;
+                    this.scaleMix = 0;
+                }
+                this.scaleMode = field.current;
+            }
+            if (this.scaleMix < 1) {
+                this.scaleMix = Math.min(1, this.scaleMix + dt / 4);
+                this.mixScales();
+            }
+
             const ctx = this.ctx;
             const segments = 12;
             const maxHeight = 125 * zoom;
@@ -4096,7 +4141,8 @@
                 if (peak > 0.04) {
                     ctx.globalAlpha = alpha * Math.min(1, (peak - 0.04) * 10);
                     const capY = node.y - (peak * maxHeight + pitch * 0.35) * f;
-                    block(node.x, capY, pitch * 0.2 * f, this.peakPalette, f);
+                    // The cap takes its colour from the scale by how high it rides
+                    block(node.x, capY, pitch * 0.2 * f, this.peakPalette[Math.min(63, Math.floor(peak * 64))], f);
                 }
             });
             ctx.globalAlpha = 1;

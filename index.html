@@ -8,7 +8,7 @@
     <title>Kruen - SwR Global Radio, CmA &amp; PBH</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="preload" as="image" href="assets/swr-panel-dark.webp">
     <link rel="preload" as="image" href="assets/swr-panel-white.webp">
     <link rel="icon" type="image/svg+xml" href="assets/kruen-mark.svg">
@@ -394,49 +394,17 @@
         margin: 0 auto;
     }
 
-    /* Technical display face for the brand name */
+    /* The brand name is sprayed on in the same hand as the K in the mark */
     .hero h1 {
-        font-family: 'Orbitron', 'Space Grotesk', sans-serif;
-        font-size: clamp(44px, 8.5vw, 86px);
-        font-weight: 700;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        text-shadow: 0 4px 30px var(--hero-shadow);
-        line-height: 1;
-        margin-bottom: 22px;
-        color: var(--text);
+        line-height: 0;
+        margin-bottom: 6px;
     }
 
-    /* The dot is an on-air light, calmly sending a radio wave now and then */
-    .hero h1 .dot {
-        --pulse: 0;
-        position: relative;
-        display: inline-block;
-        width: 0.17em;
-        height: 0.17em;
-        margin-left: 0.06em;
-        border-radius: 50%;
-        background: var(--accent);
-        box-shadow: 0 0 calc(10px + var(--pulse) * 8px) rgba(255, 138, 30, calc(0.35 + var(--pulse) * 0.15));
-        transform: scale(calc(1 + var(--pulse) * 0.06));
-    }
-
-    .hero h1 .dot .wave {
-        position: absolute;
-        inset: 0;
-        border-radius: 50%;
-        border: 1.5px solid var(--accent);
-        animation: dot-wave 3.2s cubic-bezier(0.25, 0.5, 0.4, 1) forwards;
-        pointer-events: none;
-    }
-
-    @keyframes dot-wave {
-        from { transform: scale(1); opacity: 0.35; }
-        to   { transform: scale(4); opacity: 0; border-width: 0.5px; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        .hero h1 .dot { transform: none; }
+    .hero h1 img {
+        width: min(100%, clamp(290px, 46vw, 470px));
+        height: auto;
+        margin: 0 auto;
+        filter: drop-shadow(0 4px 22px var(--hero-shadow));
     }
 
     .hero-subtitle {
@@ -1819,7 +1787,7 @@
         <!-- ========================================================= -->
         <section class="hero">
             <div class="hero-content">
-                <h1 aria-label="Kruen.">Kruen<span class="dot" aria-hidden="true"></span></h1>
+                <h1><img src="assets/kruen-wordmark.svg" alt="Kruen" width="260" height="96"></h1>
                 <p class="hero-subtitle">Android and iOS App Design &amp; Development</p>
                 <div class="hero-cta">
                     <a class="hero-chip" href="#swr" title="SwR - Global Radio" aria-label="SwR - Global Radio"><img src="assets/swr-icon.webp" alt="" width="28" height="28">SwR</a>
@@ -3550,10 +3518,6 @@
             this.manualRotateEnabled = false; // Default: disabled
             // Equalizer columns stand on every second node of the net
             this.lastFrame = performance.now();
-            this.heroDot = document.querySelector('.hero h1 .dot');
-            this.heroBeats = 0;
-            this.heroPulse = 0;
-            this.lastWave = 0;
             this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
             // Perspective: the far side lies down toward the horizon, the near side rises
             // toward the viewer. Smaller = stronger effect (px of virtual camera distance)
@@ -4048,31 +4012,8 @@
             }
 
             this.drawColumns(dt, 0, 0, 1);
-            this.updateHeroDot(dt);
 
             requestAnimationFrame(() => this.animate());
-        }
-
-        // The title dot pulses and sends a radio wave on every beat of the equalizer
-        updateHeroDot(dt) {
-            if (!this.heroDot || this.reducedMotion.matches) return;
-            const now = performance.now();
-            if (this.field.beats !== this.heroBeats) {
-                this.heroBeats = this.field.beats;
-                this.heroPulseTarget = 1;
-                // Only an occasional wave - the dot should feel calm
-                if (now - this.lastWave > 4500) {
-                    this.lastWave = now;
-                    const wave = document.createElement('span');
-                    wave.className = 'wave';
-                    wave.addEventListener('animationend', () => wave.remove());
-                    this.heroDot.appendChild(wave);
-                }
-            }
-            // Ease toward a slowly fading target so the glow swells instead of flashing
-            this.heroPulseTarget = (this.heroPulseTarget || 0) * Math.exp(-dt * 1.5);
-            this.heroPulse += (this.heroPulseTarget - this.heroPulse) * (1 - Math.exp(-dt * 3));
-            this.heroDot.style.setProperty('--pulse', this.heroPulse.toFixed(3));
         }
 
         // 3D equalizer columns made of stacked blocks, standing on the net

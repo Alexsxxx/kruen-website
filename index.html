@@ -3602,7 +3602,6 @@
                 this.columnPalette.push(fills(low.map((c, k) => c + (high[k] - c) * t)));
             }
             this.peakPalette = lut.map(fills);
-            this.scaleLut = lut;
         }
 
         setupManualRotateToggle() {
@@ -3970,19 +3969,18 @@
             // so thousands of segments cost a handful of strokes instead of one each
             const BUCKETS = 16;
             const bucket = alpha => Math.max(0, Math.min(BUCKETS - 1, Math.floor(alpha * BUCKETS)));
-            // ... times a few colour bands: the net wears the waterfall scale by wave height
-            const BANDS = 8;
             const lines = [], normalsNear = [], normalsFar = [], points = [];
-            const pathIn = (list, band, alpha) => {
-                const k = band * BUCKETS + bucket(alpha);
-                return list[k] || (list[k] = new Path2D());
-            };
+            for (let k = 0; k < BUCKETS; k++) {
+                lines.push(new Path2D());
+                normalsNear.push(new Path2D());
+                normalsFar.push(new Path2D());
+                points.push(new Path2D());
+            }
 
             this.nodes.forEach((node, i) => {
                 const grown = node.mask;
                 if (grown < 0.01 || !node.onScreen) return;
                 const opacity = node.opacity;
-                const band = Math.max(0, Math.min(BANDS - 1, Math.floor((0.5 + node.wave / 300) * BANDS)));
 
                 // Nodes are stored column by column, so neighbours are a fixed index away
                 const rightNode = node.gridX < this.cols - 1 ? this.nodes[i + this.rows] : null;
@@ -3991,7 +3989,7 @@
                 [rightNode, bottomNode].forEach(other => {
                     if (!other || other.mask <= 0.01) return;
                     const lineOpacity = (opacity + (other.y + 200) / 400 * 0.7) * 0.4 * Math.min(grown, other.mask);
-                    const path = pathIn(lines, band, lineOpacity);
+                    const path = lines[bucket(lineOpacity)];
                     path.moveTo(node.x, node.y);
                     path.lineTo(other.x, other.y);
                 });
@@ -4017,33 +4015,33 @@
                 const endY = node.y + ((normalX3d + normalY3d) * isoSin - normalZ3d) * normalLength * f;
                 const midX = node.x + (endX - node.x) * 0.6, midY = node.y + (endY - node.y) * 0.6;
                 const normalOpacity = opacity * 0.8;
-                let path = pathIn(normalsNear, band, normalOpacity * 0.7);
+                let path = normalsNear[bucket(normalOpacity * 0.7)];
                 path.moveTo(node.x, node.y);
                 path.lineTo(midX, midY);
-                path = pathIn(normalsFar, band, normalOpacity * 0.18);
+                path = normalsFar[bucket(normalOpacity * 0.18)];
                 path.moveTo(midX, midY);
                 path.lineTo(endX, endY);
 
                 const pointSize = Math.max(0.1, (0.5 + node.normalizedZ * 2) * 0.8 * grown * f);
-                path = pathIn(points, band, opacity);
+                path = points[bucket(opacity)];
                 path.moveTo(node.x + pointSize, node.y);
                 path.arc(node.x, node.y, pointSize, 0, Math.PI * 2);
             });
 
+            const lineRgb = this.isDark ? '255, 255, 255' : '80, 80, 80';
+            const normalRgb = this.isDark ? '255, 255, 255' : '100, 100, 100';
             const ctx = this.ctx;
-            for (let band = 0; band < BANDS; band++) {
-                const rgb = this.scaleLut[Math.floor((band + 0.5) / BANDS * 64)].map(Math.round).join(', ');
-                for (let b = 0; b < BUCKETS; b++) {
-                    const k = band * BUCKETS + b;
-                    const style = `rgba(${rgb}, ${((b + 0.5) / BUCKETS).toFixed(3)})`;
-                    ctx.strokeStyle = style;
-                    ctx.lineWidth = 0.5;
-                    if (lines[k]) ctx.stroke(lines[k]);
-                    ctx.lineWidth = 1;
-                    if (normalsNear[k]) ctx.stroke(normalsNear[k]);
-                    if (normalsFar[k]) ctx.stroke(normalsFar[k]);
-                    if (points[k]) { ctx.fillStyle = style; ctx.fill(points[k]); }
-                }
+            for (let k = 0; k < BUCKETS; k++) {
+                const alpha = ((k + 0.5) / BUCKETS).toFixed(3);
+                ctx.lineWidth = 0.5;
+                ctx.strokeStyle = `rgba(${lineRgb}, ${alpha})`;
+                ctx.stroke(lines[k]);
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = `rgba(${normalRgb}, ${alpha})`;
+                ctx.stroke(normalsNear[k]);
+                ctx.stroke(normalsFar[k]);
+                ctx.fillStyle = `rgba(${lineRgb}, ${alpha})`;
+                ctx.fill(points[k]);
             }
 
             this.drawColumns(dt, 0, 0, 1);

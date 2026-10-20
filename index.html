@@ -14,6 +14,14 @@
     <link rel="icon" type="image/svg+xml" href="assets/kruen-mark.svg">
     <link rel="alternate" hreflang="en" href="https://kruen.cz/?lang=en">
     <link rel="alternate" hreflang="cs" href="https://kruen.cz/?lang=cs">
+    <link rel="alternate" hreflang="de" href="https://kruen.cz/?lang=de">
+    <link rel="alternate" hreflang="es" href="https://kruen.cz/?lang=es">
+    <link rel="alternate" hreflang="fr" href="https://kruen.cz/?lang=fr">
+    <link rel="alternate" hreflang="pt" href="https://kruen.cz/?lang=pt">
+    <link rel="alternate" hreflang="it" href="https://kruen.cz/?lang=it">
+    <link rel="alternate" hreflang="pl" href="https://kruen.cz/?lang=pl">
+    <link rel="alternate" hreflang="ja" href="https://kruen.cz/?lang=ja">
+    <link rel="alternate" hreflang="zh" href="https://kruen.cz/?lang=zh">
     <link rel="alternate" hreflang="x-default" href="https://kruen.cz/">
 
     <!-- Language: ?lang= in the link, then the visitor's own choice, then a guess.
@@ -21,7 +29,7 @@
          zone), so nothing is sent anywhere - no IP lookup. -->
     <script>
     (function() {
-        var supported = ['en', 'cs'];
+        var supported = ['en',  'cs',  'de',  'es',  'fr',  'pt',  'it',  'pl',  'ja',  'zh'];
         var lang = null;
         try {
             var asked = new URLSearchParams(location.search).get('lang');
@@ -37,17 +45,25 @@
             var langs = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ''];
             var zone = '';
             try { zone = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
-            // Czech and Slovak speakers, or anyone whose clock runs on Czech or Slovak time
+            // Czech and Slovak speakers, or anyone whose clock runs on Czech or Slovak time,
+            // get Czech; everyone else the first of their languages the site has.
             var czech = langs.some(function(l) { return /^(cs|sk)\b/i.test(l); })
                 || /^Europe\/(Prague|Bratislava)$/.test(zone);
-            lang = czech ? 'cs' : 'en';
+            if (czech) lang = 'cs';
+            for (var i = 0; !lang && i < langs.length; i++) {
+                var base = String(langs[i]).toLowerCase().split('-')[0];
+                if (supported.indexOf(base) > -1) lang = base;
+            }
+            lang = lang || 'en';
         }
         window.__lang = lang;
-        document.documentElement.lang = lang;
+        document.documentElement.lang = lang === 'zh' ? 'zh-Hans' : lang;
         if (lang !== 'en') {
-            // Keep the English text out of sight until it is swapped (a few ms)
+            // Fetch the table now, while the page is still parsing, and keep the
+            // English text out of sight until it is swapped
+            window.__langTable = fetch('i18n/' + lang + '.json').then(function(r) { return r.ok ? r.json() : {}; });
             document.documentElement.classList.add('i18n-pending');
-            setTimeout(function() { document.documentElement.classList.remove('i18n-pending'); }, 2000);
+            setTimeout(function() { document.documentElement.classList.remove('i18n-pending'); }, 3000);
         }
     })();
     </script>
@@ -244,30 +260,55 @@
     /* Language switch (CZ / EN) - stays visible on phones */
     .i18n-pending .content-wrapper { visibility: hidden; }
 
-    .lang-switch {
+    .lang-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 4px;
+        border: 0;
+        background: none;
+        color: var(--text-2);
+        font: 600 13px/1 'Inter', sans-serif;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+    .lang-btn svg { width: 17px; height: 17px; }
+    .lang-btn span { color: var(--accent); }
+    .lang-btn:hover, .lang-btn[aria-expanded="true"] { color: var(--accent); }
+    .navbar.on-dark .lang-btn { color: var(--stage-text-2); }
+    .navbar.on-dark .lang-btn:hover, .navbar.on-dark .lang-btn[aria-expanded="true"] { color: var(--accent); }
+
+    .lang-menu {
+        position: fixed;
+        z-index: 1001;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2px;
+        width: 268px;
+        padding: 8px;
+        border-radius: 20px;
+        animation: antPop 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+    }
+    .lang-menu[hidden] { display: none; }
+    .lang-menu button {
         display: flex;
         align-items: center;
-        gap: 2px;
-        font-size: 13px;
-        font-weight: 600;
-        letter-spacing: 0.04em;
-    }
-
-    .lang-switch button {
-        background: none;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 10px 12px;
         border: 0;
-        padding: 6px 7px;
-        font: inherit;
-        color: var(--text-2);
-        opacity: 0.6;
+        border-radius: 12px;
+        background: none;
+        color: var(--stage-text);
+        font: 500 14px/1.2 'Inter', sans-serif;
+        text-align: left;
         cursor: pointer;
-        transition: color 0.2s ease, opacity 0.2s ease;
     }
-
-    .lang-switch button:hover { opacity: 1; }
-    .lang-switch button[aria-pressed="true"] { color: var(--accent); opacity: 1; }
-    .navbar.on-dark .lang-switch button { color: var(--stage-text-2); }
-    .navbar.on-dark .lang-switch button[aria-pressed="true"] { color: var(--accent); }
+    .lang-menu button small { font-size: 11px; font-weight: 600; letter-spacing: 0.05em; color: var(--stage-text-2); }
+    .lang-menu button:hover, .lang-menu button:focus-visible { background: rgba(255, 255, 255, 0.07); outline: none; }
+    .lang-menu button[aria-checked="true"] { color: var(--accent); background: var(--accent-soft); }
+    .lang-menu button[aria-checked="true"] small { color: var(--accent); }
 
     /* ================================================================= */
     /* THEME TOGGLE */
@@ -1253,6 +1294,10 @@
 
     .compare-table th,
     .compare-table td {
+        /* long compound words (German, Polish) break instead of widening the table */
+        hyphens: auto;
+        -webkit-hyphens: auto;
+        overflow-wrap: anywhere;
         padding: 20px clamp(14px, 2.4vw, 28px);
         text-align: left;
         border-bottom: 1px solid rgba(255, 255, 255, 0.055);
@@ -1368,6 +1413,12 @@
         .compare-table .col-val { width: 74px; }
         .compare-table .col-val small { font-size: 11px; }
         .compare-table thead th { font-size: 11px; letter-spacing: 0.1em; }
+    }
+
+    @media (max-width: 400px) {
+        .compare-table th,
+        .compare-table td { padding: 14px 7px; }
+        .compare-table .col-val { width: 66px; }
     }
 
     /* --- Upcoming: two phones that take turns playing --- */
@@ -2341,10 +2392,10 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="7.5" r="1.6"/><path d="M8.6 4.1a4.8 4.8 0 0 0 0 6.8M15.4 4.1a4.8 4.8 0 0 1 0 6.8M5.9 1.9a8.4 8.4 0 0 0 0 11.2M18.1 1.9a8.4 8.4 0 0 1 0 11.2M12 9.2V21M12 12.5 8.6 21M12 12.5l3.4 8.5M8 21h8"/></svg>
                         <span data-i18n="ant.nav">Your antenna</span>
                     </button>
-                    <div class="lang-switch" role="group" aria-label="Jazyk / Language">
-                        <button type="button" data-lang="cs" lang="cs" title="Čeština" aria-pressed="false">CZ</button>
-                        <button type="button" data-lang="en" lang="en" title="English" aria-pressed="false">EN</button>
-                    </div>
+                    <button class="lang-btn" type="button" id="langBtn" aria-haspopup="menu" aria-expanded="false" aria-controls="langMenu" aria-label="Language">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a13.5 13.5 0 0 1 0 18M12 3a13.5 13.5 0 0 0 0 18"/></svg>
+                        <span id="langCode">EN</span>
+                    </button>
                     <div class="theme-toggle">
                         <input type="checkbox" id="theme-switch" class="theme-switch-input">
                         <label for="theme-switch" class="theme-switch-label">
@@ -2885,6 +2936,7 @@
     <!-- Your antenna: menu and guide, filled in by the script below. They sit outside
          the navbar on purpose - its own backdrop-filter would stop their glass from
          blurring the page behind. -->
+    <div class="lang-menu ant-glass" id="langMenu" role="menu" aria-labelledby="langBtn" hidden></div>
     <div class="ant-menu ant-glass" id="antennaMenu" role="menu" aria-labelledby="antennaBtn" hidden></div>
     <div class="ant-guide" id="antennaGuide" role="dialog" aria-modal="true" aria-labelledby="antGuideTitle" hidden>
         <div class="ant-guide-backdrop"></div>
@@ -2893,167 +2945,32 @@
 
     <script>
     // ===================================================================
-    // LANGUAGE (EN / CS)
-    // English lives in the markup; Czech is in the table below. An element
-    // with data-i18n="key" gets its inner HTML swapped, data-i18n-<attr>
-    // swaps that attribute. Add a language by adding a table and a button.
+    // LANGUAGES
+    // English lives in the markup; every other language is a table in
+    // i18n/<code>.json, fetched only when it is needed. An element with
+    // data-i18n="key" gets its inner HTML swapped, data-i18n-<attr> swaps that
+    // attribute, and scripts ask I18N.t(key). A missing key falls back to
+    // English, so a table never has to be complete. To add a language: a row
+    // in LANGS below, its code in the head script, and its file.
     // ===================================================================
     window.I18N = (function() {
-        var STRINGS = {
-            en: {
-                "js.tapSound": "Tap for sound",
-                "js.finishDark": "Dark finish only",
-                "js.finishLight": "Light finish only",
-                "js.finishMix": "{l}% light finish, {d}% dark finish"
-            },
-            cs: {
-                "nav.about": "O nás",
-                "ui.move": "pohyb",
-                "hero.sub": "Návrh a vývoj aplikací pro Android a iOS",
-                "swr.eyebrow": "01 · Vlajková aplikace",
-                "swr.buy": "<strong>PRO je jednorázový nákup</strong> Zaplatíte jednou a máte navždy – žádné předplatné.",
-                "swr.lead": "Nalaďte si <strong>skutečné rádiové přijímače</strong> po celém světě – živě, ve svém telefonu. SwR se připojí ke stovkám přijímačů přes pět klientů – KiwiSDR/Web-888, OpenWebRX, UberSDR, FM-DX a AirSpy – a z ionosféry udělá váš osobní poslechový pokoj.",
-                "store.apple": "Stáhněte v",
-                "store.google": "Nyní na",
-                "store.soon": "Brzy v",
-                "tag.noads": "Bez reklam",
-                "tag.nodata": "Žádný sběr dat",
-                "swr.family": "Také pro Apple Watch: <b>SwR Watch</b> – samostatná aplikace",
-                "helix.h1": "Živé spektrum a vodopád",
-                "helix.p1": "Sledujte, jak celé pásmo dýchá v reálném čase. Zářící displej frekvence, autentický S-metr a plný vodopád – lov signálů jako na opravdovém přijímači.",
-                "helix.h2": "Různé typy vodopádů a spekter",
-                "helix.p2": "Přepněte vodopád na plynoucí 3D krajinu nebo hypnotickou 4D deformaci. Rádiové spektrum v telefonu nikdy nevypadalo tak dobře.",
-                "helix.h3": "Celosvětová síť přijímačů",
-                "helix.p3": "Najděte si přijímač kdekoli na světě a vyberte z 5 klientů: KiwiSDR/Web-888, OpenWebRX, UberSDR, FM-DX a AirSpy. Sledujte, kde svítí slunce a kde už je noc.",
-                "helix.h4": "Vytvarujte si zvuk",
-                "helix.p4": "Vestavěný ekvalizér, nastavitelná šířka pásma, potlačení šumu a chytré skenování. Dolaďte každou stanici, dokud nezní přesně tak, jak má.",
-                "helix.h5": "Pixelový režim",
-                "helix.p5": "Retro jednobarevný vzhled, který z celého přijímače udělá kostičkový pixelový displej. Frekvence, spektrum i vodopád – nově jako zářící bodová grafika.",
-                "helix.p6": "FM rozhlas přímo ve vašem telefonu (87,5–108 MHz). Ruční ladění je rychlé a trefí se přesně na frekvenci – stačí potáhnout stupnici a hledat stanice.",
-                "helix.h7": "Widgety",
-                "helix.p7": "Dva typy pro KiwiSDR a FM-DX. Brouzdejte po webu nebo dělejte v telefonu cokoli jiného, zatímco rádio hraje dál – a přelaďte kdykoli přímo z widgetu.",
-                "helix.h8": "Vlastní USB dongle",
-                "helix.p8": "Připojte SDR dongle a poslouchejte úplně offline – bez internetu, bez serveru, bez omezení. Jen vaše anténa a celé pásmo.",
-                "helix.h9": "Sledování a poslech satelitů",
-                "helix.p9": "Zachyťte vysílání z oběžné dráhy přímo v telefonu. Živé polohy satelitů, skutečné přelety nad vaší hlavou – a každý přijímač, který je slyší.",
-                "helix.h10": "Sledování a poslech letadel",
-                "helix.p10": "Sledujte letový provoz kdekoli na světě. Letadla živě na mapě s číslem letu, typem, výškou a rychlostí – a k tomu nejbližší letiště a frekvence jeho věže, takže si můžete naladit a slyšet piloty.",
-                "helix.h11": "Verze zdarma",
-                "helix.p11": "Poslouchejte stanice z celého světa úplně zdarma a bez reklam.",
-                "hint.drag": "&larr; Táhněte pro otočení &rarr;",
-                "panel.title": "Nejen přijímač.<br>Skutečný <em>nástroj na signály</em>.",
-                "panel.dark": "Tmavý",
-                "panel.light": "Světlý",
-                "panel.caption": "<strong>Panel One</strong> – jeden ručně vytvořený vzhled rádia, dvě provedení. Přepnete je tažením dělicí čáry. Každý knoflík, přepínač i ručička opravdu funguje.",
-                "cmp.title": "Zdarma, nebo <em>PRO</em>.",
-                "cmp.caption": "Srovnání funkcí bezplatné verze SwR a SwR PRO",
-                "cmp.feature": "Funkce",
-                "cmp.free": "Zdarma",
-                "cmp.pro": "PRO<small>jednorázový nákup</small>",
-                "cmp.clients": "Klienti přijímačů<small>KiwiSDR/Web-888, OpenWebRX, UberSDR, FM-DX, AirSpy</small>",
-                "cmp.allClients": "5<small>všichni klienti</small>",
-                "cmp.time": "Doba poslechu<small>Jak dlouho můžete zůstat naladění</small>",
-                "cmp.unlimited": "Neomezeně",
-                "cmp.yes": "Ano",
-                "cmp.no": "Ne",
-                "cmp.render": "Render Radio<small>Ručně vytvořené vzhledy s funkčními knoflíky a ručičkami</small>",
-                "cmp.pixel": "Pixelová grafika<small>Retro režim bodového displeje</small>",
-                "cmp.waterfall": "Vzhledy vodopádu",
-                "cmp.spectrum": "Vzhledy spektra",
-                "cmp.wKiwi": "Widgety pro KiwiSDR/Web-888",
-                "cmp.wFm": "Widgety pro FM-DX",
-                "cmp.background": "Přehrávání na pozadí",
-                "cmp.scan": "Chytré skenování",
-                "cmp.tuning": "Ladění příjmu a zvuku<small>Ekvalizér, šířka pásma, potlačení šumu</small>",
-                "cmp.colours": "Vlastní barvy",
-                "cmp.detect": "Chytrá detekce přijímače<small>Zjistí polohu přijímače a pásmo, na které je naladěn</small>",
-                "cmp.daynight": "Mapa dne a noci",
-                "cmp.dongle": "USB dongle<small>Vlastní anténa, zcela offline</small>",
-                "cmp.sat": "Satelity<small>Živé sledování a poslech</small>",
-                "cmp.planes": "Letadla<small>Živý letový provoz a frekvence věží</small>",
-                "cmp.maps": "Podrobné mapy<small>Využívá OpenFreeMap</small>",
-                "up.title": "Připravujeme",
-                "up.sound": "Zvuk",
-                "up.satNote": "Intenzivně na tom pracujeme.",
-                "watch.eyebrow": "02 · Rodina SwR · Apple Watch",
-                "watch.sub": "Krátké vlny na zápěstí",
-                "watch.lead": "Skutečné krátkovlnné rádio na vašich <strong>Apple Watch</strong>. SwR Watch se připojuje k veřejným přijímačům KiwiSDR a Web-888 po celém světě – laďte je korunkou Digital Crown, sledujte pásmo a poslouchejte přímo na zápěstí. Samostatná aplikace pro hodinky: bez iPhonu, bez účtu, bez registrace.",
-                "watch.buy": "<strong>Jednorázový nákup</strong> Zaplatíte jednou a máte navždy – žádné předplatné.",
-                "watch.only": "Jen pro Apple Watch",
-                "watch.standalone": "Samostatná",
-                "watch.noAccount": "Bez účtu",
-                "watch.note": "AM, LSB, USB, CW a NBFM s nastavitelnou šířkou pásma, hlasitostí a squelchem. Zvuk hraje dál i se spuštěnou rukou, a když vás přijímač odpojí, SwR Watch se znovu připojí nebo přejde na nejbližší vhodný. Samostatná aplikace, oddělená od SwR – Global Radio, se stejným vzhledem spektra a vodopádu.",
-                "watch.fig1": "Stovky přijímačů seřazených podle zemí – nejbližší první.",
-                "watch.fig2": "Živé spektrum a vodopád, ladění korunkou Digital Crown.",
-                "watch.fig3": "Všechny přijímače na mapě, k tomu hlasitost, squelch a šířka pásma.",
-                "cma.eyebrow": "03 · Novinka od Kruen",
-                "cma.lead": "CmA hodnotí přes 500 kryptoměn obchodovaných na Binance podle fundamentů – jediným skóre <strong>Fundamental Radar</strong> od <strong>0 do 100</strong> – a přesně ukáže, jak k tomuto číslu došlo. Porovnává kvalitu (používá se produkt opravdu, vydělává peníze, má z toho token užitek?) s chybným oceněním (je cena přiměřená, kolik nové nabídky přibude?) a každou minci srovnává jen s jí podobnými.",
-                "cma.note": "Chybějící hodnoty se nikdy neodhadují – místo toho snižují Confidence (spolehlivost) a mince bez dat nedostane skóre vůbec. Každé skóre je na detailu mince rozebrané i s důvody, riziky a výhradami. Jde o analytický nástroj počítaný z veřejných dat – nikoli o předpověď ani investiční doporučení.",
-                "cma.fig1": "Přes 500 mincí s živými cenami a indexem Fear &amp; Greed, řazení podle tržní kapitalizace, skóre Radar nebo změny za 24 h.",
-                "cma.fig2": "Rozbor Fundamental Radaru, cenové grafy až po celou historii mince a srozumitelný profil projektu.",
-                "cma.fig3": "Widgety na plochu – oblíbené mince s živými cenami, nebo graf jedné mince.",
-                "pbh.eyebrow": "04 · Novinka od Kruen",
-                "pbh.lead": "Kolik ze své tovární kapacity vaše baterie doopravdy ztratila? PBH čte přímo <strong>čip měřiče nabití</strong> – čítač náboje, napětí, teplotu – odhadne skutečnou plnou kapacitu v mAh a sleduje ji v čase.",
-                "pbh.note": "Všechna měření zůstávají v telefonu – žádný účet, žádný server a nic se nikam neodesílá.",
-                "pbh.fig1": "Zdraví baterie, nabití, teplota, napětí a odhadovaná plná kapacita.",
-                "pbh.fig2": "Živý odběr proudu vedle všeho, co ho vysvětluje.",
-                "pbh.fig3": "PBH Pulse na ploše s rozsahy 60&nbsp;s, 24&nbsp;h a 1&nbsp;týden.",
-                "about.p1": "Kruen je malé studio z České republiky. Do vývoje mobilních aplikací přinášíme evropskou kvalitu a preciznost – tradiční inženýrské řemeslo spojené s moderní technologií.",
-                "about.p2": "Čistý a etický vývoj pro nás znamená <strong>žádné reklamy, žádné skryté poplatky, žádné dodatečné platby</strong>. A především: <strong>nesbíráme žádná uživatelská data.</strong> Žádné sledování, žádná analytika, žádné vytěžování dat. Co ve svých aplikacích děláte, zůstává jen u vás.",
-                "about.l1": "Vývoj s důrazem na bezpečnost",
-                "about.l2": "Ochrana soukromí už od návrhu",
-                "about.l3": "Používání bez reklam",
-                "meta.description": "Kruen – návrh a vývoj aplikací pro Android a iOS z České republiky. Tvůrci aplikací SwR Global Radio, CmA Crypto Market Analysis a PBH Phone Battery Health.",
-                "a.top": "Kruen – zpět nahoru",
-                "a.chipWatch": "SwR Watch – pro Apple Watch",
-                "alt.iconSwr": "Ikona aplikace SwR",
-                "alt.iconWatch": "Ikona aplikace SwR Watch",
-                "alt.iconCma": "Ikona aplikace CmA",
-                "alt.iconPbh": "Ikona aplikace PBH",
-                "alt.swr1": "SwR – živé spektrum a vodopád",
-                "alt.swr2a": "Panel přizpůsobení v SwR s volbami stylu spektra a vodopádu",
-                "alt.swr2b": "SwR s jiným stylem vodopádu a otevřeným panelem skenování",
-                "alt.swr3a": "3D glóbus v SwR s přijímači KiwiSDR v Asii a hranicí dne a noci",
-                "alt.swr3b": "Mapa SwR přiblížená na italské přijímače s detailem stanice",
-                "alt.swr4a": "Karta šumu v SwR s knoflíky squelch, noise blanker a potlačení šumu",
-                "alt.swr4b": "Karta spektra v SwR s vícepásmovým grafickým ekvalizérem",
-                "alt.swr5": "Pixelový režim SwR s bodovým spektrem a vodopádem",
-                "alt.swr6": "Režim FM-DX v SwR s ladicí stupnicí 87,5–108 MHz",
-                "alt.swr7a": "Widget SwR pro KiwiSDR na ploše",
-                "alt.swr7b": "Widget SwR pro FM-DX na ploše",
-                "alt.swr8": "SwR běžící offline s USB SDR donglem",
-                "alt.swr9a": "SwR sleduje satelit Orbcomm FM112 s přijímači v dosahu",
-                "alt.swr9b": "SwR ukazuje přelet ISS s frekvencí downlinku",
-                "alt.swr10": "Mapa SwR s živým letovým provozem nad Itálií, detailem letu Boeingu 787 a frekvencí nejbližší věže",
-                "alt.swr11": "SwR – verze zdarma",
-                "alt.panelDark": "Vzhled rádia SwR Panel One v tmavém provedení s analogovými knoflíky, S-metrem a displejem frekvence",
-                "alt.panelLight": "Stejný vzhled SwR Panel One ve světlém provedení",
-                "panel.handleValue": "Napůl světlé, napůl tmavé provedení",
-                "panel.handle": "Tažením porovnáte světlé a tmavé provedení Panel One",
-                "up.video": "SwR sleduje satelity na obloze",
-                "alt.watch1": "Seznam přijímačů v SwR Watch seskupený podle zemí",
-                "alt.watch2a": "SwR Watch – živé spektrum a vodopád na 9755 kHz",
-                "alt.watch2b": "SwR Watch naladěné na Voice of Turkey na 9765 kHz",
-                "alt.watch3a": "SwR Watch – mapa přijímačů na Floridě",
-                "alt.watch3b": "SwR Watch – ovládání hlasitosti a squelche",
-                "alt.cma1": "Seznam mincí v CmA s indexem Fear and Greed a kroužkem skóre Radar u každé mince",
-                "alt.cma2a": "Fundamental Radar v CmA pro Dogecoin se skóre a metrikami, ze kterých vychází",
-                "alt.cma2b": "Detail mince v CmA s cenovým grafem a srozumitelným popisem, k čemu projekt slouží",
-                "alt.cma3a": "Widget CmA na ploše s živými cenami sledovaných mincí",
-                "alt.cma3b": "Widget CmA na ploše s cenovým grafem Monera",
-                "alt.pbh1": "Hlavní obrazovka PBH s kroužkem zdraví baterie na 86 % a aktuálním stavem",
-                "alt.pbh2": "Obrazovka PBH s živým odběrem proudu v miliampérech vedle údajů o displeji, síti a teplotě",
-                "alt.pbh3": "Widget PBH Pulse na ploše s grafem odběru a rozsahy 60 s, 24 h a 1 týden",
-                "js.tapSound": "Klepněte pro zvuk",
-                "js.finishDark": "Jen tmavé provedení",
-                "js.finishLight": "Jen světlé provedení",
-                "js.finishMix": "{l} % světlé provedení, {d} % tmavé provedení",
-                "ant.nav": "Vlastní anténa"
-            }
+        var LANGS = [["en", "EN", "English"], ["cs", "CZ", "Čeština"], ["de", "DE", "Deutsch"], ["es", "ES", "Español"], ["fr", "FR", "Français"], ["pt", "PT", "Português"], ["it", "IT", "Italiano"], ["pl", "PL", "Polski"], ["ja", "JA", "日本語"], ["zh", "ZH", "中文"]];
+        // English for the strings that scripts put on the page
+        var EN = {
+            "js.tapSound": "Tap for sound",
+            "js.finishDark": "Dark finish only",
+            "js.finishLight": "Light finish only",
+            "js.finishMix": "{l}% light finish, {d}% dark finish"
         };
+        var tables = { en: {} };
         var ATTRS = ['alt', 'title', 'aria-label', 'aria-valuetext', 'content'];
         var english = {};
-        var lang = STRINGS[window.__lang] ? window.__lang : 'en';
+        var lang = 'en';
+        var wanted = 'en';
+
+        function known(code) {
+            return LANGS.some(function(l) { return l[0] === code; });
+        }
 
         function each(fn) {
             document.querySelectorAll('[data-i18n]').forEach(function(el) {
@@ -3066,11 +2983,11 @@
             });
         }
 
-        function t(key, vars) {
-            var s = STRINGS[lang][key];
+        function t(key, vars, fallback) {
+            var s = tables[lang] && tables[lang][key];
             if (s == null) s = english[key];
-            if (s == null) s = STRINGS.en[key];
-            if (s == null) s = key;
+            if (s == null) s = EN[key];
+            if (s == null) s = fallback != null ? fallback : key;
             if (vars) s = s.replace(/\{(\w+)\}/g, function(m, k) { return k in vars ? vars[k] : m; });
             return s;
         }
@@ -3084,23 +3001,37 @@
                     el.innerHTML = value;
                 }
             });
-            document.documentElement.lang = lang;
-            document.querySelectorAll('.lang-switch [data-lang]').forEach(function(btn) {
-                btn.setAttribute('aria-pressed', String(btn.getAttribute('data-lang') === lang));
-            });
+            document.documentElement.lang = lang === 'zh' ? 'zh-Hans' : lang;
+            var code = document.getElementById('langCode');
+            if (code) code.textContent = LANGS.filter(function(l) { return l[0] === lang; })[0][1];
+        }
+
+        function load(code) {
+            if (tables[code]) return Promise.resolve();
+            var table = code === window.__lang && window.__langTable
+                ? window.__langTable
+                : fetch('i18n/' + code + '.json').then(function(r) { return r.ok ? r.json() : {}; });
+            return table.then(function(data) { tables[code] = data; }, function() { tables[code] = {}; });
+        }
+
+        // Swap to a loaded language and tell the scripts that draw their own text
+        function show(code) {
+            lang = code;
+            apply();
+            document.dispatchEvent(new CustomEvent('langchange', { detail: lang }));
         }
 
         function set(next) {
-            if (!STRINGS[next] || next === lang) return;
-            lang = next;
+            if (!known(next)) return;
+            wanted = next;
             try { localStorage.setItem('lang', next); } catch (e) {}
             try {
                 var url = new URL(location.href);
                 url.searchParams.set('lang', next);
                 history.replaceState(history.state, '', url);
             } catch (e) {}
-            apply();
-            document.dispatchEvent(new CustomEvent('langchange', { detail: lang }));
+            // A slow file must not win over a later click
+            load(next).then(function() { if (wanted === next && next !== lang) show(next); });
         }
 
         // Remember the English wording before anything gets translated
@@ -3108,13 +3039,54 @@
             if (!(key in english)) english[key] = attr ? el.getAttribute(attr) : el.innerHTML;
         });
         apply();
-        document.documentElement.classList.remove('i18n-pending');
 
-        document.querySelectorAll('.lang-switch [data-lang]').forEach(function(btn) {
-            btn.addEventListener('click', function() { set(btn.getAttribute('data-lang')); });
-        });
+        wanted = known(window.__lang) ? window.__lang : 'en';
+        if (wanted === 'en') {
+            document.documentElement.classList.remove('i18n-pending');
+        } else {
+            load(wanted).then(function() {
+                if (wanted !== lang) show(wanted);
+                document.documentElement.classList.remove('i18n-pending');
+            });
+        }
 
-        return { t: t, set: set, get lang() { return lang; } };
+        // ---- the switcher: a globe in the navbar opens a glass list
+        var btn = document.getElementById('langBtn');
+        var menu = document.getElementById('langMenu');
+        function closeMenu() {
+            if (menu.hidden) return;
+            menu.hidden = true;
+            btn.setAttribute('aria-expanded', 'false');
+        }
+        function openMenu() {
+            menu.innerHTML = LANGS.map(function(l) {
+                return '<button type="button" role="menuitemradio" data-lang="' + l[0] + '" lang="' + l[0] + '" aria-checked="' + (l[0] === wanted) + '">' + l[2] + '<small>' + l[1] + '</small></button>';
+            }).join('');
+            menu.hidden = false;
+            var r = btn.getBoundingClientRect();
+            var nav = document.querySelector('.navbar').getBoundingClientRect();
+            menu.style.top = Math.max(r.bottom, nav.bottom) + 8 + 'px';
+            menu.style.right = Math.max(12, Math.min(window.innerWidth - r.right, window.innerWidth - menu.offsetWidth - 12)) + 'px';
+            btn.setAttribute('aria-expanded', 'true');
+            menu.querySelector('[aria-checked="true"]').focus({ preventScroll: true });
+        }
+        if (btn && menu) {
+            btn.addEventListener('click', function() { menu.hidden ? openMenu() : closeMenu(); });
+            menu.addEventListener('click', function(e) {
+                var item = e.target.closest('[data-lang]');
+                if (item) { set(item.getAttribute('data-lang')); closeMenu(); btn.focus({ preventScroll: true }); }
+            });
+            document.addEventListener('pointerdown', function(e) {
+                if (!menu.hidden && !menu.contains(e.target) && !btn.contains(e.target)) closeMenu();
+            }, true);
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && !menu.hidden) { closeMenu(); btn.focus(); }
+            });
+            window.addEventListener('scroll', closeMenu, { passive: true });
+            window.addEventListener('resize', closeMenu);
+        }
+
+        return { t: t, set: set, get lang() { return lang; }, langs: LANGS };
     })();
     </script>
 
@@ -3131,9 +3103,9 @@
         if (!btn || !menu || !guide) return;
         const panel = guide.querySelector('.ant-guide-panel');
 
-        const L = v => (v && typeof v === 'object' && !Array.isArray(v)) ? (v[I18N.lang] ?? v.en) : v;
+        // Text comes from the language tables by key; the English below is the fallback
+        const tr = (key, en) => I18N.t(key, null, en);
         const svg = (d, w = 1.7) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
-        const ext = (url, label) => `<a href="${url}" target="_blank" rel="noopener">${label}</a>`;
 
         const ICON = {
             antenna: '<circle cx="12" cy="7.5" r="1.6"/><path d="M8.6 4.1a4.8 4.8 0 0 0 0 6.8M15.4 4.1a4.8 4.8 0 0 1 0 6.8M5.9 1.9a8.4 8.4 0 0 0 0 11.2M18.1 1.9a8.4 8.4 0 0 1 0 11.2M12 9.2V21M12 12.5 8.6 21M12 12.5l3.4 8.5M8 21h8"/>',
@@ -3151,203 +3123,683 @@
         };
         const ico = (name, color) => `<span class="ant-ico"${color ? ` style="--c:${color}"` : ''}>${svg(ICON[name])}</span>`;
 
-        // Nodes and wires of a wiring diagram
-        const N = (i, t, s) => ({ i, t, s });
-        const SWR = N('phone', 'SwR', { en: 'anywhere', cs: 'kdekoli' });
-        const ROUTER = N('router', { en: 'Router', cs: 'Router' }, { en: 'internet', cs: 'internet' });
-
-        const ADD = (server, addr) => ({
-            en: `Open the receiver list, tap <b>+</b> (<i>Add my receiver</i>), pick <i>Server: ${server}</i> and type <code>${addr}</code> as the <i>Address</i>. From outside your home use your public address or domain instead.`,
-            cs: `Otevřete seznam přijímačů, klepněte na <b>+</b> (<i>Add my receiver</i>), zvolte <i>Server: ${server}</i> a do <i>Address</i> napište <code>${addr}</code>. Mimo domov místo toho použijte veřejnou adresu nebo doménu.`
-        });
-
+        // One guide per receiver type. Every text has a key built from its place in
+        // here (ant.<id>.<field>.<index>) - the language files translate by those keys.
+        // A flow is columns of devices with the wire labels between them.
         const GUIDES = [
             {
-                id: 'usb', name: 'USB dongle', color: '#ff8a1e', icon: 'dongle',
-                tag: { en: 'Straight into your Android phone – no internet needed', cs: 'Přímo do telefonu s Androidem – bez internetu' },
-                chips: [{ en: 'approx. 24 MHz – 1.7 GHz', cs: 'cca 24 MHz – 1,7 GHz' }, { en: 'HF with the V4 or direct sampling', cs: 'KV s V4 nebo přes direct sampling' }, 'Android'],
-                flow: [[N('antenna', { en: 'Antenna', cs: 'Anténa' }, { en: 'dipole from the kit', cs: 'dipól z balení' })], 'SMA',
-                       [N('dongle', 'RTL-SDR', { en: 'USB dongle', cs: 'USB dongle' })], 'USB OTG',
-                       [N('phone', 'SwR', 'Android')]],
-                need: {
-                    en: [`An RTL-SDR dongle – the ${ext('https://www.rtl-sdr.com/v4', 'RTL-SDR Blog V4')} hears shortwave without tricks`, 'A USB-C OTG adapter or cable', 'The antenna from the kit, or a longer wire for shortwave'],
-                    cs: [`RTL-SDR dongle – ${ext('https://www.rtl-sdr.com/v4', 'RTL-SDR Blog V4')} chytí krátké vlny bez triků`, 'USB-C OTG redukce nebo kabel', 'Anténa z balení, pro krátké vlny delší drát']
-                },
-                ports: [
-                    ['SMA', { en: 'the antenna, on the dongle', cs: 'anténa, na donglu' }],
-                    ['USB', { en: 'the phone, through the OTG adapter', cs: 'telefon, přes OTG redukci' }]
+                "id": "usb",
+                "name": "USB dongle",
+                "color": "#ff8a1e",
+                "icon": "dongle",
+                "tag": "Straight into your Android phone – no internet needed",
+                "chips": [
+                    "approx. 24 MHz – 1.7 GHz",
+                    "HF with the V4 or direct sampling",
+                    "Android"
                 ],
-                steps: {
-                    en: ['Screw the antenna onto the dongle.', 'Plug the dongle into the phone through the OTG adapter.', 'In SwR open the <b>PRO</b> menu – <b>LOCAL SDR</b> – and allow the USB access Android asks for.', 'For shortwave on an older stick (V3, R820T) turn on <b>Direct sampling</b>; an active antenna or LNA gets power from <b>Bias-T</b>.'],
-                    cs: ['Našroubujte anténu na dongle.', 'Dongle zapojte do telefonu přes OTG redukci.', 'V SwR otevřete menu <b>PRO</b> – <b>LOCAL SDR</b> a povolte přístup k USB, o který Android požádá.', 'Pro krátké vlny na starším donglu (V3, R820T) zapněte <b>Direct sampling</b>; aktivní anténu nebo LNA napájí <b>Bias-T</b>.']
-                },
-                app: { en: 'Everything runs in the phone: no server, no account, nothing leaves it.', cs: 'Vše běží v telefonu: žádný server, žádný účet, nic z něj neodchází.' },
-                tip: { en: '<strong>Tip:</strong> the dongle draws power from the phone – a short, good OTG cable helps. Android only, iPhone does not allow USB radios.', cs: '<strong>Tip:</strong> dongle bere proud z telefonu – pomůže krátký kvalitní OTG kabel. Jen Android, iPhone USB rádia nepovoluje.' },
-                links: [['RTL-SDR Blog V4', 'https://www.rtl-sdr.com/v4'], [{ en: 'Where to buy', cs: 'Kde koupit' }, 'https://www.rtl-sdr.com/buy-rtl-sdr-dvb-t-dongles/']]
+                "flow": [
+                    [
+                        {
+                            "i": "antenna",
+                            "t": "Antenna",
+                            "s": "dipole from the kit"
+                        }
+                    ],
+                    "SMA",
+                    [
+                        {
+                            "i": "dongle",
+                            "t": "RTL-SDR",
+                            "s": "USB dongle"
+                        }
+                    ],
+                    "USB OTG",
+                    [
+                        {
+                            "i": "phone",
+                            "t": "SwR",
+                            "s": "Android"
+                        }
+                    ]
+                ],
+                "need": [
+                    "An RTL-SDR dongle – the <a href=\"https://www.rtl-sdr.com/v4\" target=\"_blank\" rel=\"noopener\">RTL-SDR Blog V4</a> hears shortwave without tricks",
+                    "A USB-C OTG adapter or cable",
+                    "The antenna from the kit, or a longer wire for shortwave"
+                ],
+                "ports": [
+                    [
+                        "SMA",
+                        "the antenna, on the dongle"
+                    ],
+                    [
+                        "USB",
+                        "the phone, through the OTG adapter"
+                    ]
+                ],
+                "steps": [
+                    "Screw the antenna onto the dongle.",
+                    "Plug the dongle into the phone through the OTG adapter.",
+                    "In SwR open the <b>PRO</b> menu – <b>LOCAL SDR</b> – and allow the USB access Android asks for.",
+                    "For shortwave on an older stick (V3, R820T) turn on <b>Direct sampling</b>; an active antenna or LNA gets power from <b>Bias-T</b>."
+                ],
+                "app": "Everything runs in the phone: no server, no account, nothing leaves it.",
+                "tip": "<strong>Tip:</strong> the dongle draws power from the phone – a short, good OTG cable helps. Android only, iPhone does not allow USB radios.",
+                "links": [
+                    [
+                        "RTL-SDR Blog V4",
+                        "https://www.rtl-sdr.com/v4"
+                    ],
+                    [
+                        "Where to buy",
+                        "https://www.rtl-sdr.com/buy-rtl-sdr-dvb-t-dongles/"
+                    ]
+                ]
             },
             {
-                id: 'kiwi', name: 'KiwiSDR', color: '#3fb8f5', icon: 'box',
-                tag: { en: 'The classic shortwave web receiver – plug in and listen', cs: 'Klasický krátkovlnný webový přijímač – zapojit a poslouchat' },
-                chips: ['10 kHz – 30 MHz', { en: 'GPS timing', cs: 'GPS čas' }, { en: 'port 8073', cs: 'port 8073' }],
-                flow: [[N('antenna', { en: 'HF antenna', cs: 'KV anténa' }, 'RF IN'), N('gps', 'GPS', { en: 'in the kit', cs: 'v balení' })], 'SMA',
-                       [N('box', 'KiwiSDR 2', 'BeagleBone')], 'Ethernet', [ROUTER], { en: 'internet', cs: 'internet' }, [SWR]],
-                need: {
-                    en: [`${ext('https://www.wimo.com/en/kiwisdr-2', 'KiwiSDR 2')} – sold as a kit with the BeagleBone and a GPS antenna`, 'An HF antenna: a long wire or an active loop', 'An Ethernet cable to the router and a 5 V power supply'],
-                    cs: [`${ext('https://www.wimo.com/en/kiwisdr-2', 'KiwiSDR 2')} – prodává se jako kit s BeagleBone a GPS anténou`, 'KV anténa: dlouhý drát nebo aktivní smyčka', 'Ethernet kabel k routeru a napájecí zdroj 5 V']
-                },
-                ports: [
-                    ['RF IN (SMA)', { en: 'HF antenna', cs: 'KV anténa' }],
-                    ['GPS (SMA)', { en: 'GPS antenna, with a view of the sky', cs: 'GPS anténa, s výhledem na oblohu' }],
-                    ['Ethernet', { en: 'router', cs: 'router' }],
-                    ['5 V DC', { en: 'power supply – plug it in last', cs: 'napájení – zapojte jako poslední' }]
+                "id": "kiwi",
+                "name": "KiwiSDR",
+                "color": "#3fb8f5",
+                "icon": "box",
+                "tag": "The classic shortwave web receiver – plug in and listen",
+                "chips": [
+                    "10 kHz – 30 MHz",
+                    "GPS timing",
+                    "port 8073"
                 ],
-                steps: {
-                    en: ['Connect the antenna, GPS and network, then power. The software comes preinstalled.', 'Open <code>http://kiwisdr.local:8073</code> (or the IP from your router). Settings live at <code>:8073/admin</code> – set a password, the name and the location.', 'To listen away from home, forward TCP port <code>8073</code> on the router (or let UPnP do it).', 'Optional: switch on public listing in the admin page and your Kiwi appears on the world map and in SwR for everyone.'],
-                    cs: ['Zapojte anténu, GPS a síť, nakonec napájení. Software je předinstalovaný.', 'Otevřete <code>http://kiwisdr.local:8073</code> (nebo IP adresu z routeru). Nastavení je na <code>:8073/admin</code> – zadejte heslo, název a polohu.', 'Pro poslech mimo domov přesměrujte na routeru TCP port <code>8073</code> (nebo to nechte na UPnP).', 'Volitelně: v adminu zapněte veřejný výpis a vaše Kiwi se objeví na světové mapě i v SwR pro všechny.']
-                },
-                app: ADD('KiwiSDR / Web-888', '192.168.1.50:8073'),
-                tip: { en: '<strong>Watch out:</strong> on the KiwiSDR 2 the RF and GPS sockets are swapped compared with the KiwiSDR 1 – go by the labels.', cs: '<strong>Pozor:</strong> KiwiSDR 2 má zdířky RF a GPS prohozené oproti KiwiSDR 1 – řiďte se popisky.' },
-                links: [[{ en: 'KiwiSDR website', cs: 'Web KiwiSDR' }, 'http://kiwisdr.com'], [{ en: 'Buy (WiMo, EU)', cs: 'Koupit (WiMo, EU)' }, 'https://www.wimo.com/en/kiwisdr-2'], [{ en: 'Public receiver map', cs: 'Mapa veřejných přijímačů' }, 'http://rx.kiwisdr.com']]
+                "flow": [
+                    [
+                        {
+                            "i": "antenna",
+                            "t": "HF antenna",
+                            "s": "RF IN"
+                        },
+                        {
+                            "i": "gps",
+                            "t": "GPS",
+                            "s": "in the kit"
+                        }
+                    ],
+                    "SMA",
+                    [
+                        {
+                            "i": "box",
+                            "t": "KiwiSDR 2",
+                            "s": "BeagleBone"
+                        }
+                    ],
+                    "Ethernet",
+                    [
+                        {
+                            "i": "router",
+                            "t": "Router",
+                            "s": "internet"
+                        }
+                    ],
+                    "internet",
+                    [
+                        {
+                            "i": "phone",
+                            "t": "SwR",
+                            "s": "anywhere"
+                        }
+                    ]
+                ],
+                "need": [
+                    "<a href=\"https://www.wimo.com/en/kiwisdr-2\" target=\"_blank\" rel=\"noopener\">KiwiSDR 2</a> – sold as a kit with the BeagleBone and a GPS antenna",
+                    "An HF antenna: a long wire or an active loop",
+                    "An Ethernet cable to the router and a 5 V power supply"
+                ],
+                "ports": [
+                    [
+                        "RF IN (SMA)",
+                        "HF antenna"
+                    ],
+                    [
+                        "GPS (SMA)",
+                        "GPS antenna, with a view of the sky"
+                    ],
+                    [
+                        "Ethernet",
+                        "router"
+                    ],
+                    [
+                        "5 V DC",
+                        "power supply – plug it in last"
+                    ]
+                ],
+                "steps": [
+                    "Connect the antenna, GPS and network, then power. The software comes preinstalled.",
+                    "Open <code>http://kiwisdr.local:8073</code> (or the IP from your router). Settings live at <code>:8073/admin</code> – set a password, the name and the location.",
+                    "To listen away from home, forward TCP port <code>8073</code> on the router (or let UPnP do it).",
+                    "Optional: switch on public listing in the admin page and your Kiwi appears on the world map and in SwR for everyone."
+                ],
+                "app": "Open the receiver list, tap <b>+</b> (<i>Add my receiver</i>), pick <i>Server: KiwiSDR / Web-888</i> and type <code>192.168.1.50:8073</code> as the <i>Address</i>. From outside your home use your public address or domain instead.",
+                "tip": "<strong>Watch out:</strong> on the KiwiSDR 2 the RF and GPS sockets are swapped compared with the KiwiSDR 1 – go by the labels.",
+                "links": [
+                    [
+                        "KiwiSDR website",
+                        "http://kiwisdr.com"
+                    ],
+                    [
+                        "Buy (WiMo, EU)",
+                        "https://www.wimo.com/en/kiwisdr-2"
+                    ],
+                    [
+                        "Public receiver map",
+                        "http://rx.kiwisdr.com"
+                    ]
+                ]
             },
             {
-                id: 'web888', name: 'Web-888', color: '#a78bfa', icon: 'box',
-                tag: { en: 'KiwiSDR-compatible, 13 listeners at once, plus the air band', cs: 'Kompatibilní s KiwiSDR, 13 posluchačů naráz a k tomu letecké pásmo' },
-                chips: ['1 kHz – 62 MHz', '118–150 MHz', { en: '13 channels', cs: '13 kanálů' }, { en: 'port 8073', cs: 'port 8073' }],
-                flow: [[N('antenna', { en: 'Antenna', cs: 'Anténa' }, { en: 'HF / VHF', cs: 'KV / VKV' }), N('sd', 'microSD', 'firmware')], 'SMA',
-                       [N('box', 'Web-888', { en: 'SDR server', cs: 'SDR server' })], 'Ethernet', [ROUTER], { en: 'internet', cs: 'internet' }, [SWR]],
-                need: {
-                    en: [`${ext('https://www.rx-888.com/web/', 'Web-888')} receiver`, 'A microSD card: SD or SDHC up to 32 GB, FAT32 – not SDXC', 'A 5 V USB power supply, at least 2 A', 'A shielded Cat 5e Ethernet cable and an antenna'],
-                    cs: [`Přijímač ${ext('https://www.rx-888.com/web/', 'Web-888')}`, 'microSD karta: SD nebo SDHC do 32 GB, FAT32 – ne SDXC', 'USB zdroj 5 V, alespoň 2 A', 'Stíněný Ethernet kabel Cat 5e a anténa']
-                },
-                ports: [
-                    [{ en: 'ANT (SMA)', cs: 'ANT (SMA)' }, { en: 'antenna', cs: 'anténa' }],
-                    ['microSD', { en: 'card with the firmware', cs: 'karta s firmwarem' }],
-                    ['Ethernet', { en: 'router', cs: 'router' }],
-                    [{ en: 'USB 5 V', cs: 'USB 5 V' }, { en: 'power, 2 A or more', cs: 'napájení, 2 A a víc' }]
+                "id": "web888",
+                "name": "Web-888",
+                "color": "#a78bfa",
+                "icon": "box",
+                "tag": "KiwiSDR-compatible, 13 listeners at once, plus the air band",
+                "chips": [
+                    "1 kHz – 62 MHz",
+                    "118–150 MHz",
+                    "13 channels",
+                    "port 8073"
                 ],
-                steps: {
-                    en: [`Format the card as FAT32 and unzip the ${ext('https://www.rx-888.com/web/downloads.html', 'current firmware')} straight to its root – no extra folder.`, 'Insert the card, connect the antenna and network, then power.', 'Open <code>http://&lt;IP address&gt;:8073</code> and set it up in the admin page.', `To listen away from home, forward port <code>8073</code> – or use the ${ext('https://www.rx-888.com/web/guide/internet.html', 'public access guide')}.`],
-                    cs: [`Kartu naformátujte na FAT32 a rozbalte na ni ${ext('https://www.rx-888.com/web/downloads.html', 'aktuální firmware')} přímo do kořene – bez další složky.`, 'Vložte kartu, zapojte anténu a síť, nakonec napájení.', 'Otevřete <code>http://&lt;IP adresa&gt;:8073</code> a nastavte ho v administraci.', `Pro poslech mimo domov přesměrujte port <code>8073</code> – nebo použijte ${ext('https://www.rx-888.com/web/guide/internet.html', 'návod k veřejnému přístupu')}.`]
-                },
-                app: ADD('KiwiSDR / Web-888', '192.168.1.60:8073'),
-                tip: { en: '<strong>Tip:</strong> before a firmware update, back up the <code>config</code> folder on the card – it holds your settings.', cs: '<strong>Tip:</strong> před aktualizací firmwaru si zálohujte složku <code>config</code> na kartě – jsou v ní vaše nastavení.' },
-                links: [[{ en: 'Web-888 website', cs: 'Web Web-888' }, 'https://www.rx-888.com/web/'], [{ en: 'Setup guide', cs: 'Návod k zapojení' }, 'https://www.rx-888.com/web/guide/requirements.html'], [{ en: 'Choosing an antenna', cs: 'Výběr antény' }, 'https://www.rx-888.com/web/guide/antenna.html'], [{ en: 'Public receivers', cs: 'Veřejné přijímače' }, 'https://www.rx-888.com/web/rx.html']]
+                "flow": [
+                    [
+                        {
+                            "i": "antenna",
+                            "t": "Antenna",
+                            "s": "HF / VHF"
+                        },
+                        {
+                            "i": "sd",
+                            "t": "microSD",
+                            "s": "firmware"
+                        }
+                    ],
+                    "SMA",
+                    [
+                        {
+                            "i": "box",
+                            "t": "Web-888",
+                            "s": "SDR server"
+                        }
+                    ],
+                    "Ethernet",
+                    [
+                        {
+                            "i": "router",
+                            "t": "Router",
+                            "s": "internet"
+                        }
+                    ],
+                    "internet",
+                    [
+                        {
+                            "i": "phone",
+                            "t": "SwR",
+                            "s": "anywhere"
+                        }
+                    ]
+                ],
+                "need": [
+                    "<a href=\"https://www.rx-888.com/web/\" target=\"_blank\" rel=\"noopener\">Web-888</a> receiver",
+                    "A microSD card: SD or SDHC up to 32 GB, FAT32 – not SDXC",
+                    "A 5 V USB power supply, at least 2 A",
+                    "A shielded Cat 5e Ethernet cable and an antenna"
+                ],
+                "ports": [
+                    [
+                        "ANT (SMA)",
+                        "antenna"
+                    ],
+                    [
+                        "microSD",
+                        "card with the firmware"
+                    ],
+                    [
+                        "Ethernet",
+                        "router"
+                    ],
+                    [
+                        "USB 5 V",
+                        "power, 2 A or more"
+                    ]
+                ],
+                "steps": [
+                    "Format the card as FAT32 and unzip the <a href=\"https://www.rx-888.com/web/downloads.html\" target=\"_blank\" rel=\"noopener\">current firmware</a> straight to its root – no extra folder.",
+                    "Insert the card, connect the antenna and network, then power.",
+                    "Open <code>http://&lt;IP address&gt;:8073</code> and set it up in the admin page.",
+                    "To listen away from home, forward port <code>8073</code> – or use the <a href=\"https://www.rx-888.com/web/guide/internet.html\" target=\"_blank\" rel=\"noopener\">public access guide</a>."
+                ],
+                "app": "Open the receiver list, tap <b>+</b> (<i>Add my receiver</i>), pick <i>Server: KiwiSDR / Web-888</i> and type <code>192.168.1.60:8073</code> as the <i>Address</i>. From outside your home use your public address or domain instead.",
+                "tip": "<strong>Tip:</strong> before a firmware update, back up the <code>config</code> folder on the card – it holds your settings.",
+                "links": [
+                    [
+                        "Web-888 website",
+                        "https://www.rx-888.com/web/"
+                    ],
+                    [
+                        "Setup guide",
+                        "https://www.rx-888.com/web/guide/requirements.html"
+                    ],
+                    [
+                        "Choosing an antenna",
+                        "https://www.rx-888.com/web/guide/antenna.html"
+                    ],
+                    [
+                        "Public receivers",
+                        "https://www.rx-888.com/web/rx.html"
+                    ]
+                ]
             },
             {
-                id: 'owrx', name: 'OpenWebRX', color: '#34d399', icon: 'board',
-                tag: { en: 'Turns almost any SDR into a web receiver – on a Raspberry Pi', cs: 'Z téměř jakéhokoli SDR udělá webový přijímač – na Raspberry Pi' },
-                chips: [{ en: 'depends on the SDR', cs: 'podle SDR' }, 'RTL-SDR · Airspy · SDRplay · HackRF', { en: 'port 8073', cs: 'port 8073' }],
-                flow: [[N('antenna', { en: 'Antenna', cs: 'Anténa' })], 'SMA', [N('dongle', 'SDR', 'RTL-SDR, Airspy…')], 'USB',
-                       [N('board', 'Raspberry Pi', 'OpenWebRX+')], { en: 'LAN / Wi-Fi', cs: 'LAN / Wi-Fi' }, [ROUTER], { en: 'internet', cs: 'internet' }, [SWR]],
-                need: {
-                    en: ['An SDR: RTL-SDR, Airspy, SDRplay, HackRF and more', 'A Raspberry Pi 4 or 5 with a microSD card, or any Debian / Ubuntu PC', 'An antenna for the bands you want'],
-                    cs: ['SDR: RTL-SDR, Airspy, SDRplay, HackRF a další', 'Raspberry Pi 4 nebo 5 s microSD kartou, nebo jakékoli PC s Debianem / Ubuntu', 'Anténa pro pásma, která chcete poslouchat']
-                },
-                ports: [
-                    [{ en: 'SMA on the SDR', cs: 'SMA na SDR' }, { en: 'antenna', cs: 'anténa' }],
-                    [{ en: 'USB on the SDR', cs: 'USB na SDR' }, { en: 'Raspberry Pi / PC – straight in, not through a hub', cs: 'Raspberry Pi / PC – napřímo, ne přes hub' }],
-                    ['Ethernet / Wi-Fi', { en: 'router', cs: 'router' }]
+                "id": "owrx",
+                "name": "OpenWebRX",
+                "color": "#34d399",
+                "icon": "board",
+                "tag": "Turns almost any SDR into a web receiver – on a Raspberry Pi",
+                "chips": [
+                    "depends on the SDR",
+                    "RTL-SDR · Airspy · SDRplay · HackRF",
+                    "port 8073"
                 ],
-                steps: {
-                    en: [`Flash the ${ext('https://github.com/luarvique/openwebrx', 'OpenWebRX+')} image for Raspberry Pi with Raspberry Pi Imager – or on Debian / Ubuntu add the ${ext('https://luarvique.github.io/ppa/', 'package repository')} and run <code>sudo apt install openwebrx</code>.`, 'Plug the SDR into USB and the antenna into the SDR.', 'Create an admin: <code>sudo openwebrx admin adduser &lt;name&gt;</code>.', 'Open <code>http://&lt;IP address&gt;:8073</code> – in <i>Settings</i> pick your SDR and its bands.', 'To listen away from home, forward port <code>8073</code> or put it behind HTTPS.'],
-                    cs: [`Nahrajte image ${ext('https://github.com/luarvique/openwebrx', 'OpenWebRX+')} pro Raspberry Pi přes Raspberry Pi Imager – nebo na Debianu / Ubuntu přidejte ${ext('https://luarvique.github.io/ppa/', 'repozitář balíčků')} a spusťte <code>sudo apt install openwebrx</code>.`, 'SDR zapojte do USB a anténu do SDR.', 'Vytvořte správce: <code>sudo openwebrx admin adduser &lt;jméno&gt;</code>.', 'Otevřete <code>http://&lt;IP adresa&gt;:8073</code> – v <i>Settings</i> zvolte své SDR a jeho pásma.', 'Pro poslech mimo domov přesměrujte port <code>8073</code> nebo ho dejte za HTTPS.']
-                },
-                app: ADD('OpenWebRX', '192.168.1.70:8073'),
-                tip: { en: `<strong>Tip:</strong> want others to find it? Register it at ${ext('https://www.receiverbook.de', 'receiverbook.de')}.`, cs: `<strong>Tip:</strong> chcete, aby ho našli i ostatní? Zaregistrujte ho na ${ext('https://www.receiverbook.de', 'receiverbook.de')}.` },
-                links: [['OpenWebRX+', 'https://github.com/luarvique/openwebrx'], [{ en: 'Packages', cs: 'Balíčky' }, 'https://luarvique.github.io/ppa/'], ['Receiverbook', 'https://www.receiverbook.de']]
+                "flow": [
+                    [
+                        {
+                            "i": "antenna",
+                            "t": "Antenna"
+                        }
+                    ],
+                    "SMA",
+                    [
+                        {
+                            "i": "dongle",
+                            "t": "SDR",
+                            "s": "RTL-SDR, Airspy…"
+                        }
+                    ],
+                    "USB",
+                    [
+                        {
+                            "i": "board",
+                            "t": "Raspberry Pi",
+                            "s": "OpenWebRX+"
+                        }
+                    ],
+                    "LAN / Wi-Fi",
+                    [
+                        {
+                            "i": "router",
+                            "t": "Router",
+                            "s": "internet"
+                        }
+                    ],
+                    "internet",
+                    [
+                        {
+                            "i": "phone",
+                            "t": "SwR",
+                            "s": "anywhere"
+                        }
+                    ]
+                ],
+                "need": [
+                    "An SDR: RTL-SDR, Airspy, SDRplay, HackRF and more",
+                    "A Raspberry Pi 4 or 5 with a microSD card, or any Debian / Ubuntu PC",
+                    "An antenna for the bands you want"
+                ],
+                "ports": [
+                    [
+                        "SMA on the SDR",
+                        "antenna"
+                    ],
+                    [
+                        "USB on the SDR",
+                        "Raspberry Pi / PC – straight in, not through a hub"
+                    ],
+                    [
+                        "Ethernet / Wi-Fi",
+                        "router"
+                    ]
+                ],
+                "steps": [
+                    "Flash the <a href=\"https://github.com/luarvique/openwebrx\" target=\"_blank\" rel=\"noopener\">OpenWebRX+</a> image for Raspberry Pi with Raspberry Pi Imager – or on Debian / Ubuntu add the <a href=\"https://luarvique.github.io/ppa/\" target=\"_blank\" rel=\"noopener\">package repository</a> and run <code>sudo apt install openwebrx</code>.",
+                    "Plug the SDR into USB and the antenna into the SDR.",
+                    "Create an admin: <code>sudo openwebrx admin adduser &lt;name&gt;</code>.",
+                    "Open <code>http://&lt;IP address&gt;:8073</code> – in <i>Settings</i> pick your SDR and its bands.",
+                    "To listen away from home, forward port <code>8073</code> or put it behind HTTPS."
+                ],
+                "app": "Open the receiver list, tap <b>+</b> (<i>Add my receiver</i>), pick <i>Server: OpenWebRX</i> and type <code>192.168.1.70:8073</code> as the <i>Address</i>. From outside your home use your public address or domain instead.",
+                "tip": "<strong>Tip:</strong> want others to find it? Register it at <a href=\"https://www.receiverbook.de\" target=\"_blank\" rel=\"noopener\">receiverbook.de</a>.",
+                "links": [
+                    [
+                        "OpenWebRX+",
+                        "https://github.com/luarvique/openwebrx"
+                    ],
+                    [
+                        "Packages",
+                        "https://luarvique.github.io/ppa/"
+                    ],
+                    [
+                        "Receiverbook",
+                        "https://www.receiverbook.de"
+                    ]
+                ]
             },
             {
-                id: 'spy', name: 'SpyServer / AirSpy', color: '#f472b6', icon: 'pc',
-                tag: { en: 'Streams an Airspy or RTL-SDR over the network, lean and fast', cs: 'Streamuje Airspy nebo RTL-SDR po síti, úsporně a rychle' },
-                chips: [{ en: 'depends on the SDR', cs: 'podle SDR' }, 'Airspy · RTL-SDR', { en: 'TCP port 5555', cs: 'TCP port 5555' }],
-                flow: [[N('antenna', { en: 'Antenna', cs: 'Anténa' })], 'SMA', [N('dongle', 'Airspy', { en: 'or RTL-SDR', cs: 'nebo RTL-SDR' })], 'USB',
-                       [N('pc', { en: 'PC / Pi', cs: 'PC / Pi' }, 'SpyServer')], 'Ethernet', [ROUTER], { en: 'internet', cs: 'internet' }, [SWR]],
-                need: {
-                    en: [`${ext('https://airspy.com', 'Airspy')} R2, Mini or HF+ Discovery – or an RTL-SDR`, 'A PC or Raspberry Pi running Linux or Windows', 'An antenna'],
-                    cs: [`${ext('https://airspy.com', 'Airspy')} R2, Mini nebo HF+ Discovery – nebo RTL-SDR`, 'PC nebo Raspberry Pi s Linuxem či Windows', 'Anténa']
-                },
-                ports: [
-                    [{ en: 'SMA on the SDR', cs: 'SMA na SDR' }, { en: 'antenna', cs: 'anténa' }],
-                    [{ en: 'USB on the SDR', cs: 'USB na SDR' }, 'PC / Raspberry Pi'],
-                    ['Ethernet', { en: 'router – TCP 5555', cs: 'router – TCP 5555' }]
+                "id": "spy",
+                "name": "SpyServer / AirSpy",
+                "color": "#f472b6",
+                "icon": "pc",
+                "tag": "Streams an Airspy or RTL-SDR over the network, lean and fast",
+                "chips": [
+                    "depends on the SDR",
+                    "Airspy · RTL-SDR",
+                    "TCP port 5555"
                 ],
-                steps: {
-                    en: [`Download SpyServer for your platform from ${ext('https://airspy.com/download/', 'airspy.com/download')} (on Windows it comes with SDR#).`, 'In <code>spyserver.config</code> check <code>device_type</code> (an RTL-SDR needs it set) and the port <code>5555</code>.', 'Start it: <code>./spyserver spyserver.config</code>.', 'To listen away from home, forward TCP port <code>5555</code>.'],
-                    cs: [`Stáhněte SpyServer pro svou platformu z ${ext('https://airspy.com/download/', 'airspy.com/download')} (na Windows je součástí SDR#).`, 'V <code>spyserver.config</code> zkontrolujte <code>device_type</code> (pro RTL-SDR ho nastavte) a port <code>5555</code>.', 'Spusťte: <code>./spyserver spyserver.config</code>.', 'Pro poslech mimo domov přesměrujte TCP port <code>5555</code>.']
-                },
-                app: ADD('SpyServer / AirSpy', '192.168.1.80:5555'),
-                tip: { en: `<strong>Tip:</strong> SpyServer can list itself in the ${ext('https://airspy.com/directory/', 'Airspy directory')} – then SwR finds it on its own.`, cs: `<strong>Tip:</strong> SpyServer se umí zapsat do ${ext('https://airspy.com/directory/', 'adresáře Airspy')} – pak ho SwR najde samo.` },
-                links: [['Airspy', 'https://airspy.com'], [{ en: 'Download SpyServer', cs: 'Stáhnout SpyServer' }, 'https://airspy.com/download/'], [{ en: 'Server directory', cs: 'Adresář serverů' }, 'https://airspy.com/directory/']]
+                "flow": [
+                    [
+                        {
+                            "i": "antenna",
+                            "t": "Antenna"
+                        }
+                    ],
+                    "SMA",
+                    [
+                        {
+                            "i": "dongle",
+                            "t": "Airspy",
+                            "s": "or RTL-SDR"
+                        }
+                    ],
+                    "USB",
+                    [
+                        {
+                            "i": "pc",
+                            "t": "PC / Pi",
+                            "s": "SpyServer"
+                        }
+                    ],
+                    "Ethernet",
+                    [
+                        {
+                            "i": "router",
+                            "t": "Router",
+                            "s": "internet"
+                        }
+                    ],
+                    "internet",
+                    [
+                        {
+                            "i": "phone",
+                            "t": "SwR",
+                            "s": "anywhere"
+                        }
+                    ]
+                ],
+                "need": [
+                    "<a href=\"https://airspy.com\" target=\"_blank\" rel=\"noopener\">Airspy</a> R2, Mini or HF+ Discovery – or an RTL-SDR",
+                    "A PC or Raspberry Pi running Linux or Windows",
+                    "An antenna"
+                ],
+                "ports": [
+                    [
+                        "SMA on the SDR",
+                        "antenna"
+                    ],
+                    [
+                        "USB on the SDR",
+                        "PC / Raspberry Pi"
+                    ],
+                    [
+                        "Ethernet",
+                        "router – TCP 5555"
+                    ]
+                ],
+                "steps": [
+                    "Download SpyServer for your platform from <a href=\"https://airspy.com/download/\" target=\"_blank\" rel=\"noopener\">airspy.com/download</a> (on Windows it comes with SDR#).",
+                    "In <code>spyserver.config</code> check <code>device_type</code> (an RTL-SDR needs it set) and the port <code>5555</code>.",
+                    "Start it: <code>./spyserver spyserver.config</code>.",
+                    "To listen away from home, forward TCP port <code>5555</code>."
+                ],
+                "app": "Open the receiver list, tap <b>+</b> (<i>Add my receiver</i>), pick <i>Server: SpyServer / AirSpy</i> and type <code>192.168.1.80:5555</code> as the <i>Address</i>. From outside your home use your public address or domain instead.",
+                "tip": "<strong>Tip:</strong> SpyServer can list itself in the <a href=\"https://airspy.com/directory/\" target=\"_blank\" rel=\"noopener\">Airspy directory</a> – then SwR finds it on its own.",
+                "links": [
+                    [
+                        "Airspy",
+                        "https://airspy.com"
+                    ],
+                    [
+                        "Download SpyServer",
+                        "https://airspy.com/download/"
+                    ],
+                    [
+                        "Server directory",
+                        "https://airspy.com/directory/"
+                    ]
+                ]
             },
             {
-                id: 'fmdx', name: 'FM-DX Webserver', color: '#fbbf24', icon: 'radio',
-                tag: { en: 'Your FM tuner online – stations, RDS and stereo', cs: 'Váš FM tuner online – stanice, RDS a stereo' },
-                chips: [{ en: 'FM 87.5–108 MHz', cs: 'FM 87,5–108 MHz' }, 'TEF6686', { en: 'port 8080', cs: 'port 8080' }],
-                flow: [[N('antenna', { en: 'FM antenna', cs: 'FM anténa' })], { en: 'coax', cs: 'koax' }, [N('radio', { en: 'Tuner', cs: 'Tuner' }, 'TEF6686')], { en: 'USB · audio', cs: 'USB · zvuk' },
-                       [N('pc', { en: 'PC / Pi', cs: 'PC / Pi' }, 'FM-DX Webserver')], 'Ethernet', [ROUTER], { en: 'internet', cs: 'internet' }, [SWR]],
-                need: {
-                    en: ['A tuner: a headless TEF6686 (FM-DX Tuner or PE5PVB firmware), XDR-F1HD or Si47xx', 'A PC or Raspberry Pi with Node.js', 'Audio: the tuner\'s USB audio or a USB sound card', 'A good FM antenna'],
-                    cs: ['Tuner: headless TEF6686 (firmware FM-DX Tuner nebo PE5PVB), XDR-F1HD nebo Si47xx', 'PC nebo Raspberry Pi s Node.js', 'Zvuk: USB audio tuneru nebo USB zvuková karta', 'Kvalitní FM anténa']
-                },
-                ports: [
-                    [{ en: 'Antenna input', cs: 'Anténní vstup' }, { en: 'FM antenna', cs: 'FM anténa' }],
-                    ['USB', { en: 'PC – control (/dev/ttyUSB0 or ttyACM0) and audio', cs: 'PC – ovládání (/dev/ttyUSB0 nebo ttyACM0) a zvuk' }],
-                    ['Ethernet', { en: 'router – port 8080', cs: 'router – port 8080' }]
+                "id": "fmdx",
+                "name": "FM-DX Webserver",
+                "color": "#fbbf24",
+                "icon": "radio",
+                "tag": "Your FM tuner online – stations, RDS and stereo",
+                "chips": [
+                    "FM 87.5–108 MHz",
+                    "TEF6686",
+                    "port 8080"
                 ],
-                steps: {
-                    en: ['Install Node.js, npm and ffmpeg, then <code>git clone https://github.com/NoobishSVK/fm-dx-webserver.git</code> and <code>npm install</code>. On Windows follow the wiki.', 'Connect the tuner by USB; on Linux add yourself to the <code>dialout</code> and <code>audio</code> groups.', 'Start it with <code>node .</code> and open <code>http://&lt;IP address&gt;:8080</code> – set up the tuner, audio, name and location.', `To listen away from home, forward port <code>8080</code> (or use a tunnel) and publish it on ${ext('https://servers.fmdx.org', 'servers.fmdx.org')}.`],
-                    cs: ['Nainstalujte Node.js, npm a ffmpeg, pak <code>git clone https://github.com/NoobishSVK/fm-dx-webserver.git</code> a <code>npm install</code>. Na Windows postupujte podle wiki.', 'Tuner připojte přes USB; na Linuxu se přidejte do skupin <code>dialout</code> a <code>audio</code>.', 'Spusťte <code>node .</code> a otevřete <code>http://&lt;IP adresa&gt;:8080</code> – nastavte tuner, zvuk, název a polohu.', `Pro poslech mimo domov přesměrujte port <code>8080</code> (nebo použijte tunel) a zveřejněte ho na ${ext('https://servers.fmdx.org', 'servers.fmdx.org')}.`]
-                },
-                app: {
-                    en: 'Open the receiver list, tap <b>+</b> (<i>Add my receiver</i>), pick <i>Server: FM-DX Webserver</i> and type <code>192.168.1.90:8080</code>. Always write the port – without it SwR tries 80.',
-                    cs: 'Otevřete seznam přijímačů, klepněte na <b>+</b> (<i>Add my receiver</i>), zvolte <i>Server: FM-DX Webserver</i> a napište <code>192.168.1.90:8080</code>. Port pište vždy – bez něj SwR zkusí 80.'
-                },
-                tip: { en: '<strong>Tip:</strong> before going public check the hosting rules on fmdx.org – and your country\'s laws on rebroadcasting.', cs: '<strong>Tip:</strong> před zveřejněním si přečtěte pravidla na fmdx.org – a zákony vaší země o přeposílání vysílání.' },
-                links: [[{ en: 'Project page', cs: 'Stránka projektu' }, 'https://fmdx.org/projects/webserver.php'], ['GitHub', 'https://github.com/NoobishSVK/fm-dx-webserver'], [{ en: 'Windows install', cs: 'Instalace na Windows' }, 'https://github.com/NoobishSVK/fm-dx-webserver/wiki/Windows-Installation'], [{ en: 'Server map', cs: 'Mapa serverů' }, 'https://servers.fmdx.org']]
+                "flow": [
+                    [
+                        {
+                            "i": "antenna",
+                            "t": "FM antenna"
+                        }
+                    ],
+                    "coax",
+                    [
+                        {
+                            "i": "radio",
+                            "t": "Tuner",
+                            "s": "TEF6686"
+                        }
+                    ],
+                    "USB · audio",
+                    [
+                        {
+                            "i": "pc",
+                            "t": "PC / Pi",
+                            "s": "FM-DX Webserver"
+                        }
+                    ],
+                    "Ethernet",
+                    [
+                        {
+                            "i": "router",
+                            "t": "Router",
+                            "s": "internet"
+                        }
+                    ],
+                    "internet",
+                    [
+                        {
+                            "i": "phone",
+                            "t": "SwR",
+                            "s": "anywhere"
+                        }
+                    ]
+                ],
+                "need": [
+                    "A tuner: a headless TEF6686 (FM-DX Tuner or PE5PVB firmware), XDR-F1HD or Si47xx",
+                    "A PC or Raspberry Pi with Node.js",
+                    "Audio: the tuner's USB audio or a USB sound card",
+                    "A good FM antenna"
+                ],
+                "ports": [
+                    [
+                        "Antenna input",
+                        "FM antenna"
+                    ],
+                    [
+                        "USB",
+                        "PC – control (/dev/ttyUSB0 or ttyACM0) and audio"
+                    ],
+                    [
+                        "Ethernet",
+                        "router – port 8080"
+                    ]
+                ],
+                "steps": [
+                    "Install Node.js, npm and ffmpeg, then <code>git clone https://github.com/NoobishSVK/fm-dx-webserver.git</code> and <code>npm install</code>. On Windows follow the wiki.",
+                    "Connect the tuner by USB; on Linux add yourself to the <code>dialout</code> and <code>audio</code> groups.",
+                    "Start it with <code>node .</code> and open <code>http://&lt;IP address&gt;:8080</code> – set up the tuner, audio, name and location.",
+                    "To listen away from home, forward port <code>8080</code> (or use a tunnel) and publish it on <a href=\"https://servers.fmdx.org\" target=\"_blank\" rel=\"noopener\">servers.fmdx.org</a>."
+                ],
+                "app": "Open the receiver list, tap <b>+</b> (<i>Add my receiver</i>), pick <i>Server: FM-DX Webserver</i> and type <code>192.168.1.90:8080</code>. Always write the port – without it SwR tries 80.",
+                "tip": "<strong>Tip:</strong> before going public check the hosting rules on fmdx.org – and your country's laws on rebroadcasting.",
+                "links": [
+                    [
+                        "Project page",
+                        "https://fmdx.org/projects/webserver.php"
+                    ],
+                    [
+                        "GitHub",
+                        "https://github.com/NoobishSVK/fm-dx-webserver"
+                    ],
+                    [
+                        "Windows install",
+                        "https://github.com/NoobishSVK/fm-dx-webserver/wiki/Windows-Installation"
+                    ],
+                    [
+                        "Server map",
+                        "https://servers.fmdx.org"
+                    ]
+                ]
             },
             {
-                id: 'uber', name: 'UberSDR', color: '#f87171', icon: 'pc',
-                tag: { en: 'The whole shortwave band at once – RX-888 and a mini PC', cs: 'Celé krátkovlnné pásmo naráz – RX-888 a mini PC' },
-                chips: [{ en: 'all of HF', cs: 'celé KV' }, 'RX-888 MkII', { en: 'port 8080', cs: 'port 8080' }],
-                flow: [[N('antenna', { en: 'HF antenna', cs: 'KV anténa' }, { en: 'loop / long wire', cs: 'smyčka / drát' }), N('clock', 'GPSDO', { en: 'optional', cs: 'volitelné' })], { en: 'SMA "H"', cs: 'SMA „H“' },
-                       [N('dongle', 'RX-888 MkII', 'SDR')], 'USB 3', [N('pc', 'Mini PC', 'UberSDR')], { en: 'tunnel', cs: 'tunel' }, [N('globe', { en: 'Directory', cs: 'Adresář' }, 'ubersdr.org')], '', [SWR]],
-                need: {
-                    en: [`${ext('https://ubersdr.org', 'RX-888 MkII')} (about $150) – the only supported SDR`, 'A mini PC with AVX2 (Intel N100 / N150 is enough) running Ubuntu Server 24.04 or Debian 13', 'An HF antenna: an active loop or a long wire', 'Optional: a 27 MHz GPSDO for a rock-steady frequency'],
-                    cs: [`${ext('https://ubersdr.org', 'RX-888 MkII')} (asi 150 $) – jediné podporované SDR`, 'Mini PC s AVX2 (stačí Intel N100 / N150) s Ubuntu Server 24.04 nebo Debianem 13', 'KV anténa: aktivní smyčka nebo dlouhý drát', 'Volitelně: GPSDO 27 MHz pro dokonale stabilní frekvenci']
-                },
-                ports: [
-                    [{ en: 'SMA "H" (HF)', cs: 'SMA „H“ (KV)' }, { en: 'HF antenna', cs: 'KV anténa' }],
-                    ['USB 3', { en: 'mini PC – a blue USB 3 port', cs: 'mini PC – modrý port USB 3' }],
-                    [{ en: '27 MHz ref.', cs: 'Ref. 27 MHz' }, { en: 'GPSDO (optional)', cs: 'GPSDO (volitelné)' }],
-                    ['Ethernet', { en: 'router', cs: 'router' }]
+                "id": "uber",
+                "name": "UberSDR",
+                "color": "#f87171",
+                "icon": "pc",
+                "tag": "The whole shortwave band at once – RX-888 and a mini PC",
+                "chips": [
+                    "all of HF",
+                    "RX-888 MkII",
+                    "port 8080"
                 ],
-                steps: {
-                    en: ['Install Ubuntu Server 24.04 or Debian 13 with SSH.', 'Connect the RX-888 by USB 3 and the antenna to the SMA marked <b>H</b>.', 'Over SSH run <code>curl -fsSL https://ubersdr.org/install.sh | bash</code>.', 'Open <code>http://ubersdr.local:8080/admin.html</code> with the password printed at the end, and let the wizard build the FFTW wisdom (minutes to hours).', 'Make it public at <code>/create_public.html</code> – the <i>Zero Config Tunnel</i> needs no port forwarding.'],
-                    cs: ['Nainstalujte Ubuntu Server 24.04 nebo Debian 13 s SSH.', 'RX-888 připojte přes USB 3 a anténu do SMA označeného <b>H</b>.', 'Přes SSH spusťte <code>curl -fsSL https://ubersdr.org/install.sh | bash</code>.', 'Otevřete <code>http://ubersdr.local:8080/admin.html</code> s heslem vypsaným na konci instalace a nechte průvodce vytvořit FFTW wisdom (minuty až hodiny).', 'Zveřejněte ho na <code>/create_public.html</code> – <i>Zero Config Tunnel</i> nepotřebuje přesměrování portů.']
-                },
-                app: {
-                    en: 'A public instance joins the UberSDR directory and shows up in SwR by itself – under the UberSDR client. Adding one by hand is not in the app yet.',
-                    cs: 'Veřejná instance se zapíše do adresáře UberSDR a v SwR se objeví sama – u klienta UberSDR. Ruční přidání zatím aplikace neumí.'
-                },
-                tip: { en: '<strong>Tip:</strong> the RX-888 runs warm – give it airflow.', cs: '<strong>Tip:</strong> RX-888 hřeje – dopřejte mu proudění vzduchu.' },
-                links: [['UberSDR', 'https://ubersdr.org'], ['GitHub', 'https://github.com/madpsy/ka9q_ubersdr'], [{ en: 'Instance directory', cs: 'Adresář instancí' }, 'https://instances.ubersdr.org']]
+                "flow": [
+                    [
+                        {
+                            "i": "antenna",
+                            "t": "HF antenna",
+                            "s": "loop / long wire"
+                        },
+                        {
+                            "i": "clock",
+                            "t": "GPSDO",
+                            "s": "optional"
+                        }
+                    ],
+                    "SMA \"H\"",
+                    [
+                        {
+                            "i": "dongle",
+                            "t": "RX-888 MkII",
+                            "s": "SDR"
+                        }
+                    ],
+                    "USB 3",
+                    [
+                        {
+                            "i": "pc",
+                            "t": "Mini PC",
+                            "s": "UberSDR"
+                        }
+                    ],
+                    "tunnel",
+                    [
+                        {
+                            "i": "globe",
+                            "t": "Directory",
+                            "s": "ubersdr.org"
+                        }
+                    ],
+                    "",
+                    [
+                        {
+                            "i": "phone",
+                            "t": "SwR",
+                            "s": "anywhere"
+                        }
+                    ]
+                ],
+                "need": [
+                    "<a href=\"https://ubersdr.org\" target=\"_blank\" rel=\"noopener\">RX-888 MkII</a> (about $150) – the only supported SDR",
+                    "A mini PC with AVX2 (Intel N100 / N150 is enough) running Ubuntu Server 24.04 or Debian 13",
+                    "An HF antenna: an active loop or a long wire",
+                    "Optional: a 27 MHz GPSDO for a rock-steady frequency"
+                ],
+                "ports": [
+                    [
+                        "SMA \"H\" (HF)",
+                        "HF antenna"
+                    ],
+                    [
+                        "USB 3",
+                        "mini PC – a blue USB 3 port"
+                    ],
+                    [
+                        "27 MHz ref.",
+                        "GPSDO (optional)"
+                    ],
+                    [
+                        "Ethernet",
+                        "router"
+                    ]
+                ],
+                "steps": [
+                    "Install Ubuntu Server 24.04 or Debian 13 with SSH.",
+                    "Connect the RX-888 by USB 3 and the antenna to the SMA marked <b>H</b>.",
+                    "Over SSH run <code>curl -fsSL https://ubersdr.org/install.sh | bash</code>.",
+                    "Open <code>http://ubersdr.local:8080/admin.html</code> with the password printed at the end, and let the wizard build the FFTW wisdom (minutes to hours).",
+                    "Make it public at <code>/create_public.html</code> – the <i>Zero Config Tunnel</i> needs no port forwarding."
+                ],
+                "app": "A public instance joins the UberSDR directory and shows up in SwR by itself – under the UberSDR client. Adding one by hand is not in the app yet.",
+                "tip": "<strong>Tip:</strong> the RX-888 runs warm – give it airflow.",
+                "links": [
+                    [
+                        "UberSDR",
+                        "https://ubersdr.org"
+                    ],
+                    [
+                        "GitHub",
+                        "https://github.com/madpsy/ka9q_ubersdr"
+                    ],
+                    [
+                        "Instance directory",
+                        "https://instances.ubersdr.org"
+                    ]
+                ]
             }
         ];
 
         const T = {
-            menuTitle: { en: 'Connect your own antenna', cs: 'Připojte vlastní anténu' },
-            menuText: { en: 'Build your own receiver and listen to it in SwR from anywhere – or plug a dongle straight into the phone.', cs: 'Postavte si vlastní přijímač a poslouchejte ho v SwR odkudkoli – nebo zapojte dongle přímo do telefonu.' },
-            menuFoot: { en: 'Your own receivers are added in SwR PRO with the <b>+</b> in the receiver list.', cs: 'Vlastní přijímače přidáte v SwR PRO přes <b>+</b> v seznamu přijímačů.' },
-            flow: { en: 'How it connects', cs: 'Jak se to zapojí' },
-            need: { en: 'What you need', cs: 'Co potřebujete' },
-            ports: { en: 'What goes where', cs: 'Co kam zapojit' },
-            steps: { en: 'Step by step', cs: 'Postup' },
-            inApp: { en: 'In SwR PRO', cs: 'V SwR PRO' },
-            links: { en: 'Links', cs: 'Odkazy' },
-            close: { en: 'Close', cs: 'Zavřít' },
-            clients: { en: 'Receiver types', cs: 'Typy přijímačů' },
-            safety: { en: 'An outdoor antenna needs grounding and a lightning arrester. Listening is legal in most countries; follow your local rules before publishing a receiver.', cs: 'Venkovní anténu uzemněte a dejte do svodu bleskojistku. Poslech je ve většině zemí legální; před zveřejněním přijímače se řiďte místními pravidly.' }
+            "menuTitle": "Connect your own antenna",
+            "menuText": "Build your own receiver and listen to it in SwR from anywhere – or plug a dongle straight into the phone.",
+            "menuFoot": "Your own receivers are added in SwR PRO with the <b>+</b> in the receiver list.",
+            "flow": "How it connects",
+            "need": "What you need",
+            "ports": "What goes where",
+            "steps": "Step by step",
+            "inApp": "In SwR PRO",
+            "links": "Links",
+            "close": "Close",
+            "clients": "Receiver types",
+            "safety": "An outdoor antenna needs grounding and a lightning arrester. Listening is legal in most countries; follow your local rules before publishing a receiver."
         };
+        const ui = name => tr('ant.ui.' + name, T[name]);
 
         const chevron = svg('<path d="m9 6 6 6-6 6"/>', 2);
         const extIcon = svg('<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>', 2);
@@ -3355,14 +3807,14 @@
         // ---------- menu ----------
         function renderMenu() {
             menu.innerHTML = `
-                <div class="ant-menu-head"><b>${L(T.menuTitle)}</b><p>${L(T.menuText)}</p></div>
+                <div class="ant-menu-head"><b>${ui('menuTitle')}</b><p>${ui('menuText')}</p></div>
                 ${GUIDES.map(g => `
                     <button class="ant-item" type="button" role="menuitem" data-guide="${g.id}" style="--c:${g.color}">
                         ${ico(g.icon)}
-                        <span class="ant-item-text"><b>${g.name}</b><span>${L(g.tag)}</span></span>
+                        <span class="ant-item-text"><b>${g.name}</b><span>${tr(`ant.${g.id}.tag`, g.tag)}</span></span>
                         ${chevron}
                     </button>`).join('')}
-                <p class="ant-menu-foot">${L(T.menuFoot)}</p>`;
+                <p class="ant-menu-foot">${ui('menuFoot')}</p>`;
         }
 
         function placeMenu() {
@@ -3407,47 +3859,52 @@
         // ---------- guide ----------
         let current = null;
 
-        function renderFlow(flow) {
-            return flow.map(part => {
+        function renderFlow(g) {
+            const k = `ant.${g.id}.flow`;
+            return g.flow.map((part, i) => {
                 if (Array.isArray(part)) {
-                    return `<div class="ant-col${part.length > 1 ? ' is-multi' : ''}">${part.map(n => `
-                        <div class="ant-node">${ico(n.i)}<div><b>${L(n.t)}</b>${n.s ? `<small>${L(n.s)}</small>` : ''}</div></div>`).join('')}</div>`;
+                    return `<div class="ant-col${part.length > 1 ? ' is-multi' : ''}">${part.map((n, j) => `
+                        <div class="ant-node">${ico(n.i)}<div><b>${tr(`${k}.${i}.${j}.t`, n.t)}</b>${n.s ? `<small>${tr(`${k}.${i}.${j}.s`, n.s)}</small>` : ''}</div></div>`).join('')}</div>`;
                 }
-                const label = L(part);
+                const label = tr(`${k}.${i}`, part);
                 return `<div class="ant-wire" aria-hidden="true">${label ? `<span>${label}</span>` : ''}</div>`;
             }).join('');
         }
 
-        function flowText(flow) {
-            return flow.filter(Array.isArray).map(col => col.map(n => L(n.t)).join(' + ')).join(' → ');
+        function flowText(g) {
+            const k = `ant.${g.id}.flow`;
+            return g.flow.map((part, i) => Array.isArray(part)
+                ? part.map((n, j) => tr(`${k}.${i}.${j}.t`, n.t)).join(' + ') : null)
+                .filter(Boolean).join(' → ');
         }
 
         function renderGuide() {
             const g = GUIDES.find(x => x.id === current);
+            const t = (field, en) => tr(`ant.${g.id}.${field}`, en);
             panel.style.setProperty('--c', g.color);
             panel.innerHTML = `
                 <div class="ant-guide-top">
-                    <div class="ant-guide-title">${ico(g.icon)}<div><h2 id="antGuideTitle">${g.name}</h2><p>${L(g.tag)}</p></div></div>
-                    <button class="ant-close" type="button" aria-label="${L(T.close)}">${svg('<path d="M6 6l12 12M18 6 6 18"/>', 2)}</button>
-                    <div class="ant-tabs" role="tablist" aria-label="${L(T.clients)}">
+                    <div class="ant-guide-title">${ico(g.icon)}<div><h2 id="antGuideTitle">${g.name}</h2><p>${t('tag', g.tag)}</p></div></div>
+                    <button class="ant-close" type="button" aria-label="${ui('close')}">${svg('<path d="M6 6l12 12M18 6 6 18"/>', 2)}</button>
+                    <div class="ant-tabs" role="tablist" aria-label="${ui('clients')}">
                         ${GUIDES.map(x => `<button class="ant-tab" type="button" role="tab" data-tab="${x.id}" aria-selected="${x.id === g.id}" style="--c:${x.color}">${x.name}</button>`).join('')}
                     </div>
                 </div>
                 <div class="ant-guide-body" role="tabpanel" aria-labelledby="antGuideTitle">
-                    <div class="ant-chips">${g.chips.map(c => `<span class="ant-chip${c === 'PRO' ? ' is-pro' : ''}">${L(c)}</span>`).join('')}</div>
-                    <h3 class="ant-h">${L(T.flow)}</h3>
-                    <div class="ant-flow" role="img" aria-label="${flowText(g.flow)}">${renderFlow(g.flow)}</div>
+                    <div class="ant-chips">${g.chips.map((c, i) => `<span class="ant-chip">${t(`chips.${i}`, c)}</span>`).join('')}</div>
+                    <h3 class="ant-h">${ui('flow')}</h3>
+                    <div class="ant-flow" role="img" aria-label="${flowText(g)}">${renderFlow(g)}</div>
                     <div class="ant-grid">
-                        <div><h3 class="ant-h">${L(T.need)}</h3><ul class="ant-list">${L(g.need).map(x => `<li>${x}</li>`).join('')}</ul></div>
-                        <div><h3 class="ant-h">${L(T.ports)}</h3><table class="ant-ports"><tbody>${g.ports.map(([p, w]) => `<tr><td><code>${L(p)}</code></td><td>${L(w)}</td></tr>`).join('')}</tbody></table></div>
+                        <div><h3 class="ant-h">${ui('need')}</h3><ul class="ant-list">${g.need.map((x, i) => `<li>${t(`need.${i}`, x)}</li>`).join('')}</ul></div>
+                        <div><h3 class="ant-h">${ui('ports')}</h3><table class="ant-ports"><tbody>${g.ports.map(([p, w], i) => `<tr><td><code>${t(`ports.${i}.0`, p)}</code></td><td>${t(`ports.${i}.1`, w)}</td></tr>`).join('')}</tbody></table></div>
                     </div>
-                    <h3 class="ant-h">${L(T.steps)}</h3>
-                    <ol class="ant-steps">${L(g.steps).map(x => `<li>${x}</li>`).join('')}</ol>
-                    <div class="ant-app">${ico('phone')}<div><b>${L(T.inApp)}</b>${L(g.app)}</div></div>
-                    <p class="ant-tip">${L(g.tip)}</p>
-                    <h3 class="ant-h">${L(T.links)}</h3>
-                    <div class="ant-links">${g.links.map(([label, url]) => `<a href="${url}" target="_blank" rel="noopener">${L(label)}${extIcon}</a>`).join('')}</div>
-                    <p class="ant-safety">${L(T.safety)}</p>
+                    <h3 class="ant-h">${ui('steps')}</h3>
+                    <ol class="ant-steps">${g.steps.map((x, i) => `<li>${t(`steps.${i}`, x)}</li>`).join('')}</ol>
+                    <div class="ant-app">${ico('phone')}<div><b>${ui('inApp')}</b>${t('app', g.app)}</div></div>
+                    <p class="ant-tip">${t('tip', g.tip)}</p>
+                    <h3 class="ant-h">${ui('links')}</h3>
+                    <div class="ant-links">${g.links.map(([label, url], i) => `<a href="${url}" target="_blank" rel="noopener">${t(`links.${i}`, label)}${extIcon}</a>`).join('')}</div>
+                    <p class="ant-safety">${ui('safety')}</p>
                 </div>`;
         }
 
@@ -5025,7 +5482,7 @@
                     if (!this.interactive) return;
                     // Check if touch is on a UI element (toggles)
                     const target = e.target;
-                    const isUIElement = target.closest('.theme-toggle') || target.closest('.manual-rotate-toggle') || target.closest('a, button, .ant-menu, .ant-guide');
+                    const isUIElement = target.closest('.theme-toggle') || target.closest('.manual-rotate-toggle') || target.closest('a, button, .ant-menu, .ant-guide, .lang-menu');
 
                     if (this.manualRotateEnabled && !isUIElement) {
                         e.preventDefault();
@@ -5055,7 +5512,7 @@
 
                     // Check if touch is on a UI element (toggles)
                     const target = e.target;
-                    const isUIElement = target.closest('.theme-toggle') || target.closest('.manual-rotate-toggle') || target.closest('a, button, .ant-menu, .ant-guide');
+                    const isUIElement = target.closest('.theme-toggle') || target.closest('.manual-rotate-toggle') || target.closest('a, button, .ant-menu, .ant-guide, .lang-menu');
 
                     if (this.manualRotateEnabled && !isUIElement) {
                         e.preventDefault();
@@ -5101,7 +5558,7 @@
                     if (!this.interactive) return;
                     // Check if touch is on a UI element (toggles)
                     const target = e.target;
-                    const isUIElement = target.closest('.theme-toggle') || target.closest('.manual-rotate-toggle') || target.closest('a, button, .ant-menu, .ant-guide');
+                    const isUIElement = target.closest('.theme-toggle') || target.closest('.manual-rotate-toggle') || target.closest('a, button, .ant-menu, .ant-guide, .lang-menu');
 
                     if (this.manualRotateEnabled && !isUIElement) {
                         e.preventDefault();

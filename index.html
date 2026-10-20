@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-site-verification" content="0c-hmtOEQ5Lbyy8KcHhiSP3Y-jO0mCeDEr_tyvdrUfw" />
-    <meta name="description" content="Kruen - Android app design & development from the Czech Republic. Makers of SwR Global Radio, CmA Crypto Market Analysis and PBH Phone Battery Health.">
+    <meta name="description" content="Kruen - Android app design & development from the Czech Republic. Makers of SwR Global Radio, CmA Crypto Market Analysis and PBH Phone Battery Health." data-i18n-content="meta.description">
     <title>Kruen - SwR Global Radio, CmA &amp; PBH</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,6 +12,45 @@
     <link rel="preload" as="image" href="assets/swr-panel-dark.webp">
     <link rel="preload" as="image" href="assets/swr-panel-white.webp">
     <link rel="icon" type="image/svg+xml" href="assets/kruen-mark.svg">
+    <link rel="alternate" hreflang="en" href="https://kruen.cz/?lang=en">
+    <link rel="alternate" hreflang="cs" href="https://kruen.cz/?lang=cs">
+    <link rel="alternate" hreflang="x-default" href="https://kruen.cz/">
+
+    <!-- Language: ?lang= in the link, then the visitor's own choice, then a guess.
+         The guess uses only what the browser already knows (its languages and time
+         zone), so nothing is sent anywhere - no IP lookup. -->
+    <script>
+    (function() {
+        var supported = ['en', 'cs'];
+        var lang = null;
+        try {
+            var asked = new URLSearchParams(location.search).get('lang');
+            if (supported.indexOf(asked) > -1) { lang = asked; localStorage.setItem('lang', asked); }
+        } catch (e) {}
+        if (!lang) {
+            try {
+                var saved = localStorage.getItem('lang');
+                if (supported.indexOf(saved) > -1) lang = saved;
+            } catch (e) {}
+        }
+        if (!lang) {
+            var langs = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ''];
+            var zone = '';
+            try { zone = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
+            // Czech and Slovak speakers, or anyone whose clock runs on Czech or Slovak time
+            var czech = langs.some(function(l) { return /^(cs|sk)\b/i.test(l); })
+                || /^Europe\/(Prague|Bratislava)$/.test(zone);
+            lang = czech ? 'cs' : 'en';
+        }
+        window.__lang = lang;
+        document.documentElement.lang = lang;
+        if (lang !== 'en') {
+            // Keep the English text out of sight until it is swapped (a few ms)
+            document.documentElement.classList.add('i18n-pending');
+            setTimeout(function() { document.documentElement.classList.remove('i18n-pending'); }, 2000);
+        }
+    })();
+    </script>
 
     <!-- Anti-flicker script -->
     <script>
@@ -201,6 +240,34 @@
         align-items: center;
         gap: 24px;
     }
+
+    /* Language switch (CZ / EN) - stays visible on phones */
+    .i18n-pending .content-wrapper { visibility: hidden; }
+
+    .lang-switch {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+    }
+
+    .lang-switch button {
+        background: none;
+        border: 0;
+        padding: 6px 7px;
+        font: inherit;
+        color: var(--text-2);
+        opacity: 0.6;
+        cursor: pointer;
+        transition: color 0.2s ease, opacity 0.2s ease;
+    }
+
+    .lang-switch button:hover { opacity: 1; }
+    .lang-switch button[aria-pressed="true"] { color: var(--accent); opacity: 1; }
+    .navbar.on-dark .lang-switch button { color: var(--stage-text-2); }
+    .navbar.on-dark .lang-switch button[aria-pressed="true"] { color: var(--accent); }
 
     /* ================================================================= */
     /* THEME TOGGLE */
@@ -1834,7 +1901,7 @@
         </div>
         <nav class="navbar">
             <div class="nav-container">
-                <a class="nav-logo" href="#top" aria-label="Kruen - back to top"><img src="assets/kruen-mark.svg" alt="" width="40" height="40"></a>
+                <a class="nav-logo" href="#top" aria-label="Kruen - back to top" data-i18n-aria-label="a.top"><img src="assets/kruen-mark.svg" alt="" width="40" height="40"></a>
                 <div class="nav-right">
                     <div class="nav-links">
                         <a class="nav-social" href="https://www.facebook.com/profile.php?id=61591433805080" target="_blank" rel="noopener" aria-label="Facebook">
@@ -1844,7 +1911,11 @@
                         <a href="#swr-watch">SwR Watch</a>
                         <a href="#cma">CmA</a>
                         <a href="#pbh">PBH</a>
-                        <a href="#about">About</a>
+                        <a href="#about" data-i18n="nav.about">About</a>
+                    </div>
+                    <div class="lang-switch" role="group" aria-label="Jazyk / Language">
+                        <button type="button" data-lang="cs" lang="cs" title="Čeština" aria-pressed="false">CZ</button>
+                        <button type="button" data-lang="en" lang="en" title="English" aria-pressed="false">EN</button>
                     </div>
                     <div class="theme-toggle">
                         <input type="checkbox" id="theme-switch" class="theme-switch-input">
@@ -1862,7 +1933,7 @@
             <label for="manual-rotate-switch" class="manual-rotate-switch-label">
                 <span class="manual-rotate-switch-button"></span>
             </label>
-            <span class="manual-rotate-label">move</span>
+            <span class="manual-rotate-label" data-i18n="ui.move">move</span>
         </div>
 
         <main id="top">
@@ -1873,10 +1944,10 @@
             <div class="hero-content">
                 <h1><!-- assets/kruen-wordmark.svg, inlined so the sand canvas may read its pixels; on phones the flat
                      variant (kruen-wordmark-flat.svg) without the N's isometric sketch lines --><picture><source media="(max-width: 640px)" srcset="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyODYgNzgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiI+PGRlZnM+PGNsaXBQYXRoIGlkPSJiMCI+PHJlY3Qgd2lkdGg9IjQ0IiBoZWlnaHQ9IjUwIi8+PC9jbGlwUGF0aD48Y2xpcFBhdGggaWQ9ImIxIj48cmVjdCB3aWR0aD0iNDMiIGhlaWdodD0iNTAiLz48L2NsaXBQYXRoPjxjbGlwUGF0aCBpZD0iYjIiPjxyZWN0IHdpZHRoPSI0NyIgaGVpZ2h0PSI1MCIvPjwvY2xpcFBhdGg+PGNsaXBQYXRoIGlkPSJiMyI+PHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjUwIi8+PC9jbGlwUGF0aD48Y2xpcFBhdGggaWQ9ImI0Ij48cmVjdCB3aWR0aD0iNDgiIGhlaWdodD0iNTAiLz48L2NsaXBQYXRoPjwvZGVmcz48cGF0aCBkPSJNMTYgNlY3Mk02MCA2VjcyTTY4IDZWNzJNMTExIDZWNzJNMTE5IDZWNzJNMTY2IDZWNzJNMTc0IDZWNzJNMjE0IDZWNzJNMjIyIDZWNzJNMjcwIDZWNzJNNCAxNEgyODJNNCAyNS40SDI4Mk00IDQySDI4Mk00IDY0SDI4MiIgc3Ryb2tlLXdpZHRoPSIuMjgiIG9wYWNpdHk9Ii41Ii8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYgMTQpIiBjbGlwLXBhdGg9InVybCgjYjApIj48cGF0aCBkPSJNMC43NSAwVjUwIiBzdHJva2Utd2lkdGg9IjEuNSIvPjxwYXRoIGQ9Ik0wLjc1IDI5LjVMNTUuNTEyNSAtOC44NSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNMTUuMDcyNSAxOS40N0w1MS4yMTU3IDU5LjE1OSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjggMTQpIiBjbGlwLXBhdGg9InVybCgjYjEpIj48cGF0aCBkPSJNMi4xIDBWNTAiIHN0cm9rZS13aWR0aD0iNC4yIi8+PHBhdGggZD0iTTAgMi4xSDI5QTExLjkgMTEuOSAwIDAgMSAyOSAyNS45SDAiIHN0cm9rZS13aWR0aD0iNC4yIi8+PHBhdGggZD0iTTIxLjUgMjUuOUw0NS4zNTUgNTcuMjMiIHN0cm9rZS13aWR0aD0iNC4yIi8+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDExOSAxNCkiIGNsaXAtcGF0aD0idXJsKCNiMikiPjxwYXRoIGQ9Ik0wLjc1IDBWMjYuNUEyMi43NSAyMi43NSAwIDAgMCA0Ni4yNSAyNi41VjAiIHN0cm9rZS13aWR0aD0iMS41Ii8+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE3NCAxNCkiIGNsaXAtcGF0aD0idXJsKCNiMykiPjxwYXRoIGQ9Ik0yLjEgMFY1MCIgc3Ryb2tlLXdpZHRoPSI0LjIiLz48cGF0aCBkPSJNMCAyLjFINDAiIHN0cm9rZS13aWR0aD0iNC4yIi8+PHBhdGggZD0iTTAgMjVIMzYiIHN0cm9rZS13aWR0aD0iNC4yIi8+PHBhdGggZD0iTTAgNDcuOUg0MCIgc3Ryb2tlLXdpZHRoPSI0LjIiLz48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjIyIDE0KSIgY2xpcC1wYXRoPSJ1cmwoI2I0KSI+PHBhdGggZD0iTTAuNzUgMFY1MCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNNDcuMjUgMFY1MCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNLTEzLjIgLTE1TDYxLjIgNjUiIHN0cm9rZS13aWR0aD0iMS40NCIvPjwvZz48L3N2Zz4="><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyODYgNzgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiI+PGRlZnM+PGNsaXBQYXRoIGlkPSJiMCI+PHJlY3Qgd2lkdGg9IjQ0IiBoZWlnaHQ9IjUwIi8+PC9jbGlwUGF0aD48Y2xpcFBhdGggaWQ9ImIxIj48cmVjdCB3aWR0aD0iNDMiIGhlaWdodD0iNTAiLz48L2NsaXBQYXRoPjxjbGlwUGF0aCBpZD0iYjIiPjxyZWN0IHdpZHRoPSI0NyIgaGVpZ2h0PSI1MCIvPjwvY2xpcFBhdGg+PGNsaXBQYXRoIGlkPSJiMyI+PHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjUwIi8+PC9jbGlwUGF0aD48Y2xpcFBhdGggaWQ9ImI0Ij48cmVjdCB3aWR0aD0iNDgiIGhlaWdodD0iNTAiLz48L2NsaXBQYXRoPjwvZGVmcz48cGF0aCBkPSJNMTYgNlY3Mk02MCA2VjcyTTY4IDZWNzJNMTExIDZWNzJNMTE5IDZWNzJNMTY2IDZWNzJNMTc0IDZWNzJNMjE0IDZWNzJNMjIyIDZWNzJNMjcwIDZWNzJNNCAxNEgyODJNNCAyNS40SDI4Mk00IDQySDI4Mk00IDY0SDI4MiIgc3Ryb2tlLXdpZHRoPSIuMjgiIG9wYWNpdHk9Ii41Ii8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYgMTQpIiBjbGlwLXBhdGg9InVybCgjYjApIj48cGF0aCBkPSJNMC43NSAwVjUwIiBzdHJva2Utd2lkdGg9IjEuNSIvPjxwYXRoIGQ9Ik0wLjc1IDI5LjVMNTUuNTEyNSAtOC44NSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNMTUuMDcyNSAxOS40N0w1MS4yMTU3IDU5LjE1OSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjggMTQpIiBjbGlwLXBhdGg9InVybCgjYjEpIj48cGF0aCBkPSJNMi4xIDBWNTAiIHN0cm9rZS13aWR0aD0iNC4yIi8+PHBhdGggZD0iTTAgMi4xSDI5QTExLjkgMTEuOSAwIDAgMSAyOSAyNS45SDAiIHN0cm9rZS13aWR0aD0iNC4yIi8+PHBhdGggZD0iTTIxLjUgMjUuOUw0NS4zNTUgNTcuMjMiIHN0cm9rZS13aWR0aD0iNC4yIi8+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDExOSAxNCkiIGNsaXAtcGF0aD0idXJsKCNiMikiPjxwYXRoIGQ9Ik0wLjc1IDBWMjYuNUEyMi43NSAyMi43NSAwIDAgMCA0Ni4yNSAyNi41VjAiIHN0cm9rZS13aWR0aD0iMS41Ii8+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE3NCAxNCkiIGNsaXAtcGF0aD0idXJsKCNiMykiPjxwYXRoIGQ9Ik0yLjEgMFY1MCIgc3Ryb2tlLXdpZHRoPSI0LjIiLz48cGF0aCBkPSJNMCAyLjFINDAiIHN0cm9rZS13aWR0aD0iNC4yIi8+PHBhdGggZD0iTTAgMjVIMzYiIHN0cm9rZS13aWR0aD0iNC4yIi8+PHBhdGggZD0iTTAgNDcuOUg0MCIgc3Ryb2tlLXdpZHRoPSI0LjIiLz48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjIyIDE0KSIgY2xpcC1wYXRoPSJ1cmwoI2I0KSI+PHBhdGggZD0iTTAuNzUgMFY1MCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNNDcuMjUgMFY1MCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNLTEzLjIgLTE1TDYxLjIgNjUiIHN0cm9rZS13aWR0aD0iMS40NCIvPjwvZz48cGF0aCBkPSJNMjIwLjYyIDE0LjgwTDIzNS40OCA2LjIwTTI2OC42MiAxNC44MEwyODMuNDggNi4yME0yNjguNjIgNjQuODBMMjgzLjQ4IDU2LjIwTTIyMi44MSAxNC40MEwyMzYuMjkgNi42ME0yODIuMTAgNS40MEwyODIuMTAgNTguNjBNMjM1LjI3IDYuNjNMMjgwLjkzIDU3LjM3IiBzdHJva2Utd2lkdGg9Ii40MiIgb3BhY2l0eT0iLjgiLz48L3N2Zz4=" alt="Kruen" width="286" height="78"></picture><canvas id="wordmarkSand" aria-hidden="true"></canvas></h1>
-                <p class="hero-subtitle">Android and iOS App Design &amp; Development</p>
+                <p class="hero-subtitle" data-i18n="hero.sub">Android and iOS App Design &amp; Development</p>
                 <div class="hero-cta">
                     <a class="hero-chip" href="#swr" title="SwR - Global Radio" aria-label="SwR - Global Radio"><img src="assets/swr-icon.webp" alt="" width="28" height="28">SwR</a>
-                    <a class="hero-chip" href="#swr-watch" title="SwR Watch - for Apple Watch" aria-label="SwR Watch - for Apple Watch"><img src="assets/swrw-icon.webp" alt="" width="28" height="28">SwR Watch</a>
+                    <a class="hero-chip" href="#swr-watch" title="SwR Watch - for Apple Watch" data-i18n-title="a.chipWatch" aria-label="SwR Watch - for Apple Watch" data-i18n-aria-label="a.chipWatch"><img src="assets/swrw-icon.webp" alt="" width="28" height="28">SwR Watch</a>
                     <a class="hero-chip" href="#cma" title="CmA - Crypto Market Analysis" aria-label="CmA - Crypto Market Analysis"><img src="assets/cma-icon.webp" alt="" width="28" height="28">CmA</a>
                     <a class="hero-chip" href="#pbh" title="PBH - Phone Battery Health" aria-label="PBH - Phone Battery Health"><img src="assets/pbh-icon.webp" alt="" width="28" height="28">PBH</a>
                 </div>
@@ -1901,38 +1972,38 @@
 
             <!-- SwR intro -->
             <div class="container">
-                <p class="eyebrow reveal">01 · Flagship App</p>
+                <p class="eyebrow reveal" data-i18n="swr.eyebrow">01 · Flagship App</p>
                 <div class="app-head reveal">
-                    <div class="app-icon"><img src="assets/swr-icon.webp" alt="SwR app icon" width="512" height="512"></div>
+                    <div class="app-icon"><img src="assets/swr-icon.webp" alt="SwR app icon" data-i18n-alt="alt.iconSwr" width="512" height="512"></div>
                     <h2>SwR<span>Global Radio</span></h2>
                     <div class="buy-badge">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 11V8a5 5 0 0 0-10 0v3"/><rect x="4.5" y="11" width="15" height="9.5" rx="2.5"/><path d="M12 15v2"/></svg>
-                        <p>
+                        <p data-i18n="swr.buy">
                             <strong>PRO is a one-time purchase</strong>
                             Pay once, keep it forever - no subscription.
                         </p>
                     </div>
                 </div>
-                <p class="lead reveal">Tune into <strong>real radio receivers</strong> around the world - live, from your phone. SwR connects to hundreds of receivers across five clients - KiwiSDR/Web-888, OpenWebRX, UberSDR, FM-DX and AirSpy - and turns the ionosphere into your personal listening room.</p>
+                <p class="lead reveal" data-i18n="swr.lead">Tune into <strong>real radio receivers</strong> around the world - live, from your phone. SwR connects to hundreds of receivers across five clients - KiwiSDR/Web-888, OpenWebRX, UberSDR, FM-DX and AirSpy - and turns the ionosphere into your personal listening room.</p>
                 <div class="cta-row reveal">
                     <a class="play-btn" href="https://apps.apple.com/cz/app/swr-sdr-shortwave-radio/id6791090009" target="_blank" rel="noopener">
                         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.36 12.68c.02-2.1 1.72-3.11 1.79-3.16-.98-1.43-2.5-1.62-3.04-1.65-1.29-.13-2.53.76-3.18.76-.66 0-1.67-.74-2.75-.72-1.41.02-2.72.82-3.44 2.09-1.47 2.54-.38 6.3 1.05 8.36.7 1.01 1.53 2.14 2.62 2.1 1.05-.04 1.45-.68 2.72-.68 1.27 0 1.63.68 2.74.66 1.13-.02 1.85-1.03 2.54-2.04.8-1.17 1.13-2.3 1.15-2.36-.03-.01-2.2-.85-2.2-3.36zM14.3 6.6c.58-.7.97-1.68.86-2.65-.83.03-1.84.55-2.44 1.25-.54.62-1.01 1.61-.88 2.56.93.07 1.88-.47 2.46-1.16z"/></svg>
-                        <span><small>Download on the</small>App Store</span>
+                        <span><small data-i18n="store.apple">Download on the</small>App Store</span>
                     </a>
                     <a class="play-btn" href="https://play.google.com/store/apps/details?id=com.kruen.swr" target="_blank" rel="noopener">
                         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.6 1.8c-.4.2-.6.6-.6 1.1v18.2c0 .5.2.9.6 1.1l10-10.2L3.6 1.8zm11.3 8.9l2.7-2.7-11-6.3 8.3 9zm3.9-1.5l-3 3 3 3 2.6-1.5c.8-.5.8-2.5 0-3l-2.6-1.5zm-4.2 4.2l-8.3 9 11-6.3-2.7-2.7z"/></svg>
-                        <span><small>Get it on</small>Google Play</span>
+                        <span><small data-i18n="store.google">Get it on</small>Google Play</span>
                     </a>
                     <div class="tag-row">
                         <span class="tag">iOS</span>
                         <span class="tag">Android</span>
-                        <span class="tag">No ads</span>
-                        <span class="tag">Zero data collection</span>
+                        <span class="tag" data-i18n="tag.noads">No ads</span>
+                        <span class="tag" data-i18n="tag.nodata">Zero data collection</span>
                     </div>
                 </div>
                 <a class="family-link reveal" href="#swr-watch">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="3.5"/><path d="M9 6l.6-3h4.8l.6 3M9 18l.6 3h4.8l.6-3M18 10.5h1"/></svg>
-                    <span>Also on Apple Watch: <b>SwR Watch</b> - a separate, standalone app</span>
+                    <span data-i18n="swr.family">Also on Apple Watch: <b>SwR Watch</b> - a separate, standalone app</span>
                 </a>
             </div>
 
@@ -1943,245 +2014,245 @@
                         <div class="helix-scene">
                             <div class="helix-pole"></div>
                             <article class="helix-step" data-num="01">
-                                <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-modes.webp" alt="SwR live spectrum and waterfall view" loading="lazy"></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-modes.webp" alt="SwR live spectrum and waterfall view" data-i18n-alt="alt.swr1" loading="lazy"></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">01</span>
-                                    <h3>Live spectrum &amp; waterfall</h3>
-                                    <p>Watch the whole band breathe in real time. A glowing frequency display, an authentic S-meter and a full waterfall view make hunting for signals feel like the real thing.</p>
+                                    <h3 data-i18n="helix.h1">Live spectrum &amp; waterfall</h3>
+                                    <p data-i18n="helix.p1">Watch the whole band breathe in real time. A glowing frequency display, an authentic S-meter and a full waterfall view make hunting for signals feel like the real thing.</p>
                                 </div>
                             </article>
                             <article class="helix-step" data-num="02">
-                                <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle"><img src="assets/swr-shot-3d.webp" alt="SwR Customize panel with the spectrum and waterfall style options" loading="lazy"><img src="assets/swr-shot-3d-2.webp" alt="SwR with a different waterfall style and the scan panel open" loading="lazy"></div></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle"><img src="assets/swr-shot-3d.webp" alt="SwR Customize panel with the spectrum and waterfall style options" data-i18n-alt="alt.swr2a" loading="lazy"><img src="assets/swr-shot-3d-2.webp" alt="SwR with a different waterfall style and the scan panel open" data-i18n-alt="alt.swr2b" loading="lazy"></div></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">02</span>
-                                    <h3>Different types of waterfalls &amp; spectrums</h3>
-                                    <p>Switch the waterfall into a rolling 3D landscape or a hypnotic 4D warp. Radio spectrum has never looked this good on a phone.</p>
+                                    <h3 data-i18n="helix.h2">Different types of waterfalls &amp; spectrums</h3>
+                                    <p data-i18n="helix.p2">Switch the waterfall into a rolling 3D landscape or a hypnotic 4D warp. Radio spectrum has never looked this good on a phone.</p>
                                 </div>
                             </article>
                             <article class="helix-step" data-num="03">
-                                <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle"><img src="assets/swr-shot-map.webp" alt="SwR 3D globe with KiwiSDR receivers across Asia and the day-night terminator" loading="lazy"><img src="assets/swr-shot-map-2.webp" alt="SwR map zoomed on Italian receivers with a station detail popup" loading="lazy"></div></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle"><img src="assets/swr-shot-map.webp" alt="SwR 3D globe with KiwiSDR receivers across Asia and the day-night terminator" data-i18n-alt="alt.swr3a" loading="lazy"><img src="assets/swr-shot-map-2.webp" alt="SwR map zoomed on Italian receivers with a station detail popup" data-i18n-alt="alt.swr3b" loading="lazy"></div></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">03</span>
-                                    <h3>A worldwide receiver network</h3>
-                                    <p>Find your receiver anywhere in the world and choose from 5 clients: KiwiSDR/Web-888, OpenWebRX, UberSDR, FM-DX and AirSpy. Watch where the sun is shining and where it's already night.</p>
+                                    <h3 data-i18n="helix.h3">A worldwide receiver network</h3>
+                                    <p data-i18n="helix.p3">Find your receiver anywhere in the world and choose from 5 clients: KiwiSDR/Web-888, OpenWebRX, UberSDR, FM-DX and AirSpy. Watch where the sun is shining and where it's already night.</p>
                                 </div>
                             </article>
                             <article class="helix-step" data-num="04">
-                                <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle"><img src="assets/swr-shot-eq.webp" alt="SwR noise tab with squelch, noise blanker and noise reduction knobs" loading="lazy"><img src="assets/swr-shot-eq-2.webp" alt="SwR spectrum tab with the multi-band graphic equalizer" loading="lazy"></div></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle"><img src="assets/swr-shot-eq.webp" alt="SwR noise tab with squelch, noise blanker and noise reduction knobs" data-i18n-alt="alt.swr4a" loading="lazy"><img src="assets/swr-shot-eq-2.webp" alt="SwR spectrum tab with the multi-band graphic equalizer" data-i18n-alt="alt.swr4b" loading="lazy"></div></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">04</span>
-                                    <h3>Shape the sound</h3>
-                                    <p>A built-in equalizer, adjustable bandwidth, noise reduction and smart scanning. Fine-tune every station until it sounds exactly right.</p>
+                                    <h3 data-i18n="helix.h4">Shape the sound</h3>
+                                    <p data-i18n="helix.p4">A built-in equalizer, adjustable bandwidth, noise reduction and smart scanning. Fine-tune every station until it sounds exactly right.</p>
                                 </div>
                             </article>
                             <article class="helix-step" data-num="05">
-                                <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-pixel.png" alt="SwR pixel-art display mode with dot-matrix spectrum and waterfall" loading="lazy"></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-pixel.png" alt="SwR pixel-art display mode with dot-matrix spectrum and waterfall" data-i18n-alt="alt.swr5" loading="lazy"></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">05</span>
-                                    <h3>Pixel mode</h3>
-                                    <p>A retro monochrome skin that turns the whole receiver into a blocky pixel display. Frequency, spectrum and waterfall - reimagined as glowing dot-matrix art.</p>
+                                    <h3 data-i18n="helix.h5">Pixel mode</h3>
+                                    <p data-i18n="helix.p5">A retro monochrome skin that turns the whole receiver into a blocky pixel display. Frequency, spectrum and waterfall - reimagined as glowing dot-matrix art.</p>
                                 </div>
                             </article>
                             <article class="helix-step" data-num="06">
-                                <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-fm.webp" alt="SwR FM-DX mode with the 87.5-108 MHz tuning dial" loading="lazy"></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-fm.webp" alt="SwR FM-DX mode with the 87.5-108 MHz tuning dial" data-i18n-alt="alt.swr6" loading="lazy"></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">06</span>
                                     <h3>FM-DX</h3>
-                                    <p>FM broadcast radio, right on your phone (87.5-108 MHz). Tuning by hand is fast and lands right on frequency, so drag the dial to hunt for stations.</p>
+                                    <p data-i18n="helix.p6">FM broadcast radio, right on your phone (87.5-108 MHz). Tuning by hand is fast and lands right on frequency, so drag the dial to hunt for stations.</p>
                                 </div>
                             </article>
                             <article class="helix-step" data-num="07">
-                                <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle"><img src="assets/swr-shot-widget.webp" alt="SwR KiwiSDR home-screen widget" loading="lazy"><img src="assets/swr-shot-widget-2.webp" alt="SwR FM-DX home-screen widget" loading="lazy"></div></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle"><img src="assets/swr-shot-widget.webp" alt="SwR KiwiSDR home-screen widget" data-i18n-alt="alt.swr7a" loading="lazy"><img src="assets/swr-shot-widget-2.webp" alt="SwR FM-DX home-screen widget" data-i18n-alt="alt.swr7b" loading="lazy"></div></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">07</span>
-                                    <h3>Widgets</h3>
-                                    <p>Two types for KiwiSDR and FM-DX. Browse the web or do anything else on your phone while the radio keeps playing - and retune any time straight from the widget.</p>
+                                    <h3 data-i18n="helix.h7">Widgets</h3>
+                                    <p data-i18n="helix.p7">Two types for KiwiSDR and FM-DX. Browse the web or do anything else on your phone while the radio keeps playing - and retune any time straight from the widget.</p>
                                 </div>
                             </article>
                             <article class="helix-step" data-num="08">
-                                <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-dongle.webp" alt="SwR running offline with a USB SDR dongle" loading="lazy"></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-dongle.webp" alt="SwR running offline with a USB SDR dongle" data-i18n-alt="alt.swr8" loading="lazy"></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">08</span>
-                                    <h3>Your own USB dongle</h3>
-                                    <p>Plug in an SDR dongle and listen completely offline - no internet, no server, no limits. Just your antenna and the whole band.</p>
+                                    <h3 data-i18n="helix.h8">Your own USB dongle</h3>
+                                    <p data-i18n="helix.p8">Plug in an SDR dongle and listen completely offline - no internet, no server, no limits. Just your antenna and the whole band.</p>
                                 </div>
                             </article>
                             <article class="helix-step" data-num="09">
-                                <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle"><img src="assets/swr-shot-satellite.webp" alt="SwR tracking the Orbcomm FM112 satellite with receivers in range" loading="lazy"><img src="assets/swr-shot-satellite-2.webp" alt="SwR showing the ISS pass with its downlink frequency" loading="lazy"></div></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle"><img src="assets/swr-shot-satellite.webp" alt="SwR tracking the Orbcomm FM112 satellite with receivers in range" data-i18n-alt="alt.swr9a" loading="lazy"><img src="assets/swr-shot-satellite-2.webp" alt="SwR showing the ISS pass with its downlink frequency" data-i18n-alt="alt.swr9b" loading="lazy"></div></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">09</span>
-                                    <h3>Satellite tracking and listening</h3>
-                                    <p>Catch transmissions from orbit right on your phone. Live satellite positions, real passes over your head - and every receiver that can hear them.</p>
+                                    <h3 data-i18n="helix.h9">Satellite tracking and listening</h3>
+                                    <p data-i18n="helix.p9">Catch transmissions from orbit right on your phone. Live satellite positions, real passes over your head - and every receiver that can hear them.</p>
                                 </div>
                             </article>
                             <article class="helix-step" data-num="10">
-                                <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-planes.webp" alt="SwR map of live air traffic over Italy with a Boeing 787 flight detail and the nearest tower frequency" loading="lazy"></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-planes.webp" alt="SwR map of live air traffic over Italy with a Boeing 787 flight detail and the nearest tower frequency" data-i18n-alt="alt.swr10" loading="lazy"></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">10</span>
-                                    <h3>Plane tracking and listening</h3>
-                                    <p>Follow air traffic anywhere in the world. Live aircraft on the map with flight, type, altitude and speed - plus the nearest airport and its tower frequency, so you can tune in and hear the pilots.</p>
+                                    <h3 data-i18n="helix.h10">Plane tracking and listening</h3>
+                                    <p data-i18n="helix.p10">Follow air traffic anywhere in the world. Live aircraft on the map with flight, type, altitude and speed - plus the nearest airport and its tower frequency, so you can tune in and hear the pilots.</p>
                                 </div>
                             </article>
                             <article class="helix-step" data-num="11">
-                                <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-free.webp" alt="SwR free version" loading="lazy"></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-free.webp" alt="SwR free version" data-i18n-alt="alt.swr11" loading="lazy"></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">11</span>
-                                    <h3>Free version</h3>
-                                    <p>Enjoy listening to stations around the world completely free and without ads.</p>
+                                    <h3 data-i18n="helix.h11">Free version</h3>
+                                    <p data-i18n="helix.p11">Enjoy listening to stations around the world completely free and without ads.</p>
                                 </div>
                             </article>
                         </div>
                         <div class="helix-bar"><span></span></div>
                         <div class="helix-counter" aria-hidden="true"><span class="cur">01</span> / 11</div>
-                        <p class="helix-hint" aria-hidden="true">&larr; Drag to turn &rarr;</p>
+                        <p class="helix-hint" aria-hidden="true" data-i18n="hint.drag">&larr; Drag to turn &rarr;</p>
                     </div>
                 </div>
             </div>
 
             <!-- Dominant panel image with 3D scroll tilt -->
             <div class="container">
-                <h2 class="features-title reveal">Not just a receiver.<br>A <em>signal instrument</em>.</h2>
+                <h2 class="features-title reveal" data-i18n="panel.title">Not just a receiver.<br>A <em>signal instrument</em>.</h2>
             </div>
             <div class="panel-showcase">
                 <div class="panel-3d" id="panel3d">
                     <div class="skin-compare" id="skinCompare" style="--pos: 50%">
-                        <img class="skin-compare-img" src="assets/swr-panel-dark.webp" alt="SwR Panel One radio skin in the dark finish, with analog knobs, S-meter and frequency display" width="2382" height="1034">
+                        <img class="skin-compare-img" src="assets/swr-panel-dark.webp" alt="SwR Panel One radio skin in the dark finish, with analog knobs, S-meter and frequency display" data-i18n-alt="alt.panelDark" width="2382" height="1034">
                         <div class="skin-compare-clip skin-compare-clip--dark" aria-hidden="true">
-                            <span class="skin-compare-badge skin-compare-badge--r">Dark</span>
+                            <span class="skin-compare-badge skin-compare-badge--r" data-i18n="panel.dark">Dark</span>
                         </div>
                         <div class="skin-compare-over">
-                            <img class="skin-compare-img" src="assets/swr-panel-white.webp" alt="The same SwR Panel One radio skin in the light finish" width="2382" height="1034">
-                            <span class="skin-compare-badge skin-compare-badge--l" aria-hidden="true">Light</span>
+                            <img class="skin-compare-img" src="assets/swr-panel-white.webp" alt="The same SwR Panel One radio skin in the light finish" data-i18n-alt="alt.panelLight" width="2382" height="1034">
+                            <span class="skin-compare-badge skin-compare-badge--l" aria-hidden="true" data-i18n="panel.light">Light</span>
                         </div>
                         <div class="skin-compare-divider" aria-hidden="true"></div>
                         <button class="skin-compare-handle" type="button" id="skinCompareHandle"
                                 role="slider" aria-orientation="horizontal"
                                 aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"
-                                aria-valuetext="Half light finish, half dark finish"
-                                aria-label="Drag to compare the light and dark finish of Panel One">
+                                aria-valuetext="Half light finish, half dark finish" data-i18n-aria-valuetext="panel.handleValue"
+                                aria-label="Drag to compare the light and dark finish of Panel One" data-i18n-aria-label="panel.handle">
                             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.6 6.4 4.8 12l4.8 5.6 1.5-1.3L7.5 12l3.6-4.3zm4.8 0-1.5 1.3L16.5 12l-3.6 4.3 1.5 1.3L19.2 12z"/></svg>
                         </button>
                     </div>
                 </div>
-                <p class="panel-caption"><strong>Panel One</strong> - one hand-crafted radio skin, two finishes. Drag the divider to switch. Every knob, switch and needle actually works.</p>
+                <p class="panel-caption" data-i18n="panel.caption"><strong>Panel One</strong> - one hand-crafted radio skin, two finishes. Drag the divider to switch. Every knob, switch and needle actually works.</p>
             </div>
 
             <!-- Free vs PRO -->
             <div class="compare container">
                 <div class="compare-head reveal">
-                    <h2>Free or <em>PRO</em>.</h2>
+                    <h2 data-i18n="cmp.title">Free or <em>PRO</em>.</h2>
                 </div>
 
                 <div class="compare-table-wrap reveal">
                     <table class="compare-table">
-                        <caption class="visually-hidden">Feature comparison between the free version of SwR and SwR PRO</caption>
+                        <caption class="visually-hidden" data-i18n="cmp.caption">Feature comparison between the free version of SwR and SwR PRO</caption>
                         <thead>
                             <tr>
-                                <th scope="col">Feature</th>
-                                <th scope="col" class="col-val">Free</th>
-                                <th scope="col" class="col-val col-pro">PRO<small>one-time purchase</small></th>
+                                <th scope="col" data-i18n="cmp.feature">Feature</th>
+                                <th scope="col" class="col-val" data-i18n="cmp.free">Free</th>
+                                <th scope="col" class="col-val col-pro" data-i18n="cmp.pro">PRO<small>one-time purchase</small></th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <th scope="row">Receiver clients<small>KiwiSDR/Web-888, OpenWebRX, UberSDR, FM-DX, AirSpy</small></th>
+                                <th scope="row" data-i18n="cmp.clients">Receiver clients<small>KiwiSDR/Web-888, OpenWebRX, UberSDR, FM-DX, AirSpy</small></th>
                                 <td class="col-val">1<small>KiwiSDR/Web-888</small></td>
-                                <td class="col-val col-pro">5<small>all clients</small></td>
+                                <td class="col-val col-pro" data-i18n="cmp.allClients">5<small>all clients</small></td>
                             </tr>
                             <tr>
-                                <th scope="row">Listening time<small>How long you can stay tuned in</small></th>
+                                <th scope="row" data-i18n="cmp.time">Listening time<small>How long you can stay tuned in</small></th>
                                 <td class="col-val">15 min</td>
-                                <td class="col-val col-pro">Unlimited</td>
+                                <td class="col-val col-pro" data-i18n="cmp.unlimited">Unlimited</td>
                             </tr>
                             <tr>
-                                <th scope="row">No ads</th>
-                                <td class="col-val"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden">Included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden">Included</span></span></td>
+                                <th scope="row" data-i18n="tag.noads">No ads</th>
+                                <td class="col-val"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
+                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
                             </tr>
                             <tr>
-                                <th scope="row">Zero data collection</th>
-                                <td class="col-val"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden">Included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden">Included</span></span></td>
+                                <th scope="row" data-i18n="tag.nodata">Zero data collection</th>
+                                <td class="col-val"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
+                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
                             </tr>
                             <tr>
-                                <th scope="row">Render Radio<small>Hand-crafted skins with working knobs and needles</small></th>
-                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden">Not included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden">Included</span></span></td>
+                                <th scope="row" data-i18n="cmp.render">Render Radio<small>Hand-crafted skins with working knobs and needles</small></th>
+                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden" data-i18n="cmp.no">Not included</span></span></td>
+                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
                             </tr>
                             <tr>
-                                <th scope="row">Pixel graphics<small>Retro dot-matrix display mode</small></th>
-                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden">Not included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden">Included</span></span></td>
+                                <th scope="row" data-i18n="cmp.pixel">Pixel graphics<small>Retro dot-matrix display mode</small></th>
+                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden" data-i18n="cmp.no">Not included</span></span></td>
+                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
                             </tr>
                             <tr>
-                                <th scope="row">Waterfall visuals</th>
+                                <th scope="row" data-i18n="cmp.waterfall">Waterfall visuals</th>
                                 <td class="col-val">1</td>
                                 <td class="col-val col-pro">6</td>
                             </tr>
                             <tr>
-                                <th scope="row">Spectrum visuals</th>
+                                <th scope="row" data-i18n="cmp.spectrum">Spectrum visuals</th>
                                 <td class="col-val">1</td>
                                 <td class="col-val col-pro">6</td>
                             </tr>
                             <tr>
-                                <th scope="row">Widgets for KiwiSDR/Web-888</th>
-                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden">Not included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden">Included</span></span></td>
+                                <th scope="row" data-i18n="cmp.wKiwi">Widgets for KiwiSDR/Web-888</th>
+                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden" data-i18n="cmp.no">Not included</span></span></td>
+                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
                             </tr>
                             <tr>
-                                <th scope="row">Widgets for FM-DX</th>
-                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden">Not included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden">Included</span></span></td>
+                                <th scope="row" data-i18n="cmp.wFm">Widgets for FM-DX</th>
+                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden" data-i18n="cmp.no">Not included</span></span></td>
+                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
                             </tr>
                             <tr>
-                                <th scope="row">Background playback</th>
-                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden">Not included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden">Included</span></span></td>
+                                <th scope="row" data-i18n="cmp.background">Background playback</th>
+                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden" data-i18n="cmp.no">Not included</span></span></td>
+                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
                             </tr>
                             <tr>
-                                <th scope="row">Smart scanning</th>
-                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden">Not included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden">Included</span></span></td>
+                                <th scope="row" data-i18n="cmp.scan">Smart scanning</th>
+                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden" data-i18n="cmp.no">Not included</span></span></td>
+                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
                             </tr>
                             <tr>
-                                <th scope="row">Reception &amp; sound tuning<small>Equalizer, bandwidth, noise reduction</small></th>
-                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden">Not included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden">Included</span></span></td>
+                                <th scope="row" data-i18n="cmp.tuning">Reception &amp; sound tuning<small>Equalizer, bandwidth, noise reduction</small></th>
+                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden" data-i18n="cmp.no">Not included</span></span></td>
+                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
                             </tr>
                             <tr>
-                                <th scope="row">Custom colours</th>
-                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden">Not included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden">Included</span></span></td>
+                                <th scope="row" data-i18n="cmp.colours">Custom colours</th>
+                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden" data-i18n="cmp.no">Not included</span></span></td>
+                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
                             </tr>
                             <tr>
-                                <th scope="row">Smart receiver detection<small>Finds the receiver's location and the band it is tuned to</small></th>
-                                <td class="col-val"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden">Included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden">Included</span></span></td>
+                                <th scope="row" data-i18n="cmp.detect">Smart receiver detection<small>Finds the receiver's location and the band it is tuned to</small></th>
+                                <td class="col-val"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
+                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
                             </tr>
                             <tr>
-                                <th scope="row">Day / night map</th>
-                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden">Not included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden">Included</span></span></td>
+                                <th scope="row" data-i18n="cmp.daynight">Day / night map</th>
+                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden" data-i18n="cmp.no">Not included</span></span></td>
+                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
                             </tr>
                             <tr>
-                                <th scope="row">USB dongle<small>Your own antenna, fully offline</small></th>
-                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden">Not included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden">Included</span></span></td>
+                                <th scope="row" data-i18n="cmp.dongle">USB dongle<small>Your own antenna, fully offline</small></th>
+                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden" data-i18n="cmp.no">Not included</span></span></td>
+                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
                             </tr>
                             <tr>
-                                <th scope="row">Satellites<small>Live tracking and listening</small></th>
-                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden">Not included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden">Included</span></span></td>
+                                <th scope="row" data-i18n="cmp.sat">Satellites<small>Live tracking and listening</small></th>
+                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden" data-i18n="cmp.no">Not included</span></span></td>
+                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
                             </tr>
                             <tr>
-                                <th scope="row">Planes<small>Live air traffic and tower frequencies</small></th>
-                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden">Not included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden">Included</span></span></td>
+                                <th scope="row" data-i18n="cmp.planes">Planes<small>Live air traffic and tower frequencies</small></th>
+                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden" data-i18n="cmp.no">Not included</span></span></td>
+                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
                             </tr>
                             <tr>
-                                <th scope="row">Detailed maps<small>Powered by OpenFreeMap</small></th>
-                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden">Not included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden">Included</span></span></td>
+                                <th scope="row" data-i18n="cmp.maps">Detailed maps<small>Powered by OpenFreeMap</small></th>
+                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden" data-i18n="cmp.no">Not included</span></span></td>
+                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
                             </tr>
                         </tbody>
                     </table>
@@ -2191,11 +2262,11 @@
             <!-- Upcoming -->
             <div class="upcoming container" id="upcoming" hidden style="display: none;">
                 <div class="upcoming-head reveal">
-                    <h2 class="upcoming-title">Upcoming</h2>
+                    <h2 class="upcoming-title" data-i18n="up.title">Upcoming</h2>
                     <button class="upcoming-sound" type="button" id="upcomingSound" aria-pressed="true">
                         <svg class="icon-on" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 2.2v2.1a7.8 7.8 0 0 1 0 15.4v2.1a9.9 9.9 0 0 0 0-19.6z"/></svg>
                         <svg class="icon-off" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4zm15.5 3 2.3-2.3-1.2-1.2-2.3 2.3-2.3-2.3-1.2 1.2 2.3 2.3-2.3 2.3 1.2 1.2 2.3-2.3 2.3 2.3 1.2-1.2-2.3-2.3z"/></svg>
-                        <span>Sound</span>
+                        <span data-i18n="up.sound">Sound</span>
                     </button>
                 </div>
                 <div class="upcoming-stage">
@@ -2203,11 +2274,11 @@
                         <div class="phone-frame"><div class="phone-screen">
                             <!-- TODO: drop a new clip in as assets/swr-satellite.mp4 before unhiding this section -->
                             <video src="assets/swr-satellite.mp4" muted playsinline preload="none"
-                                   aria-label="SwR tracking satellites across the sky"></video>
+                                   aria-label="SwR tracking satellites across the sky" data-i18n-aria-label="up.video"></video>
                         </div></div>
                         <figcaption>
-                            <b>Satellite tracking and listening</b>
-                            Intensive implementation is in process.
+                            <b data-i18n="helix.h9">Satellite tracking and listening</b>
+                            <span data-i18n="up.satNote">Intensive implementation is in process.</span>
                         </figcaption>
                     </figure>
                 </div>
@@ -2219,45 +2290,45 @@
             <div class="appblock tint-orange container" id="swr-watch">
                 <div class="appblock-grid is-flipped">
                     <div class="appblock-text">
-                        <p class="eyebrow reveal">02 · SwR family · Apple Watch</p>
+                        <p class="eyebrow reveal" data-i18n="watch.eyebrow">02 · SwR family · Apple Watch</p>
                         <div class="app-head reveal">
-                            <div class="app-icon"><img src="assets/swrw-icon.webp" alt="SwR Watch app icon" width="512" height="512"></div>
-                            <h2>SwR Watch<span>Shortwave on your wrist</span></h2>
+                            <div class="app-icon"><img src="assets/swrw-icon.webp" alt="SwR Watch app icon" data-i18n-alt="alt.iconWatch" width="512" height="512"></div>
+                            <h2>SwR Watch<span data-i18n="watch.sub">Shortwave on your wrist</span></h2>
                         </div>
-                        <p class="lead reveal">A real shortwave radio on your <strong>Apple Watch</strong>. SwR Watch connects to public KiwiSDR and Web-888 receivers around the world - tune them with the Digital Crown, watch the band and listen, right on your wrist. A standalone watch app: no iPhone, no account, no sign-up.</p>
+                        <p class="lead reveal" data-i18n="watch.lead">A real shortwave radio on your <strong>Apple Watch</strong>. SwR Watch connects to public KiwiSDR and Web-888 receivers around the world - tune them with the Digital Crown, watch the band and listen, right on your wrist. A standalone watch app: no iPhone, no account, no sign-up.</p>
                         <div class="cta-row reveal">
                             <a class="play-btn" href="https://apps.apple.com/app/id6815200455" target="_blank" rel="noopener">
                                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.36 12.68c.02-2.1 1.72-3.11 1.79-3.16-.98-1.43-2.5-1.62-3.04-1.65-1.29-.13-2.53.76-3.18.76-.66 0-1.67-.74-2.75-.72-1.41.02-2.72.82-3.44 2.09-1.47 2.54-.38 6.3 1.05 8.36.7 1.01 1.53 2.14 2.62 2.1 1.05-.04 1.45-.68 2.72-.68 1.27 0 1.63.68 2.74.66 1.13-.02 1.85-1.03 2.54-2.04.8-1.17 1.13-2.3 1.15-2.36-.03-.01-2.2-.85-2.2-3.36zM14.3 6.6c.58-.7.97-1.68.86-2.65-.83.03-1.84.55-2.44 1.25-.54.62-1.01 1.61-.88 2.56.93.07 1.88-.47 2.46-1.16z"/></svg>
-                                <span><small>Download on the</small>App Store</span>
+                                <span><small data-i18n="store.apple">Download on the</small>App Store</span>
                             </a>
                             <div class="buy-badge">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 11V8a5 5 0 0 0-10 0v3"/><rect x="4.5" y="11" width="15" height="9.5" rx="2.5"/><path d="M12 15v2"/></svg>
-                                <p>
+                                <p data-i18n="watch.buy">
                                     <strong>One-time purchase</strong>
                                     Pay once, keep it forever - no subscription.
                                 </p>
                             </div>
                             <div class="tag-row">
-                                <span class="tag">Apple Watch only</span>
-                                <span class="tag">Standalone</span>
-                                <span class="tag">No account</span>
+                                <span class="tag" data-i18n="watch.only">Apple Watch only</span>
+                                <span class="tag" data-i18n="watch.standalone">Standalone</span>
+                                <span class="tag" data-i18n="watch.noAccount">No account</span>
                             </div>
                         </div>
-                        <p class="appblock-note reveal">AM, LSB, USB, CW and NBFM with adjustable bandwidth, volume and squelch. Audio keeps playing with your wrist down, and if a receiver drops you, SwR Watch reconnects or moves to the next best one. A separate app from SwR - Global Radio, with the same spectrum and waterfall look.</p>
+                        <p class="appblock-note reveal" data-i18n="watch.note">AM, LSB, USB, CW and NBFM with adjustable bandwidth, volume and squelch. Audio keeps playing with your wrist down, and if a receiver drops you, SwR Watch reconnects or moves to the next best one. A separate app from SwR - Global Radio, with the same spectrum and waterfall look.</p>
                     </div>
 
                     <div class="appblock-shots" data-rack-split>
                         <figure class="appblock-shot reveal">
-                            <div class="watch"><div class="watch-case"><div class="watch-glass"><div class="watch-screen"><img src="assets/swrw-shot-list.webp" alt="SwR Watch receiver list grouped by country" width="416" height="496" loading="lazy"></div></div></div></div>
-                            <figcaption>Hundreds of receivers, filed by country - nearest first.</figcaption>
+                            <div class="watch"><div class="watch-case"><div class="watch-glass"><div class="watch-screen"><img src="assets/swrw-shot-list.webp" alt="SwR Watch receiver list grouped by country" data-i18n-alt="alt.watch1" width="416" height="496" loading="lazy"></div></div></div></div>
+                            <figcaption data-i18n="watch.fig1">Hundreds of receivers, filed by country - nearest first.</figcaption>
                         </figure>
                         <figure class="appblock-shot raised reveal">
-                            <div class="watch"><div class="watch-case"><div class="watch-glass"><div class="watch-screen"><div class="shot-cycle"><img src="assets/swrw-shot-spectrum.webp" alt="SwR Watch live spectrum and waterfall tuned to 9755 kHz" width="416" height="496" loading="lazy"><img src="assets/swrw-shot-spectrum-2.webp" alt="SwR Watch tuned to Voice of Turkey on 9765 kHz" width="416" height="496" loading="lazy"></div></div></div></div></div>
-                            <figcaption>Live spectrum and waterfall, tuned with the Digital Crown.</figcaption>
+                            <div class="watch"><div class="watch-case"><div class="watch-glass"><div class="watch-screen"><div class="shot-cycle"><img src="assets/swrw-shot-spectrum.webp" alt="SwR Watch live spectrum and waterfall tuned to 9755 kHz" data-i18n-alt="alt.watch2a" width="416" height="496" loading="lazy"><img src="assets/swrw-shot-spectrum-2.webp" alt="SwR Watch tuned to Voice of Turkey on 9765 kHz" data-i18n-alt="alt.watch2b" width="416" height="496" loading="lazy"></div></div></div></div></div>
+                            <figcaption data-i18n="watch.fig2">Live spectrum and waterfall, tuned with the Digital Crown.</figcaption>
                         </figure>
                         <figure class="appblock-shot reveal">
-                            <div class="watch"><div class="watch-case"><div class="watch-glass"><div class="watch-screen"><div class="shot-cycle"><img src="assets/swrw-shot-map.webp" alt="SwR Watch map of receivers in Florida" width="416" height="496" loading="lazy"><img src="assets/swrw-shot-controls.webp" alt="SwR Watch volume and squelch controls" width="416" height="496" loading="lazy"></div></div></div></div></div>
-                            <figcaption>The whole fleet on a map, plus volume, squelch and bandwidth.</figcaption>
+                            <div class="watch"><div class="watch-case"><div class="watch-glass"><div class="watch-screen"><div class="shot-cycle"><img src="assets/swrw-shot-map.webp" alt="SwR Watch map of receivers in Florida" data-i18n-alt="alt.watch3a" width="416" height="496" loading="lazy"><img src="assets/swrw-shot-controls.webp" alt="SwR Watch volume and squelch controls" data-i18n-alt="alt.watch3b" width="416" height="496" loading="lazy"></div></div></div></div></div>
+                            <figcaption data-i18n="watch.fig3">The whole fleet on a map, plus volume, squelch and bandwidth.</figcaption>
                         </figure>
                     </div>
                 </div>
@@ -2269,40 +2340,40 @@
             <div class="appblock container" id="cma">
                 <div class="appblock-grid">
                     <div class="appblock-text">
-                        <p class="eyebrow reveal">03 · New from Kruen</p>
+                        <p class="eyebrow reveal" data-i18n="cma.eyebrow">03 · New from Kruen</p>
                         <div class="app-head reveal">
-                            <div class="app-icon-wrap"><div class="app-icon"><img src="assets/cma-icon.webp" alt="CmA app icon" width="512" height="512"></div><span class="free-badge">Free</span></div>
+                            <div class="app-icon-wrap"><div class="app-icon"><img src="assets/cma-icon.webp" alt="CmA app icon" data-i18n-alt="alt.iconCma" width="512" height="512"></div><span class="free-badge" data-i18n="cmp.free">Free</span></div>
                             <h2>CmA<span>Crypto Market Analysis</span></h2>
                         </div>
-                        <p class="lead reveal">CmA rates 500+ coins traded on Binance by their fundamentals - a single <strong>Fundamental Radar</strong> score from <strong>0 to 100</strong> - and shows you exactly how that number was reached. It weighs quality (is the product really used, does it earn money, does the token benefit?) against mispricing (is the price reasonable, how much new supply is coming?), and compares each coin only with its own kind.</p>
+                        <p class="lead reveal" data-i18n="cma.lead">CmA rates 500+ coins traded on Binance by their fundamentals - a single <strong>Fundamental Radar</strong> score from <strong>0 to 100</strong> - and shows you exactly how that number was reached. It weighs quality (is the product really used, does it earn money, does the token benefit?) against mispricing (is the price reasonable, how much new supply is coming?), and compares each coin only with its own kind.</p>
                         <div class="cta-row reveal">
                             <a class="play-btn" href="https://play.google.com/store/apps/details?id=com.kruen.cma" target="_blank" rel="noopener">
                                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.6 1.8c-.4.2-.6.6-.6 1.1v18.2c0 .5.2.9.6 1.1l10-10.2L3.6 1.8zm11.3 8.9l2.7-2.7-11-6.3 8.3 9zm3.9-1.5l-3 3 3 3 2.6-1.5c.8-.5.8-2.5 0-3l-2.6-1.5zm-4.2 4.2l-8.3 9 11-6.3-2.7-2.7z"/></svg>
-                                <span><small>Get it on</small>Google Play</span>
+                                <span><small data-i18n="store.google">Get it on</small>Google Play</span>
                             </a>
                             <span class="play-btn is-soon">
                                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.36 12.68c.02-2.1 1.72-3.11 1.79-3.16-.98-1.43-2.5-1.62-3.04-1.65-1.29-.13-2.53.76-3.18.76-.66 0-1.67-.74-2.75-.72-1.41.02-2.72.82-3.44 2.09-1.47 2.54-.38 6.3 1.05 8.36.7 1.01 1.53 2.14 2.62 2.1 1.05-.04 1.45-.68 2.72-.68 1.27 0 1.63.68 2.74.66 1.13-.02 1.85-1.03 2.54-2.04.8-1.17 1.13-2.3 1.15-2.36-.03-.01-2.2-.85-2.2-3.36zM14.3 6.6c.58-.7.97-1.68.86-2.65-.83.03-1.84.55-2.44 1.25-.54.62-1.01 1.61-.88 2.56.93.07 1.88-.47 2.46-1.16z"/></svg>
-                                <span><small>Coming soon to the</small>App Store</span>
+                                <span><small data-i18n="store.soon">Coming soon to the</small>App Store</span>
                             </span>
                             <div class="tag-row">
-                                <span class="tag">No ads</span>
-                                <span class="tag">Zero data collection</span>
+                                <span class="tag" data-i18n="tag.noads">No ads</span>
+                                <span class="tag" data-i18n="tag.nodata">Zero data collection</span>
                             </div>
                         </div>
-                        <p class="appblock-note reveal">Missing values are never estimated - they lower Confidence instead, and a coin without the data gets no score at all. Every score is broken down on the coin's detail page with the reasons, the risks and the caveats behind it. It is an analytical tool computed from public data - not a prediction and not investment advice.</p>
+                        <p class="appblock-note reveal" data-i18n="cma.note">Missing values are never estimated - they lower Confidence instead, and a coin without the data gets no score at all. Every score is broken down on the coin's detail page with the reasons, the risks and the caveats behind it. It is an analytical tool computed from public data - not a prediction and not investment advice.</p>
                     </div>
                     <div class="appblock-shots" data-rack-split>
                         <figure class="appblock-shot reveal">
-                            <div class="phone-frame"><div class="phone-screen"><img src="assets/cma-shot-list.webp" alt="CmA coin list with the Fear and Greed index and a Radar score ring next to every coin" width="720" height="1600" loading="lazy"></div></div>
-                            <figcaption>500+ coins with live prices and the Fear &amp; Greed index, sorted by market cap, Radar score or 24h change.</figcaption>
+                            <div class="phone-frame"><div class="phone-screen"><img src="assets/cma-shot-list.webp" alt="CmA coin list with the Fear and Greed index and a Radar score ring next to every coin" data-i18n-alt="alt.cma1" width="720" height="1600" loading="lazy"></div></div>
+                            <figcaption data-i18n="cma.fig1">500+ coins with live prices and the Fear &amp; Greed index, sorted by market cap, Radar score or 24h change.</figcaption>
                         </figure>
                         <figure class="appblock-shot raised reveal">
-                            <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle"><img src="assets/cma-shot-radar.webp" alt="CmA Fundamental Radar for Dogecoin with its score and the metrics behind it" width="720" height="1600" loading="lazy"><img src="assets/cma-shot-detail.webp" alt="CmA coin detail with a price chart and a plain-language note on what the project is for" width="720" height="1600" loading="lazy"></div></div></div>
-                            <figcaption>The Fundamental Radar broken down, price charts up to the coin's full history and a plain-language profile of the project.</figcaption>
+                            <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle"><img src="assets/cma-shot-radar.webp" alt="CmA Fundamental Radar for Dogecoin with its score and the metrics behind it" data-i18n-alt="alt.cma2a" width="720" height="1600" loading="lazy"><img src="assets/cma-shot-detail.webp" alt="CmA coin detail with a price chart and a plain-language note on what the project is for" data-i18n-alt="alt.cma2b" width="720" height="1600" loading="lazy"></div></div></div>
+                            <figcaption data-i18n="cma.fig2">The Fundamental Radar broken down, price charts up to the coin's full history and a plain-language profile of the project.</figcaption>
                         </figure>
                         <figure class="appblock-shot reveal">
-                            <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle"><img src="assets/cma-shot-widget.webp" alt="CmA home-screen widget with live prices for a watchlist of coins" width="720" height="1600" loading="lazy"><img src="assets/cma-shot-widget-2.webp" alt="CmA home-screen widget with the Monero price chart" width="720" height="1600" loading="lazy"></div></div></div>
-                            <figcaption>Home-screen widgets - your starred coins with live prices, or one coin's chart.</figcaption>
+                            <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle"><img src="assets/cma-shot-widget.webp" alt="CmA home-screen widget with live prices for a watchlist of coins" data-i18n-alt="alt.cma3a" width="720" height="1600" loading="lazy"><img src="assets/cma-shot-widget-2.webp" alt="CmA home-screen widget with the Monero price chart" data-i18n-alt="alt.cma3b" width="720" height="1600" loading="lazy"></div></div></div>
+                            <figcaption data-i18n="cma.fig3">Home-screen widgets - your starred coins with live prices, or one coin's chart.</figcaption>
                         </figure>
                     </div>
                 </div>
@@ -2314,37 +2385,37 @@
             <div class="appblock tint-green container" id="pbh">
                 <div class="appblock-grid is-flipped">
                     <div class="appblock-text">
-                        <p class="eyebrow reveal">04 · New from Kruen</p>
+                        <p class="eyebrow reveal" data-i18n="pbh.eyebrow">04 · New from Kruen</p>
                         <div class="app-head reveal">
-                            <div class="app-icon-wrap"><div class="app-icon"><img src="assets/pbh-icon.webp" alt="PBH app icon" width="512" height="512"></div><span class="free-badge">Free</span></div>
+                            <div class="app-icon-wrap"><div class="app-icon"><img src="assets/pbh-icon.webp" alt="PBH app icon" data-i18n-alt="alt.iconPbh" width="512" height="512"></div><span class="free-badge" data-i18n="cmp.free">Free</span></div>
                             <h2>PBH<span>Phone Battery Health</span></h2>
                         </div>
-                        <p class="lead reveal">How much of its factory capacity has your battery actually lost? PBH reads the <strong>fuel gauge chip</strong> directly - charge counter, voltage, temperature - estimates the real full capacity in mAh and follows it over time.</p>
+                        <p class="lead reveal" data-i18n="pbh.lead">How much of its factory capacity has your battery actually lost? PBH reads the <strong>fuel gauge chip</strong> directly - charge counter, voltage, temperature - estimates the real full capacity in mAh and follows it over time.</p>
                         <div class="cta-row reveal">
                             <a class="play-btn" href="https://play.google.com/store/apps/details?id=com.kruen.pbh" target="_blank" rel="noopener">
                                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.6 1.8c-.4.2-.6.6-.6 1.1v18.2c0 .5.2.9.6 1.1l10-10.2L3.6 1.8zm11.3 8.9l2.7-2.7-11-6.3 8.3 9zm3.9-1.5l-3 3 3 3 2.6-1.5c.8-.5.8-2.5 0-3l-2.6-1.5zm-4.2 4.2l-8.3 9 11-6.3-2.7-2.7z"/></svg>
-                                <span><small>Get it on</small>Google Play</span>
+                                <span><small data-i18n="store.google">Get it on</small>Google Play</span>
                             </a>
                             <div class="tag-row">
                                 <span class="tag">Android</span>
-                                <span class="tag">No ads</span>
-                                <span class="tag">Zero data collection</span>
+                                <span class="tag" data-i18n="tag.noads">No ads</span>
+                                <span class="tag" data-i18n="tag.nodata">Zero data collection</span>
                             </div>
                         </div>
-                        <p class="appblock-note reveal">Every reading stays on the phone - there is no account, no server and nothing to upload.</p>
+                        <p class="appblock-note reveal" data-i18n="pbh.note">Every reading stays on the phone - there is no account, no server and nothing to upload.</p>
                     </div>
                     <div class="appblock-shots">
                         <figure class="appblock-shot reveal">
-                            <div class="phone-frame"><div class="phone-screen"><img src="assets/pbh-shot-health.webp" alt="PBH home screen with a battery health ring at 86 percent and the current status" width="720" height="1600" loading="lazy"></div></div>
-                            <figcaption>Battery health, charge, temperature, voltage and estimated full capacity.</figcaption>
+                            <div class="phone-frame"><div class="phone-screen"><img src="assets/pbh-shot-health.webp" alt="PBH home screen with a battery health ring at 86 percent and the current status" data-i18n-alt="alt.pbh1" width="720" height="1600" loading="lazy"></div></div>
+                            <figcaption data-i18n="pbh.fig1">Battery health, charge, temperature, voltage and estimated full capacity.</figcaption>
                         </figure>
                         <figure class="appblock-shot raised reveal">
-                            <div class="phone-frame"><div class="phone-screen"><img src="assets/pbh-shot-power.webp" alt="PBH live power draw screen showing current in milliamps next to display, network and thermal context" width="720" height="1600" loading="lazy"></div></div>
-                            <figcaption>Live power draw next to everything that explains it.</figcaption>
+                            <div class="phone-frame"><div class="phone-screen"><img src="assets/pbh-shot-power.webp" alt="PBH live power draw screen showing current in milliamps next to display, network and thermal context" data-i18n-alt="alt.pbh2" width="720" height="1600" loading="lazy"></div></div>
+                            <figcaption data-i18n="pbh.fig2">Live power draw next to everything that explains it.</figcaption>
                         </figure>
                         <figure class="appblock-shot reveal">
-                            <div class="phone-frame"><div class="phone-screen"><img src="assets/pbh-shot-widget.webp" alt="The PBH Pulse home-screen widget with a power draw graph and 60S, 24H and 1W ranges" width="720" height="1600" loading="lazy"></div></div>
-                            <figcaption>PBH Pulse on the home screen, with 60&nbsp;s, 24&nbsp;h and 1&nbsp;week ranges.</figcaption>
+                            <div class="phone-frame"><div class="phone-screen"><img src="assets/pbh-shot-widget.webp" alt="The PBH Pulse home-screen widget with a power draw graph and 60S, 24H and 1W ranges" data-i18n-alt="alt.pbh3" width="720" height="1600" loading="lazy"></div></div>
+                            <figcaption data-i18n="pbh.fig3">PBH Pulse on the home screen, with 60&nbsp;s, 24&nbsp;h and 1&nbsp;week ranges.</figcaption>
                         </figure>
                     </div>
                 </div>
@@ -2358,15 +2429,15 @@
             <div class="container">
                 <div class="about-grid">
                     <div class="reveal">
-                        <p class="eyebrow">About</p>
-                        <p>Kruen is a small studio based in the Czech Republic. We bring European quality and precision to mobile app development - traditional engineering craft combined with modern technology.</p>
-                        <p>Our commitment to clean, ethical development means <strong>no ads, no hidden fees, no additional payments</strong>. And above all: <strong>we do not collect any user data.</strong> No tracking, no analytics, no data harvesting. What you do with our apps stays with you.</p>
+                        <p class="eyebrow" data-i18n="nav.about">About</p>
+                        <p data-i18n="about.p1">Kruen is a small studio based in the Czech Republic. We bring European quality and precision to mobile app development - traditional engineering craft combined with modern technology.</p>
+                        <p data-i18n="about.p2">Our commitment to clean, ethical development means <strong>no ads, no hidden fees, no additional payments</strong>. And above all: <strong>we do not collect any user data.</strong> No tracking, no analytics, no data harvesting. What you do with our apps stays with you.</p>
                     </div>
                     <ul class="about-list">
-                        <li class="reveal">Security-first development</li>
-                        <li class="reveal">Privacy-by-design architecture</li>
-                        <li class="reveal">Ad-free user experience</li>
-                        <li class="reveal">Zero data collection</li>
+                        <li class="reveal" data-i18n="about.l1">Security-first development</li>
+                        <li class="reveal" data-i18n="about.l2">Privacy-by-design architecture</li>
+                        <li class="reveal" data-i18n="about.l3">Ad-free user experience</li>
+                        <li class="reveal" data-i18n="tag.nodata">Zero data collection</li>
                     </ul>
                 </div>
                 <div class="footer-row">
@@ -2382,6 +2453,232 @@
         </section>
         </main>
     </div>
+
+    <script>
+    // ===================================================================
+    // LANGUAGE (EN / CS)
+    // English lives in the markup; Czech is in the table below. An element
+    // with data-i18n="key" gets its inner HTML swapped, data-i18n-<attr>
+    // swaps that attribute. Add a language by adding a table and a button.
+    // ===================================================================
+    window.I18N = (function() {
+        var STRINGS = {
+            en: {
+                "js.tapSound": "Tap for sound",
+                "js.finishDark": "Dark finish only",
+                "js.finishLight": "Light finish only",
+                "js.finishMix": "{l}% light finish, {d}% dark finish"
+            },
+            cs: {
+                "nav.about": "O nás",
+                "ui.move": "pohyb",
+                "hero.sub": "Návrh a vývoj aplikací pro Android a iOS",
+                "swr.eyebrow": "01 · Vlajková aplikace",
+                "swr.buy": "<strong>PRO je jednorázový nákup</strong> Zaplatíte jednou a máte navždy – žádné předplatné.",
+                "swr.lead": "Nalaďte si <strong>skutečné rádiové přijímače</strong> po celém světě – živě, ve svém telefonu. SwR se připojí ke stovkám přijímačů přes pět klientů – KiwiSDR/Web-888, OpenWebRX, UberSDR, FM-DX a AirSpy – a z ionosféry udělá váš osobní poslechový pokoj.",
+                "store.apple": "Stáhněte v",
+                "store.google": "Nyní na",
+                "store.soon": "Brzy v",
+                "tag.noads": "Bez reklam",
+                "tag.nodata": "Žádný sběr dat",
+                "swr.family": "Také pro Apple Watch: <b>SwR Watch</b> – samostatná aplikace",
+                "helix.h1": "Živé spektrum a vodopád",
+                "helix.p1": "Sledujte, jak celé pásmo dýchá v reálném čase. Zářící displej frekvence, autentický S-metr a plný vodopád – lov signálů jako na opravdovém přijímači.",
+                "helix.h2": "Různé typy vodopádů a spekter",
+                "helix.p2": "Přepněte vodopád na plynoucí 3D krajinu nebo hypnotickou 4D deformaci. Rádiové spektrum v telefonu nikdy nevypadalo tak dobře.",
+                "helix.h3": "Celosvětová síť přijímačů",
+                "helix.p3": "Najděte si přijímač kdekoli na světě a vyberte z 5 klientů: KiwiSDR/Web-888, OpenWebRX, UberSDR, FM-DX a AirSpy. Sledujte, kde svítí slunce a kde už je noc.",
+                "helix.h4": "Vytvarujte si zvuk",
+                "helix.p4": "Vestavěný ekvalizér, nastavitelná šířka pásma, potlačení šumu a chytré skenování. Dolaďte každou stanici, dokud nezní přesně tak, jak má.",
+                "helix.h5": "Pixelový režim",
+                "helix.p5": "Retro jednobarevný vzhled, který z celého přijímače udělá kostičkový pixelový displej. Frekvence, spektrum i vodopád – nově jako zářící bodová grafika.",
+                "helix.p6": "FM rozhlas přímo ve vašem telefonu (87,5–108 MHz). Ruční ladění je rychlé a trefí se přesně na frekvenci – stačí potáhnout stupnici a hledat stanice.",
+                "helix.h7": "Widgety",
+                "helix.p7": "Dva typy pro KiwiSDR a FM-DX. Brouzdejte po webu nebo dělejte v telefonu cokoli jiného, zatímco rádio hraje dál – a přelaďte kdykoli přímo z widgetu.",
+                "helix.h8": "Vlastní USB dongle",
+                "helix.p8": "Připojte SDR dongle a poslouchejte úplně offline – bez internetu, bez serveru, bez omezení. Jen vaše anténa a celé pásmo.",
+                "helix.h9": "Sledování a poslech satelitů",
+                "helix.p9": "Zachyťte vysílání z oběžné dráhy přímo v telefonu. Živé polohy satelitů, skutečné přelety nad vaší hlavou – a každý přijímač, který je slyší.",
+                "helix.h10": "Sledování a poslech letadel",
+                "helix.p10": "Sledujte letový provoz kdekoli na světě. Letadla živě na mapě s číslem letu, typem, výškou a rychlostí – a k tomu nejbližší letiště a frekvence jeho věže, takže si můžete naladit a slyšet piloty.",
+                "helix.h11": "Verze zdarma",
+                "helix.p11": "Poslouchejte stanice z celého světa úplně zdarma a bez reklam.",
+                "hint.drag": "&larr; Táhněte pro otočení &rarr;",
+                "panel.title": "Nejen přijímač.<br>Skutečný <em>nástroj na signály</em>.",
+                "panel.dark": "Tmavý",
+                "panel.light": "Světlý",
+                "panel.caption": "<strong>Panel One</strong> – jeden ručně vytvořený vzhled rádia, dvě provedení. Přepnete je tažením dělicí čáry. Každý knoflík, přepínač i ručička opravdu funguje.",
+                "cmp.title": "Zdarma, nebo <em>PRO</em>.",
+                "cmp.caption": "Srovnání funkcí bezplatné verze SwR a SwR PRO",
+                "cmp.feature": "Funkce",
+                "cmp.free": "Zdarma",
+                "cmp.pro": "PRO<small>jednorázový nákup</small>",
+                "cmp.clients": "Klienti přijímačů<small>KiwiSDR/Web-888, OpenWebRX, UberSDR, FM-DX, AirSpy</small>",
+                "cmp.allClients": "5<small>všichni klienti</small>",
+                "cmp.time": "Doba poslechu<small>Jak dlouho můžete zůstat naladění</small>",
+                "cmp.unlimited": "Neomezeně",
+                "cmp.yes": "Ano",
+                "cmp.no": "Ne",
+                "cmp.render": "Render Radio<small>Ručně vytvořené vzhledy s funkčními knoflíky a ručičkami</small>",
+                "cmp.pixel": "Pixelová grafika<small>Retro režim bodového displeje</small>",
+                "cmp.waterfall": "Vzhledy vodopádu",
+                "cmp.spectrum": "Vzhledy spektra",
+                "cmp.wKiwi": "Widgety pro KiwiSDR/Web-888",
+                "cmp.wFm": "Widgety pro FM-DX",
+                "cmp.background": "Přehrávání na pozadí",
+                "cmp.scan": "Chytré skenování",
+                "cmp.tuning": "Ladění příjmu a zvuku<small>Ekvalizér, šířka pásma, potlačení šumu</small>",
+                "cmp.colours": "Vlastní barvy",
+                "cmp.detect": "Chytrá detekce přijímače<small>Zjistí polohu přijímače a pásmo, na které je naladěn</small>",
+                "cmp.daynight": "Mapa dne a noci",
+                "cmp.dongle": "USB dongle<small>Vlastní anténa, zcela offline</small>",
+                "cmp.sat": "Satelity<small>Živé sledování a poslech</small>",
+                "cmp.planes": "Letadla<small>Živý letový provoz a frekvence věží</small>",
+                "cmp.maps": "Podrobné mapy<small>Využívá OpenFreeMap</small>",
+                "up.title": "Připravujeme",
+                "up.sound": "Zvuk",
+                "up.satNote": "Intenzivně na tom pracujeme.",
+                "watch.eyebrow": "02 · Rodina SwR · Apple Watch",
+                "watch.sub": "Krátké vlny na zápěstí",
+                "watch.lead": "Skutečné krátkovlnné rádio na vašich <strong>Apple Watch</strong>. SwR Watch se připojuje k veřejným přijímačům KiwiSDR a Web-888 po celém světě – laďte je korunkou Digital Crown, sledujte pásmo a poslouchejte přímo na zápěstí. Samostatná aplikace pro hodinky: bez iPhonu, bez účtu, bez registrace.",
+                "watch.buy": "<strong>Jednorázový nákup</strong> Zaplatíte jednou a máte navždy – žádné předplatné.",
+                "watch.only": "Jen pro Apple Watch",
+                "watch.standalone": "Samostatná",
+                "watch.noAccount": "Bez účtu",
+                "watch.note": "AM, LSB, USB, CW a NBFM s nastavitelnou šířkou pásma, hlasitostí a squelchem. Zvuk hraje dál i se spuštěnou rukou, a když vás přijímač odpojí, SwR Watch se znovu připojí nebo přejde na nejbližší vhodný. Samostatná aplikace, oddělená od SwR – Global Radio, se stejným vzhledem spektra a vodopádu.",
+                "watch.fig1": "Stovky přijímačů seřazených podle zemí – nejbližší první.",
+                "watch.fig2": "Živé spektrum a vodopád, ladění korunkou Digital Crown.",
+                "watch.fig3": "Všechny přijímače na mapě, k tomu hlasitost, squelch a šířka pásma.",
+                "cma.eyebrow": "03 · Novinka od Kruen",
+                "cma.lead": "CmA hodnotí přes 500 kryptoměn obchodovaných na Binance podle fundamentů – jediným skóre <strong>Fundamental Radar</strong> od <strong>0 do 100</strong> – a přesně ukáže, jak k tomuto číslu došlo. Porovnává kvalitu (používá se produkt opravdu, vydělává peníze, má z toho token užitek?) s chybným oceněním (je cena přiměřená, kolik nové nabídky přibude?) a každou minci srovnává jen s jí podobnými.",
+                "cma.note": "Chybějící hodnoty se nikdy neodhadují – místo toho snižují Confidence (spolehlivost) a mince bez dat nedostane skóre vůbec. Každé skóre je na detailu mince rozebrané i s důvody, riziky a výhradami. Jde o analytický nástroj počítaný z veřejných dat – nikoli o předpověď ani investiční doporučení.",
+                "cma.fig1": "Přes 500 mincí s živými cenami a indexem Fear &amp; Greed, řazení podle tržní kapitalizace, skóre Radar nebo změny za 24 h.",
+                "cma.fig2": "Rozbor Fundamental Radaru, cenové grafy až po celou historii mince a srozumitelný profil projektu.",
+                "cma.fig3": "Widgety na plochu – oblíbené mince s živými cenami, nebo graf jedné mince.",
+                "pbh.eyebrow": "04 · Novinka od Kruen",
+                "pbh.lead": "Kolik ze své tovární kapacity vaše baterie doopravdy ztratila? PBH čte přímo <strong>čip měřiče nabití</strong> – čítač náboje, napětí, teplotu – odhadne skutečnou plnou kapacitu v mAh a sleduje ji v čase.",
+                "pbh.note": "Všechna měření zůstávají v telefonu – žádný účet, žádný server a nic se nikam neodesílá.",
+                "pbh.fig1": "Zdraví baterie, nabití, teplota, napětí a odhadovaná plná kapacita.",
+                "pbh.fig2": "Živý odběr proudu vedle všeho, co ho vysvětluje.",
+                "pbh.fig3": "PBH Pulse na ploše s rozsahy 60&nbsp;s, 24&nbsp;h a 1&nbsp;týden.",
+                "about.p1": "Kruen je malé studio z České republiky. Do vývoje mobilních aplikací přinášíme evropskou kvalitu a preciznost – tradiční inženýrské řemeslo spojené s moderní technologií.",
+                "about.p2": "Čistý a etický vývoj pro nás znamená <strong>žádné reklamy, žádné skryté poplatky, žádné dodatečné platby</strong>. A především: <strong>nesbíráme žádná uživatelská data.</strong> Žádné sledování, žádná analytika, žádné vytěžování dat. Co ve svých aplikacích děláte, zůstává jen u vás.",
+                "about.l1": "Vývoj s důrazem na bezpečnost",
+                "about.l2": "Ochrana soukromí už od návrhu",
+                "about.l3": "Používání bez reklam",
+                "meta.description": "Kruen – návrh a vývoj aplikací pro Android a iOS z České republiky. Tvůrci aplikací SwR Global Radio, CmA Crypto Market Analysis a PBH Phone Battery Health.",
+                "a.top": "Kruen – zpět nahoru",
+                "a.chipWatch": "SwR Watch – pro Apple Watch",
+                "alt.iconSwr": "Ikona aplikace SwR",
+                "alt.iconWatch": "Ikona aplikace SwR Watch",
+                "alt.iconCma": "Ikona aplikace CmA",
+                "alt.iconPbh": "Ikona aplikace PBH",
+                "alt.swr1": "SwR – živé spektrum a vodopád",
+                "alt.swr2a": "Panel přizpůsobení v SwR s volbami stylu spektra a vodopádu",
+                "alt.swr2b": "SwR s jiným stylem vodopádu a otevřeným panelem skenování",
+                "alt.swr3a": "3D glóbus v SwR s přijímači KiwiSDR v Asii a hranicí dne a noci",
+                "alt.swr3b": "Mapa SwR přiblížená na italské přijímače s detailem stanice",
+                "alt.swr4a": "Karta šumu v SwR s knoflíky squelch, noise blanker a potlačení šumu",
+                "alt.swr4b": "Karta spektra v SwR s vícepásmovým grafickým ekvalizérem",
+                "alt.swr5": "Pixelový režim SwR s bodovým spektrem a vodopádem",
+                "alt.swr6": "Režim FM-DX v SwR s ladicí stupnicí 87,5–108 MHz",
+                "alt.swr7a": "Widget SwR pro KiwiSDR na ploše",
+                "alt.swr7b": "Widget SwR pro FM-DX na ploše",
+                "alt.swr8": "SwR běžící offline s USB SDR donglem",
+                "alt.swr9a": "SwR sleduje satelit Orbcomm FM112 s přijímači v dosahu",
+                "alt.swr9b": "SwR ukazuje přelet ISS s frekvencí downlinku",
+                "alt.swr10": "Mapa SwR s živým letovým provozem nad Itálií, detailem letu Boeingu 787 a frekvencí nejbližší věže",
+                "alt.swr11": "SwR – verze zdarma",
+                "alt.panelDark": "Vzhled rádia SwR Panel One v tmavém provedení s analogovými knoflíky, S-metrem a displejem frekvence",
+                "alt.panelLight": "Stejný vzhled SwR Panel One ve světlém provedení",
+                "panel.handleValue": "Napůl světlé, napůl tmavé provedení",
+                "panel.handle": "Tažením porovnáte světlé a tmavé provedení Panel One",
+                "up.video": "SwR sleduje satelity na obloze",
+                "alt.watch1": "Seznam přijímačů v SwR Watch seskupený podle zemí",
+                "alt.watch2a": "SwR Watch – živé spektrum a vodopád na 9755 kHz",
+                "alt.watch2b": "SwR Watch naladěné na Voice of Turkey na 9765 kHz",
+                "alt.watch3a": "SwR Watch – mapa přijímačů na Floridě",
+                "alt.watch3b": "SwR Watch – ovládání hlasitosti a squelche",
+                "alt.cma1": "Seznam mincí v CmA s indexem Fear and Greed a kroužkem skóre Radar u každé mince",
+                "alt.cma2a": "Fundamental Radar v CmA pro Dogecoin se skóre a metrikami, ze kterých vychází",
+                "alt.cma2b": "Detail mince v CmA s cenovým grafem a srozumitelným popisem, k čemu projekt slouží",
+                "alt.cma3a": "Widget CmA na ploše s živými cenami sledovaných mincí",
+                "alt.cma3b": "Widget CmA na ploše s cenovým grafem Monera",
+                "alt.pbh1": "Hlavní obrazovka PBH s kroužkem zdraví baterie na 86 % a aktuálním stavem",
+                "alt.pbh2": "Obrazovka PBH s živým odběrem proudu v miliampérech vedle údajů o displeji, síti a teplotě",
+                "alt.pbh3": "Widget PBH Pulse na ploše s grafem odběru a rozsahy 60 s, 24 h a 1 týden",
+                "js.tapSound": "Klepněte pro zvuk",
+                "js.finishDark": "Jen tmavé provedení",
+                "js.finishLight": "Jen světlé provedení",
+                "js.finishMix": "{l} % světlé provedení, {d} % tmavé provedení"
+            }
+        };
+        var ATTRS = ['alt', 'title', 'aria-label', 'aria-valuetext', 'content'];
+        var english = {};
+        var lang = STRINGS[window.__lang] ? window.__lang : 'en';
+
+        function each(fn) {
+            document.querySelectorAll('[data-i18n]').forEach(function(el) {
+                fn(el, null, el.getAttribute('data-i18n'));
+            });
+            ATTRS.forEach(function(attr) {
+                document.querySelectorAll('[data-i18n-' + attr + ']').forEach(function(el) {
+                    fn(el, attr, el.getAttribute('data-i18n-' + attr));
+                });
+            });
+        }
+
+        function t(key, vars) {
+            var s = STRINGS[lang][key];
+            if (s == null) s = english[key];
+            if (s == null) s = STRINGS.en[key];
+            if (s == null) s = key;
+            if (vars) s = s.replace(/\{(\w+)\}/g, function(m, k) { return k in vars ? vars[k] : m; });
+            return s;
+        }
+
+        function apply() {
+            each(function(el, attr, key) {
+                var value = t(key);
+                if (attr) {
+                    if (el.getAttribute(attr) !== value) el.setAttribute(attr, value);
+                } else if (el.innerHTML !== value) {
+                    el.innerHTML = value;
+                }
+            });
+            document.documentElement.lang = lang;
+            document.querySelectorAll('.lang-switch [data-lang]').forEach(function(btn) {
+                btn.setAttribute('aria-pressed', String(btn.getAttribute('data-lang') === lang));
+            });
+        }
+
+        function set(next) {
+            if (!STRINGS[next] || next === lang) return;
+            lang = next;
+            try { localStorage.setItem('lang', next); } catch (e) {}
+            try {
+                var url = new URL(location.href);
+                url.searchParams.set('lang', next);
+                history.replaceState(history.state, '', url);
+            } catch (e) {}
+            apply();
+            document.dispatchEvent(new CustomEvent('langchange', { detail: lang }));
+        }
+
+        // Remember the English wording before anything gets translated
+        each(function(el, attr, key) {
+            if (!(key in english)) english[key] = attr ? el.getAttribute(attr) : el.innerHTML;
+        });
+        apply();
+        document.documentElement.classList.remove('i18n-pending');
+
+        document.querySelectorAll('.lang-switch [data-lang]').forEach(function(btn) {
+            btn.addEventListener('click', function() { set(btn.getAttribute('data-lang')); });
+        });
+
+        return { t: t, set: set, get lang() { return lang; } };
+    })();
+    </script>
 
     <script>
     // ===================================================================
@@ -2641,7 +2938,7 @@
             soundBtn.setAttribute('aria-pressed', String(wantSound && isAudible()));
             // Until the browser lets audio through, say what unblocks it.
             soundBtn.lastElementChild.textContent =
-                wantSound && !isAudible() ? 'Tap for sound' : 'Sound';
+                I18N.t(wantSound && !isAudible() ? 'js.tapSound' : 'up.sound');
         }
 
         // Chrome pauses a clip that gets unmuted without enough user
@@ -2899,7 +3196,7 @@
             const meta = document.createElement('div');
             meta.className = 'rack-meta';
             meta.setAttribute('aria-hidden', 'true');
-            meta.innerHTML = '<span class="rack-counter"><span class="cur">01</span> / <span class="total"></span></span><span class="rack-hint">&larr; Drag to turn &rarr;</span>';
+            meta.innerHTML = '<span class="rack-counter"><span class="cur">01</span> / <span class="total"></span></span><span class="rack-hint" data-i18n="hint.drag">' + I18N.t('hint.drag') + '</span>';
             shots.after(meta);
             const cur = meta.querySelector('.cur');
             const r = { shots, originals, meta, extra: [], base: 1 };
@@ -3028,10 +3325,11 @@
             box.style.setProperty('--pos', pos + '%');
             handle.setAttribute('aria-valuenow', String(Math.round(pos)));
             handle.setAttribute('aria-valuetext',
-                pos <= 2 ? 'Dark finish only'
-                : pos >= 98 ? 'Light finish only'
-                : Math.round(pos) + '% light finish, ' + Math.round(100 - pos) + '% dark finish');
+                pos <= 2 ? I18N.t('js.finishDark')
+                : pos >= 98 ? I18N.t('js.finishLight')
+                : I18N.t('js.finishMix', { l: Math.round(pos), d: Math.round(100 - pos) }));
         }
+        document.addEventListener('langchange', render);
 
         function stopHint() {
             if (!hinting) return;

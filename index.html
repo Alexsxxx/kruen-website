@@ -1868,6 +1868,430 @@
     }
 
     /* ================================================================= */
+    /* YOUR ANTENNA: navbar button, glass menu and the guide dialog       */
+    /* ================================================================= */
+    .nav-antenna {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 13px 7px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--chip-edge);
+        background: var(--chip-glass);
+        color: var(--text);
+        font: 600 13px/1 'Inter', sans-serif;
+        cursor: pointer;
+        transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+    }
+
+    .nav-antenna svg { width: 17px; height: 17px; flex: none; }
+    .nav-antenna:hover,
+    .nav-antenna[aria-expanded="true"] { border-color: var(--accent); color: var(--accent); }
+    .navbar.on-dark .nav-antenna { color: var(--stage-text); border-color: rgba(255, 255, 255, 0.16); background: rgba(22, 22, 28, 0.38); }
+    .navbar.on-dark .nav-antenna:hover,
+    .navbar.on-dark .nav-antenna[aria-expanded="true"] { color: var(--accent); border-color: var(--accent); }
+
+    /* Shared glass: barely tinted, lit along the top edge */
+    .ant-glass {
+        color: var(--stage-text);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background:
+            linear-gradient(155deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 40%, rgba(255, 255, 255, 0.02) 100%),
+            rgba(10, 10, 14, 0.72);
+        -webkit-backdrop-filter: blur(24px) saturate(160%);
+        backdrop-filter: blur(24px) saturate(160%);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.22),
+            0 30px 80px rgba(0, 0, 0, 0.5);
+    }
+
+    .ant-menu {
+        position: fixed;
+        z-index: 1001;
+        width: min(400px, calc(100vw - 24px));
+        max-height: calc(100vh - 90px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding: 18px 12px 12px;
+        border-radius: 24px;
+        transform-origin: top right;
+        animation: antPop 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+    }
+
+    .ant-menu[hidden], .ant-guide[hidden] { display: none; }
+
+    @keyframes antPop {
+        from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+        to { opacity: 1; transform: none; }
+    }
+
+    .ant-menu-head { padding: 0 8px 12px; }
+    .ant-menu-head b {
+        display: block;
+        font: 700 17px/1.25 'Space Grotesk', 'Inter', sans-serif;
+        margin-bottom: 5px;
+    }
+    .ant-menu-head p { font-size: 13px; line-height: 1.5; color: var(--stage-text-2); }
+
+    .ant-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        padding: 10px;
+        border: 0;
+        border-radius: 16px;
+        background: none;
+        color: inherit;
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+        transition: background 0.18s ease;
+    }
+
+    .ant-item:hover, .ant-item:focus-visible { background: rgba(255, 255, 255, 0.07); outline: none; }
+
+    .ant-ico {
+        flex: none;
+        display: grid;
+        place-items: center;
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        color: var(--c, var(--accent));
+        background: color-mix(in srgb, var(--c, var(--accent)) 16%, transparent);
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c, var(--accent)) 30%, transparent);
+    }
+    .ant-ico svg { width: 22px; height: 22px; }
+
+    .ant-item-text { flex: 1; min-width: 0; }
+    .ant-item-text b { display: block; font-size: 14.5px; font-weight: 600; }
+    .ant-item-text span { display: block; font-size: 12.5px; color: var(--stage-text-2); margin-top: 2px; }
+    .ant-item > svg { width: 16px; height: 16px; flex: none; color: var(--stage-text-2); }
+
+    .ant-menu-foot {
+        margin: 8px 8px 2px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        font-size: 12px;
+        line-height: 1.5;
+        color: var(--stage-text-2);
+    }
+
+    /* ---- guide dialog ---- */
+    .ant-guide {
+        position: fixed;
+        inset: 0;
+        z-index: 1100;
+        display: grid;
+        place-items: center;
+        padding: 16px;
+    }
+
+    .ant-guide-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
+        animation: antFade 0.2s ease;
+    }
+
+    @keyframes antFade { from { opacity: 0; } }
+
+    .ant-guide-panel {
+        position: relative;
+        width: min(900px, 100%);
+        max-height: calc(100vh - 32px);
+        max-height: calc(100dvh - 32px);
+        display: flex;
+        flex-direction: column;
+        border-radius: 28px;
+        overflow: hidden;
+        animation: antPop 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+    }
+
+    .ant-guide-top {
+        padding: 22px 24px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .ant-guide-title { display: flex; align-items: center; gap: 14px; padding-right: 44px; }
+    .ant-guide-title .ant-ico { width: 48px; height: 48px; border-radius: 14px; }
+    .ant-guide-title .ant-ico svg { width: 26px; height: 26px; }
+    .ant-guide-title h2 { font-size: clamp(21px, 3vw, 26px); line-height: 1.15; }
+    .ant-guide-title p { font-size: 13.5px; color: var(--stage-text-2); margin-top: 3px; }
+
+    .ant-close {
+        position: absolute;
+        top: 18px; right: 18px;
+        width: 38px; height: 38px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--stage-text);
+        cursor: pointer;
+    }
+    .ant-close:hover { border-color: var(--accent); color: var(--accent); }
+    .ant-close svg { width: 18px; height: 18px; }
+
+    .ant-tabs {
+        display: flex;
+        gap: 6px;
+        margin: 18px -24px 0;
+        padding: 0 24px 14px;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+    .ant-tabs::-webkit-scrollbar { display: none; }
+
+    .ant-tab {
+        flex: none;
+        padding: 7px 13px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: none;
+        color: var(--stage-text-2);
+        font: 600 12.5px/1 'Inter', sans-serif;
+        cursor: pointer;
+        transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+    .ant-tab:hover { color: var(--stage-text); }
+    .ant-tab[aria-selected="true"] {
+        color: #0b0b0e;
+        background: var(--c, var(--accent));
+        border-color: transparent;
+    }
+
+    .ant-guide-body {
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding: 22px 24px 26px;
+    }
+
+    .ant-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+    .ant-chip {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.07);
+        color: var(--stage-text);
+    }
+    .ant-chip.is-pro { background: var(--accent-soft); color: var(--accent); }
+
+    .ant-h {
+        font: 700 12px/1 'Space Grotesk', 'Inter', sans-serif;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--stage-text-2);
+        margin: 26px 0 12px;
+    }
+
+    /* Wiring diagram: devices joined by wires the signal runs along */
+    .ant-flow {
+        display: flex;
+        align-items: flex-start;
+        padding: 20px 18px;
+        border-radius: 20px;
+        background: rgba(0, 0, 0, 0.28);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+    }
+
+    .ant-col { display: flex; flex-direction: column; gap: 12px; flex: none; }
+
+    .ant-node {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 7px;
+        width: 92px;
+        text-align: center;
+    }
+    .ant-node .ant-ico { width: 46px; height: 46px; border-radius: 14px; }
+    .ant-node b { font-size: 12.5px; font-weight: 600; line-height: 1.25; }
+    .ant-node > div { display: flex; flex-direction: column; gap: 3px; }
+    .ant-node small { font-size: 11px; color: var(--stage-text-2); line-height: 1.3; }
+
+    .ant-wire {
+        flex: 1;
+        min-width: 24px;
+        position: relative;
+        align-self: flex-start;
+        margin-top: 23px;
+        height: 2px;
+        border-radius: 2px;
+        background: repeating-linear-gradient(90deg, var(--c, var(--accent)) 0 6px, transparent 6px 11px);
+        background-size: 11px 2px;
+        opacity: 0.85;
+        animation: antWire 0.9s linear infinite;
+    }
+
+    .ant-wire span {
+        position: absolute;
+        left: 50%;
+        bottom: 9px;
+        transform: translateX(-50%);
+        white-space: nowrap;
+        font-size: 10.5px;
+        font-weight: 600;
+        color: var(--stage-text-2);
+        background: rgba(10, 10, 14, 0.85);
+        padding: 2px 6px;
+        border-radius: 6px;
+    }
+
+    @keyframes antWire { to { background-position: 11px 0; } }
+
+    .ant-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+
+    .ant-list { list-style: none; display: grid; gap: 9px; }
+    .ant-list li {
+        position: relative;
+        padding-left: 18px;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--stage-text);
+    }
+    .ant-list li::before {
+        content: "";
+        position: absolute;
+        left: 2px; top: 0.6em;
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: var(--c, var(--accent));
+    }
+
+    .ant-ports { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    .ant-ports td { padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.07); vertical-align: top; line-height: 1.45; }
+    .ant-ports tr:last-child td { border-bottom: 0; }
+    .ant-ports td:first-child { width: 42%; padding-right: 12px; }
+    .ant-ports code {
+        display: inline-block;
+        font: 600 12px/1.4 ui-monospace, 'SF Mono', Menlo, monospace;
+        padding: 1px 7px;
+        border-radius: 6px;
+        background: color-mix(in srgb, var(--c, var(--accent)) 16%, transparent);
+        color: var(--c, var(--accent));
+    }
+
+    .ant-steps { list-style: none; counter-reset: s; display: grid; gap: 12px; }
+    .ant-steps li {
+        counter-increment: s;
+        position: relative;
+        padding: 0 0 0 40px;
+        min-height: 28px;
+        font-size: 14px;
+        line-height: 1.55;
+    }
+    .ant-steps li::before {
+        content: counter(s);
+        position: absolute;
+        left: 0; top: -1px;
+        width: 27px; height: 27px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        font: 700 13px/1 'Space Grotesk', sans-serif;
+        color: var(--c, var(--accent));
+        box-shadow: inset 0 0 0 1.5px var(--c, var(--accent));
+    }
+
+    .ant-guide code {
+        font: 500 12.5px/1.5 ui-monospace, 'SF Mono', Menlo, monospace;
+        padding: 1px 6px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.08);
+        word-break: break-word;
+    }
+
+    .ant-guide a { color: var(--c, var(--accent)); text-underline-offset: 2px; }
+
+    .ant-app {
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        margin-top: 22px;
+        padding: 16px 18px;
+        border-radius: 18px;
+        background: color-mix(in srgb, var(--c, var(--accent)) 10%, transparent);
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c, var(--accent)) 28%, transparent);
+        font-size: 14px;
+        line-height: 1.55;
+    }
+    .ant-app .ant-ico { width: 36px; height: 36px; border-radius: 11px; }
+    .ant-app .ant-ico svg { width: 19px; height: 19px; }
+    .ant-app b { display: block; margin-bottom: 2px; }
+
+    .ant-tip { margin-top: 14px; font-size: 13px; line-height: 1.55; color: var(--stage-text-2); }
+    .ant-tip strong { color: var(--stage-text); }
+
+    .ant-links { display: flex; flex-wrap: wrap; gap: 8px; }
+    .ant-links a {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 13px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.13);
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        color: var(--stage-text);
+        transition: border-color 0.18s ease, color 0.18s ease;
+    }
+    .ant-links a:hover { border-color: var(--c, var(--accent)); color: var(--c, var(--accent)); }
+    .ant-links a svg { width: 13px; height: 13px; opacity: 0.7; }
+
+    .ant-safety {
+        margin-top: 24px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        font-size: 12px;
+        line-height: 1.55;
+        color: var(--stage-text-2);
+    }
+
+    @media (max-width: 700px) {
+        .ant-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 640px) {
+        .nav-antenna { padding: 7px 11px 7px 9px; }
+        .ant-guide { padding: 0; place-items: end stretch; }
+        .ant-guide-panel { width: 100%; max-height: 92vh; max-height: 92dvh; border-radius: 26px 26px 0 0; }
+        .ant-guide-top { padding: 18px 16px 0; }
+        .ant-tabs { margin: 14px -16px 0; padding: 0 16px 12px; }
+        .ant-guide-body { padding: 18px 16px 30px; }
+        .ant-close { top: 14px; right: 14px; }
+
+        /* the chain turns vertical on phones */
+        .ant-flow { flex-direction: column; align-items: stretch; padding: 16px; }
+        .ant-col { gap: 10px; }
+        .ant-node { flex-direction: row; width: auto; text-align: left; gap: 12px; }
+        .ant-wire {
+            align-self: flex-start;
+            margin: 6px 0 6px 22px;
+            align-self: flex-start;
+            width: 2px;
+            min-width: 0;
+            height: 30px;
+            flex: none;
+            background: repeating-linear-gradient(180deg, var(--c, var(--accent)) 0 6px, transparent 6px 11px);
+            background-size: 2px 11px;
+            animation-name: antWireV;
+        }
+        .ant-wire span { left: 14px; bottom: auto; top: 50%; transform: translateY(-50%); }
+    }
+
+    @keyframes antWireV { to { background-position: 0 11px; } }
+
+    @media (prefers-reduced-motion: reduce) {
+        .ant-menu, .ant-guide-panel, .ant-guide-backdrop, .ant-wire { animation: none; }
+    }
+
+    /* ================================================================= */
     /* RESPONSIVE & MOTION */
     /* ================================================================= */
     @media (max-width: 700px) {
@@ -1913,6 +2337,10 @@
                         <a href="#pbh">PBH</a>
                         <a href="#about" data-i18n="nav.about">About</a>
                     </div>
+                    <button class="nav-antenna" type="button" id="antennaBtn" aria-haspopup="menu" aria-expanded="false" aria-controls="antennaMenu">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="7.5" r="1.6"/><path d="M8.6 4.1a4.8 4.8 0 0 0 0 6.8M15.4 4.1a4.8 4.8 0 0 1 0 6.8M5.9 1.9a8.4 8.4 0 0 0 0 11.2M18.1 1.9a8.4 8.4 0 0 1 0 11.2M12 9.2V21M12 12.5 8.6 21M12 12.5l3.4 8.5M8 21h8"/></svg>
+                        <span data-i18n="ant.nav">Your antenna</span>
+                    </button>
                     <div class="lang-switch" role="group" aria-label="Jazyk / Language">
                         <button type="button" data-lang="cs" lang="cs" title="Čeština" aria-pressed="false">CZ</button>
                         <button type="button" data-lang="en" lang="en" title="English" aria-pressed="false">EN</button>
@@ -2454,6 +2882,15 @@
         </main>
     </div>
 
+    <!-- Your antenna: menu and guide, filled in by the script below. They sit outside
+         the navbar on purpose - its own backdrop-filter would stop their glass from
+         blurring the page behind. -->
+    <div class="ant-menu ant-glass" id="antennaMenu" role="menu" aria-labelledby="antennaBtn" hidden></div>
+    <div class="ant-guide" id="antennaGuide" role="dialog" aria-modal="true" aria-labelledby="antGuideTitle" hidden>
+        <div class="ant-guide-backdrop"></div>
+        <div class="ant-guide-panel ant-glass"></div>
+    </div>
+
     <script>
     // ===================================================================
     // LANGUAGE (EN / CS)
@@ -2610,7 +3047,8 @@
                 "js.tapSound": "Klepněte pro zvuk",
                 "js.finishDark": "Jen tmavé provedení",
                 "js.finishLight": "Jen světlé provedení",
-                "js.finishMix": "{l} % světlé provedení, {d} % tmavé provedení"
+                "js.finishMix": "{l} % světlé provedení, {d} % tmavé provedení",
+                "ant.nav": "Vlastní anténa"
             }
         };
         var ATTRS = ['alt', 'title', 'aria-label', 'aria-valuetext', 'content'];
@@ -2677,6 +3115,405 @@
         });
 
         return { t: t, set: set, get lang() { return lang; } };
+    })();
+    </script>
+
+    <script>
+    // ===================================================================
+    // YOUR ANTENNA: a glass menu of the receiver types SwR can play, each
+    // opening a short guide - wiring diagram, parts, ports, steps.
+    // Text is per language ({ en, cs }); it re-renders on 'langchange'.
+    // ===================================================================
+    (function() {
+        const btn = document.getElementById('antennaBtn');
+        const menu = document.getElementById('antennaMenu');
+        const guide = document.getElementById('antennaGuide');
+        if (!btn || !menu || !guide) return;
+        const panel = guide.querySelector('.ant-guide-panel');
+
+        const L = v => (v && typeof v === 'object' && !Array.isArray(v)) ? (v[I18N.lang] ?? v.en) : v;
+        const svg = (d, w = 1.7) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+        const ext = (url, label) => `<a href="${url}" target="_blank" rel="noopener">${label}</a>`;
+
+        const ICON = {
+            antenna: '<circle cx="12" cy="7.5" r="1.6"/><path d="M8.6 4.1a4.8 4.8 0 0 0 0 6.8M15.4 4.1a4.8 4.8 0 0 1 0 6.8M5.9 1.9a8.4 8.4 0 0 0 0 11.2M18.1 1.9a8.4 8.4 0 0 1 0 11.2M12 9.2V21M12 12.5 8.6 21M12 12.5l3.4 8.5M8 21h8"/>',
+            gps: '<circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/>',
+            box: '<rect x="2.5" y="7" width="19" height="10" rx="2.2"/><circle cx="7" cy="12" r="1.6"/><path d="M11.5 10.5h6M11.5 13.5h4"/>',
+            dongle: '<rect x="2.5" y="8.5" width="13" height="7" rx="1.8"/><path d="M15.5 10h4.5v4h-4.5M6 12h5"/>',
+            pc: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8.5 20h7M12 16v4"/>',
+            board: '<rect x="3" y="5" width="18" height="14" rx="2"/><rect x="7" y="9" width="6" height="6" rx="1"/><path d="M16 9h2M16 12h2M16 15h2"/>',
+            router: '<rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 16.5h.01M10.5 16.5h.01M8 13 6.5 6M16 13l1.5-7"/>',
+            globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a13.5 13.5 0 0 1 0 18M12 3a13.5 13.5 0 0 0 0 18"/>',
+            phone: '<rect x="6.5" y="2.5" width="11" height="19" rx="2.6"/><path d="M10.8 18.4h2.4"/>',
+            sd: '<path d="M7 3h7.5L18 6.5V21H7z"/><path d="M10 6.5v3M13 6.5v3"/>',
+            radio: '<rect x="3" y="8" width="18" height="12" rx="2.2"/><circle cx="16" cy="14" r="2.8"/><path d="M6.5 12.5h4.5M6.5 15.5h4.5M7 8l9-5"/>',
+            clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'
+        };
+        const ico = (name, color) => `<span class="ant-ico"${color ? ` style="--c:${color}"` : ''}>${svg(ICON[name])}</span>`;
+
+        // Nodes and wires of a wiring diagram
+        const N = (i, t, s) => ({ i, t, s });
+        const SWR = N('phone', 'SwR', { en: 'anywhere', cs: 'kdekoli' });
+        const ROUTER = N('router', { en: 'Router', cs: 'Router' }, { en: 'internet', cs: 'internet' });
+
+        const ADD = (server, addr) => ({
+            en: `Open the receiver list, tap <b>+</b> (<i>Add my receiver</i>), pick <i>Server: ${server}</i> and type <code>${addr}</code> as the <i>Address</i>. From outside your home use your public address or domain instead.`,
+            cs: `Otevřete seznam přijímačů, klepněte na <b>+</b> (<i>Add my receiver</i>), zvolte <i>Server: ${server}</i> a do <i>Address</i> napište <code>${addr}</code>. Mimo domov místo toho použijte veřejnou adresu nebo doménu.`
+        });
+
+        const GUIDES = [
+            {
+                id: 'usb', name: 'USB dongle', color: '#ff8a1e', icon: 'dongle',
+                tag: { en: 'Straight into your Android phone – no internet needed', cs: 'Přímo do telefonu s Androidem – bez internetu' },
+                chips: [{ en: 'approx. 24 MHz – 1.7 GHz', cs: 'cca 24 MHz – 1,7 GHz' }, { en: 'HF with the V4 or direct sampling', cs: 'KV s V4 nebo přes direct sampling' }, 'Android'],
+                flow: [[N('antenna', { en: 'Antenna', cs: 'Anténa' }, { en: 'dipole from the kit', cs: 'dipól z balení' })], 'SMA',
+                       [N('dongle', 'RTL-SDR', { en: 'USB dongle', cs: 'USB dongle' })], 'USB OTG',
+                       [N('phone', 'SwR', 'Android')]],
+                need: {
+                    en: [`An RTL-SDR dongle – the ${ext('https://www.rtl-sdr.com/v4', 'RTL-SDR Blog V4')} hears shortwave without tricks`, 'A USB-C OTG adapter or cable', 'The antenna from the kit, or a longer wire for shortwave'],
+                    cs: [`RTL-SDR dongle – ${ext('https://www.rtl-sdr.com/v4', 'RTL-SDR Blog V4')} chytí krátké vlny bez triků`, 'USB-C OTG redukce nebo kabel', 'Anténa z balení, pro krátké vlny delší drát']
+                },
+                ports: [
+                    ['SMA', { en: 'the antenna, on the dongle', cs: 'anténa, na donglu' }],
+                    ['USB', { en: 'the phone, through the OTG adapter', cs: 'telefon, přes OTG redukci' }]
+                ],
+                steps: {
+                    en: ['Screw the antenna onto the dongle.', 'Plug the dongle into the phone through the OTG adapter.', 'In SwR open the <b>PRO</b> menu – <b>LOCAL SDR</b> – and allow the USB access Android asks for.', 'For shortwave on an older stick (V3, R820T) turn on <b>Direct sampling</b>; an active antenna or LNA gets power from <b>Bias-T</b>.'],
+                    cs: ['Našroubujte anténu na dongle.', 'Dongle zapojte do telefonu přes OTG redukci.', 'V SwR otevřete menu <b>PRO</b> – <b>LOCAL SDR</b> a povolte přístup k USB, o který Android požádá.', 'Pro krátké vlny na starším donglu (V3, R820T) zapněte <b>Direct sampling</b>; aktivní anténu nebo LNA napájí <b>Bias-T</b>.']
+                },
+                app: { en: 'Everything runs in the phone: no server, no account, nothing leaves it.', cs: 'Vše běží v telefonu: žádný server, žádný účet, nic z něj neodchází.' },
+                tip: { en: '<strong>Tip:</strong> the dongle draws power from the phone – a short, good OTG cable helps. Android only, iPhone does not allow USB radios.', cs: '<strong>Tip:</strong> dongle bere proud z telefonu – pomůže krátký kvalitní OTG kabel. Jen Android, iPhone USB rádia nepovoluje.' },
+                links: [['RTL-SDR Blog V4', 'https://www.rtl-sdr.com/v4'], [{ en: 'Where to buy', cs: 'Kde koupit' }, 'https://www.rtl-sdr.com/buy-rtl-sdr-dvb-t-dongles/']]
+            },
+            {
+                id: 'kiwi', name: 'KiwiSDR', color: '#3fb8f5', icon: 'box',
+                tag: { en: 'The classic shortwave web receiver – plug in and listen', cs: 'Klasický krátkovlnný webový přijímač – zapojit a poslouchat' },
+                chips: ['10 kHz – 30 MHz', { en: 'GPS timing', cs: 'GPS čas' }, { en: 'port 8073', cs: 'port 8073' }],
+                flow: [[N('antenna', { en: 'HF antenna', cs: 'KV anténa' }, 'RF IN'), N('gps', 'GPS', { en: 'in the kit', cs: 'v balení' })], 'SMA',
+                       [N('box', 'KiwiSDR 2', 'BeagleBone')], 'Ethernet', [ROUTER], { en: 'internet', cs: 'internet' }, [SWR]],
+                need: {
+                    en: [`${ext('https://www.wimo.com/en/kiwisdr-2', 'KiwiSDR 2')} – sold as a kit with the BeagleBone and a GPS antenna`, 'An HF antenna: a long wire or an active loop', 'An Ethernet cable to the router and a 5 V power supply'],
+                    cs: [`${ext('https://www.wimo.com/en/kiwisdr-2', 'KiwiSDR 2')} – prodává se jako kit s BeagleBone a GPS anténou`, 'KV anténa: dlouhý drát nebo aktivní smyčka', 'Ethernet kabel k routeru a napájecí zdroj 5 V']
+                },
+                ports: [
+                    ['RF IN (SMA)', { en: 'HF antenna', cs: 'KV anténa' }],
+                    ['GPS (SMA)', { en: 'GPS antenna, with a view of the sky', cs: 'GPS anténa, s výhledem na oblohu' }],
+                    ['Ethernet', { en: 'router', cs: 'router' }],
+                    ['5 V DC', { en: 'power supply – plug it in last', cs: 'napájení – zapojte jako poslední' }]
+                ],
+                steps: {
+                    en: ['Connect the antenna, GPS and network, then power. The software comes preinstalled.', 'Open <code>http://kiwisdr.local:8073</code> (or the IP from your router). Settings live at <code>:8073/admin</code> – set a password, the name and the location.', 'To listen away from home, forward TCP port <code>8073</code> on the router (or let UPnP do it).', 'Optional: switch on public listing in the admin page and your Kiwi appears on the world map and in SwR for everyone.'],
+                    cs: ['Zapojte anténu, GPS a síť, nakonec napájení. Software je předinstalovaný.', 'Otevřete <code>http://kiwisdr.local:8073</code> (nebo IP adresu z routeru). Nastavení je na <code>:8073/admin</code> – zadejte heslo, název a polohu.', 'Pro poslech mimo domov přesměrujte na routeru TCP port <code>8073</code> (nebo to nechte na UPnP).', 'Volitelně: v adminu zapněte veřejný výpis a vaše Kiwi se objeví na světové mapě i v SwR pro všechny.']
+                },
+                app: ADD('KiwiSDR / Web-888', '192.168.1.50:8073'),
+                tip: { en: '<strong>Watch out:</strong> on the KiwiSDR 2 the RF and GPS sockets are swapped compared with the KiwiSDR 1 – go by the labels.', cs: '<strong>Pozor:</strong> KiwiSDR 2 má zdířky RF a GPS prohozené oproti KiwiSDR 1 – řiďte se popisky.' },
+                links: [[{ en: 'KiwiSDR website', cs: 'Web KiwiSDR' }, 'http://kiwisdr.com'], [{ en: 'Buy (WiMo, EU)', cs: 'Koupit (WiMo, EU)' }, 'https://www.wimo.com/en/kiwisdr-2'], [{ en: 'Public receiver map', cs: 'Mapa veřejných přijímačů' }, 'http://rx.kiwisdr.com']]
+            },
+            {
+                id: 'web888', name: 'Web-888', color: '#a78bfa', icon: 'box',
+                tag: { en: 'KiwiSDR-compatible, 13 listeners at once, plus the air band', cs: 'Kompatibilní s KiwiSDR, 13 posluchačů naráz a k tomu letecké pásmo' },
+                chips: ['1 kHz – 62 MHz', '118–150 MHz', { en: '13 channels', cs: '13 kanálů' }, { en: 'port 8073', cs: 'port 8073' }],
+                flow: [[N('antenna', { en: 'Antenna', cs: 'Anténa' }, { en: 'HF / VHF', cs: 'KV / VKV' }), N('sd', 'microSD', 'firmware')], 'SMA',
+                       [N('box', 'Web-888', { en: 'SDR server', cs: 'SDR server' })], 'Ethernet', [ROUTER], { en: 'internet', cs: 'internet' }, [SWR]],
+                need: {
+                    en: [`${ext('https://www.rx-888.com/web/', 'Web-888')} receiver`, 'A microSD card: SD or SDHC up to 32 GB, FAT32 – not SDXC', 'A 5 V USB power supply, at least 2 A', 'A shielded Cat 5e Ethernet cable and an antenna'],
+                    cs: [`Přijímač ${ext('https://www.rx-888.com/web/', 'Web-888')}`, 'microSD karta: SD nebo SDHC do 32 GB, FAT32 – ne SDXC', 'USB zdroj 5 V, alespoň 2 A', 'Stíněný Ethernet kabel Cat 5e a anténa']
+                },
+                ports: [
+                    [{ en: 'ANT (SMA)', cs: 'ANT (SMA)' }, { en: 'antenna', cs: 'anténa' }],
+                    ['microSD', { en: 'card with the firmware', cs: 'karta s firmwarem' }],
+                    ['Ethernet', { en: 'router', cs: 'router' }],
+                    [{ en: 'USB 5 V', cs: 'USB 5 V' }, { en: 'power, 2 A or more', cs: 'napájení, 2 A a víc' }]
+                ],
+                steps: {
+                    en: [`Format the card as FAT32 and unzip the ${ext('https://www.rx-888.com/web/downloads.html', 'current firmware')} straight to its root – no extra folder.`, 'Insert the card, connect the antenna and network, then power.', 'Open <code>http://&lt;IP address&gt;:8073</code> and set it up in the admin page.', `To listen away from home, forward port <code>8073</code> – or use the ${ext('https://www.rx-888.com/web/guide/internet.html', 'public access guide')}.`],
+                    cs: [`Kartu naformátujte na FAT32 a rozbalte na ni ${ext('https://www.rx-888.com/web/downloads.html', 'aktuální firmware')} přímo do kořene – bez další složky.`, 'Vložte kartu, zapojte anténu a síť, nakonec napájení.', 'Otevřete <code>http://&lt;IP adresa&gt;:8073</code> a nastavte ho v administraci.', `Pro poslech mimo domov přesměrujte port <code>8073</code> – nebo použijte ${ext('https://www.rx-888.com/web/guide/internet.html', 'návod k veřejnému přístupu')}.`]
+                },
+                app: ADD('KiwiSDR / Web-888', '192.168.1.60:8073'),
+                tip: { en: '<strong>Tip:</strong> before a firmware update, back up the <code>config</code> folder on the card – it holds your settings.', cs: '<strong>Tip:</strong> před aktualizací firmwaru si zálohujte složku <code>config</code> na kartě – jsou v ní vaše nastavení.' },
+                links: [[{ en: 'Web-888 website', cs: 'Web Web-888' }, 'https://www.rx-888.com/web/'], [{ en: 'Setup guide', cs: 'Návod k zapojení' }, 'https://www.rx-888.com/web/guide/requirements.html'], [{ en: 'Choosing an antenna', cs: 'Výběr antény' }, 'https://www.rx-888.com/web/guide/antenna.html'], [{ en: 'Public receivers', cs: 'Veřejné přijímače' }, 'https://www.rx-888.com/web/rx.html']]
+            },
+            {
+                id: 'owrx', name: 'OpenWebRX', color: '#34d399', icon: 'board',
+                tag: { en: 'Turns almost any SDR into a web receiver – on a Raspberry Pi', cs: 'Z téměř jakéhokoli SDR udělá webový přijímač – na Raspberry Pi' },
+                chips: [{ en: 'depends on the SDR', cs: 'podle SDR' }, 'RTL-SDR · Airspy · SDRplay · HackRF', { en: 'port 8073', cs: 'port 8073' }],
+                flow: [[N('antenna', { en: 'Antenna', cs: 'Anténa' })], 'SMA', [N('dongle', 'SDR', 'RTL-SDR, Airspy…')], 'USB',
+                       [N('board', 'Raspberry Pi', 'OpenWebRX+')], { en: 'LAN / Wi-Fi', cs: 'LAN / Wi-Fi' }, [ROUTER], { en: 'internet', cs: 'internet' }, [SWR]],
+                need: {
+                    en: ['An SDR: RTL-SDR, Airspy, SDRplay, HackRF and more', 'A Raspberry Pi 4 or 5 with a microSD card, or any Debian / Ubuntu PC', 'An antenna for the bands you want'],
+                    cs: ['SDR: RTL-SDR, Airspy, SDRplay, HackRF a další', 'Raspberry Pi 4 nebo 5 s microSD kartou, nebo jakékoli PC s Debianem / Ubuntu', 'Anténa pro pásma, která chcete poslouchat']
+                },
+                ports: [
+                    [{ en: 'SMA on the SDR', cs: 'SMA na SDR' }, { en: 'antenna', cs: 'anténa' }],
+                    [{ en: 'USB on the SDR', cs: 'USB na SDR' }, { en: 'Raspberry Pi / PC – straight in, not through a hub', cs: 'Raspberry Pi / PC – napřímo, ne přes hub' }],
+                    ['Ethernet / Wi-Fi', { en: 'router', cs: 'router' }]
+                ],
+                steps: {
+                    en: [`Flash the ${ext('https://github.com/luarvique/openwebrx', 'OpenWebRX+')} image for Raspberry Pi with Raspberry Pi Imager – or on Debian / Ubuntu add the ${ext('https://luarvique.github.io/ppa/', 'package repository')} and run <code>sudo apt install openwebrx</code>.`, 'Plug the SDR into USB and the antenna into the SDR.', 'Create an admin: <code>sudo openwebrx admin adduser &lt;name&gt;</code>.', 'Open <code>http://&lt;IP address&gt;:8073</code> – in <i>Settings</i> pick your SDR and its bands.', 'To listen away from home, forward port <code>8073</code> or put it behind HTTPS.'],
+                    cs: [`Nahrajte image ${ext('https://github.com/luarvique/openwebrx', 'OpenWebRX+')} pro Raspberry Pi přes Raspberry Pi Imager – nebo na Debianu / Ubuntu přidejte ${ext('https://luarvique.github.io/ppa/', 'repozitář balíčků')} a spusťte <code>sudo apt install openwebrx</code>.`, 'SDR zapojte do USB a anténu do SDR.', 'Vytvořte správce: <code>sudo openwebrx admin adduser &lt;jméno&gt;</code>.', 'Otevřete <code>http://&lt;IP adresa&gt;:8073</code> – v <i>Settings</i> zvolte své SDR a jeho pásma.', 'Pro poslech mimo domov přesměrujte port <code>8073</code> nebo ho dejte za HTTPS.']
+                },
+                app: ADD('OpenWebRX', '192.168.1.70:8073'),
+                tip: { en: `<strong>Tip:</strong> want others to find it? Register it at ${ext('https://www.receiverbook.de', 'receiverbook.de')}.`, cs: `<strong>Tip:</strong> chcete, aby ho našli i ostatní? Zaregistrujte ho na ${ext('https://www.receiverbook.de', 'receiverbook.de')}.` },
+                links: [['OpenWebRX+', 'https://github.com/luarvique/openwebrx'], [{ en: 'Packages', cs: 'Balíčky' }, 'https://luarvique.github.io/ppa/'], ['Receiverbook', 'https://www.receiverbook.de']]
+            },
+            {
+                id: 'spy', name: 'SpyServer / AirSpy', color: '#f472b6', icon: 'pc',
+                tag: { en: 'Streams an Airspy or RTL-SDR over the network, lean and fast', cs: 'Streamuje Airspy nebo RTL-SDR po síti, úsporně a rychle' },
+                chips: [{ en: 'depends on the SDR', cs: 'podle SDR' }, 'Airspy · RTL-SDR', { en: 'TCP port 5555', cs: 'TCP port 5555' }],
+                flow: [[N('antenna', { en: 'Antenna', cs: 'Anténa' })], 'SMA', [N('dongle', 'Airspy', { en: 'or RTL-SDR', cs: 'nebo RTL-SDR' })], 'USB',
+                       [N('pc', { en: 'PC / Pi', cs: 'PC / Pi' }, 'SpyServer')], 'Ethernet', [ROUTER], { en: 'internet', cs: 'internet' }, [SWR]],
+                need: {
+                    en: [`${ext('https://airspy.com', 'Airspy')} R2, Mini or HF+ Discovery – or an RTL-SDR`, 'A PC or Raspberry Pi running Linux or Windows', 'An antenna'],
+                    cs: [`${ext('https://airspy.com', 'Airspy')} R2, Mini nebo HF+ Discovery – nebo RTL-SDR`, 'PC nebo Raspberry Pi s Linuxem či Windows', 'Anténa']
+                },
+                ports: [
+                    [{ en: 'SMA on the SDR', cs: 'SMA na SDR' }, { en: 'antenna', cs: 'anténa' }],
+                    [{ en: 'USB on the SDR', cs: 'USB na SDR' }, 'PC / Raspberry Pi'],
+                    ['Ethernet', { en: 'router – TCP 5555', cs: 'router – TCP 5555' }]
+                ],
+                steps: {
+                    en: [`Download SpyServer for your platform from ${ext('https://airspy.com/download/', 'airspy.com/download')} (on Windows it comes with SDR#).`, 'In <code>spyserver.config</code> check <code>device_type</code> (an RTL-SDR needs it set) and the port <code>5555</code>.', 'Start it: <code>./spyserver spyserver.config</code>.', 'To listen away from home, forward TCP port <code>5555</code>.'],
+                    cs: [`Stáhněte SpyServer pro svou platformu z ${ext('https://airspy.com/download/', 'airspy.com/download')} (na Windows je součástí SDR#).`, 'V <code>spyserver.config</code> zkontrolujte <code>device_type</code> (pro RTL-SDR ho nastavte) a port <code>5555</code>.', 'Spusťte: <code>./spyserver spyserver.config</code>.', 'Pro poslech mimo domov přesměrujte TCP port <code>5555</code>.']
+                },
+                app: ADD('SpyServer / AirSpy', '192.168.1.80:5555'),
+                tip: { en: `<strong>Tip:</strong> SpyServer can list itself in the ${ext('https://airspy.com/directory/', 'Airspy directory')} – then SwR finds it on its own.`, cs: `<strong>Tip:</strong> SpyServer se umí zapsat do ${ext('https://airspy.com/directory/', 'adresáře Airspy')} – pak ho SwR najde samo.` },
+                links: [['Airspy', 'https://airspy.com'], [{ en: 'Download SpyServer', cs: 'Stáhnout SpyServer' }, 'https://airspy.com/download/'], [{ en: 'Server directory', cs: 'Adresář serverů' }, 'https://airspy.com/directory/']]
+            },
+            {
+                id: 'fmdx', name: 'FM-DX Webserver', color: '#fbbf24', icon: 'radio',
+                tag: { en: 'Your FM tuner online – stations, RDS and stereo', cs: 'Váš FM tuner online – stanice, RDS a stereo' },
+                chips: [{ en: 'FM 87.5–108 MHz', cs: 'FM 87,5–108 MHz' }, 'TEF6686', { en: 'port 8080', cs: 'port 8080' }],
+                flow: [[N('antenna', { en: 'FM antenna', cs: 'FM anténa' })], { en: 'coax', cs: 'koax' }, [N('radio', { en: 'Tuner', cs: 'Tuner' }, 'TEF6686')], { en: 'USB · audio', cs: 'USB · zvuk' },
+                       [N('pc', { en: 'PC / Pi', cs: 'PC / Pi' }, 'FM-DX Webserver')], 'Ethernet', [ROUTER], { en: 'internet', cs: 'internet' }, [SWR]],
+                need: {
+                    en: ['A tuner: a headless TEF6686 (FM-DX Tuner or PE5PVB firmware), XDR-F1HD or Si47xx', 'A PC or Raspberry Pi with Node.js', 'Audio: the tuner\'s USB audio or a USB sound card', 'A good FM antenna'],
+                    cs: ['Tuner: headless TEF6686 (firmware FM-DX Tuner nebo PE5PVB), XDR-F1HD nebo Si47xx', 'PC nebo Raspberry Pi s Node.js', 'Zvuk: USB audio tuneru nebo USB zvuková karta', 'Kvalitní FM anténa']
+                },
+                ports: [
+                    [{ en: 'Antenna input', cs: 'Anténní vstup' }, { en: 'FM antenna', cs: 'FM anténa' }],
+                    ['USB', { en: 'PC – control (/dev/ttyUSB0 or ttyACM0) and audio', cs: 'PC – ovládání (/dev/ttyUSB0 nebo ttyACM0) a zvuk' }],
+                    ['Ethernet', { en: 'router – port 8080', cs: 'router – port 8080' }]
+                ],
+                steps: {
+                    en: ['Install Node.js, npm and ffmpeg, then <code>git clone https://github.com/NoobishSVK/fm-dx-webserver.git</code> and <code>npm install</code>. On Windows follow the wiki.', 'Connect the tuner by USB; on Linux add yourself to the <code>dialout</code> and <code>audio</code> groups.', 'Start it with <code>node .</code> and open <code>http://&lt;IP address&gt;:8080</code> – set up the tuner, audio, name and location.', `To listen away from home, forward port <code>8080</code> (or use a tunnel) and publish it on ${ext('https://servers.fmdx.org', 'servers.fmdx.org')}.`],
+                    cs: ['Nainstalujte Node.js, npm a ffmpeg, pak <code>git clone https://github.com/NoobishSVK/fm-dx-webserver.git</code> a <code>npm install</code>. Na Windows postupujte podle wiki.', 'Tuner připojte přes USB; na Linuxu se přidejte do skupin <code>dialout</code> a <code>audio</code>.', 'Spusťte <code>node .</code> a otevřete <code>http://&lt;IP adresa&gt;:8080</code> – nastavte tuner, zvuk, název a polohu.', `Pro poslech mimo domov přesměrujte port <code>8080</code> (nebo použijte tunel) a zveřejněte ho na ${ext('https://servers.fmdx.org', 'servers.fmdx.org')}.`]
+                },
+                app: {
+                    en: 'Open the receiver list, tap <b>+</b> (<i>Add my receiver</i>), pick <i>Server: FM-DX Webserver</i> and type <code>192.168.1.90:8080</code>. Always write the port – without it SwR tries 80.',
+                    cs: 'Otevřete seznam přijímačů, klepněte na <b>+</b> (<i>Add my receiver</i>), zvolte <i>Server: FM-DX Webserver</i> a napište <code>192.168.1.90:8080</code>. Port pište vždy – bez něj SwR zkusí 80.'
+                },
+                tip: { en: '<strong>Tip:</strong> before going public check the hosting rules on fmdx.org – and your country\'s laws on rebroadcasting.', cs: '<strong>Tip:</strong> před zveřejněním si přečtěte pravidla na fmdx.org – a zákony vaší země o přeposílání vysílání.' },
+                links: [[{ en: 'Project page', cs: 'Stránka projektu' }, 'https://fmdx.org/projects/webserver.php'], ['GitHub', 'https://github.com/NoobishSVK/fm-dx-webserver'], [{ en: 'Windows install', cs: 'Instalace na Windows' }, 'https://github.com/NoobishSVK/fm-dx-webserver/wiki/Windows-Installation'], [{ en: 'Server map', cs: 'Mapa serverů' }, 'https://servers.fmdx.org']]
+            },
+            {
+                id: 'uber', name: 'UberSDR', color: '#f87171', icon: 'pc',
+                tag: { en: 'The whole shortwave band at once – RX-888 and a mini PC', cs: 'Celé krátkovlnné pásmo naráz – RX-888 a mini PC' },
+                chips: [{ en: 'all of HF', cs: 'celé KV' }, 'RX-888 MkII', { en: 'port 8080', cs: 'port 8080' }],
+                flow: [[N('antenna', { en: 'HF antenna', cs: 'KV anténa' }, { en: 'loop / long wire', cs: 'smyčka / drát' }), N('clock', 'GPSDO', { en: 'optional', cs: 'volitelné' })], { en: 'SMA "H"', cs: 'SMA „H“' },
+                       [N('dongle', 'RX-888 MkII', 'SDR')], 'USB 3', [N('pc', 'Mini PC', 'UberSDR')], { en: 'tunnel', cs: 'tunel' }, [N('globe', { en: 'Directory', cs: 'Adresář' }, 'ubersdr.org')], '', [SWR]],
+                need: {
+                    en: [`${ext('https://ubersdr.org', 'RX-888 MkII')} (about $150) – the only supported SDR`, 'A mini PC with AVX2 (Intel N100 / N150 is enough) running Ubuntu Server 24.04 or Debian 13', 'An HF antenna: an active loop or a long wire', 'Optional: a 27 MHz GPSDO for a rock-steady frequency'],
+                    cs: [`${ext('https://ubersdr.org', 'RX-888 MkII')} (asi 150 $) – jediné podporované SDR`, 'Mini PC s AVX2 (stačí Intel N100 / N150) s Ubuntu Server 24.04 nebo Debianem 13', 'KV anténa: aktivní smyčka nebo dlouhý drát', 'Volitelně: GPSDO 27 MHz pro dokonale stabilní frekvenci']
+                },
+                ports: [
+                    [{ en: 'SMA "H" (HF)', cs: 'SMA „H“ (KV)' }, { en: 'HF antenna', cs: 'KV anténa' }],
+                    ['USB 3', { en: 'mini PC – a blue USB 3 port', cs: 'mini PC – modrý port USB 3' }],
+                    [{ en: '27 MHz ref.', cs: 'Ref. 27 MHz' }, { en: 'GPSDO (optional)', cs: 'GPSDO (volitelné)' }],
+                    ['Ethernet', { en: 'router', cs: 'router' }]
+                ],
+                steps: {
+                    en: ['Install Ubuntu Server 24.04 or Debian 13 with SSH.', 'Connect the RX-888 by USB 3 and the antenna to the SMA marked <b>H</b>.', 'Over SSH run <code>curl -fsSL https://ubersdr.org/install.sh | bash</code>.', 'Open <code>http://ubersdr.local:8080/admin.html</code> with the password printed at the end, and let the wizard build the FFTW wisdom (minutes to hours).', 'Make it public at <code>/create_public.html</code> – the <i>Zero Config Tunnel</i> needs no port forwarding.'],
+                    cs: ['Nainstalujte Ubuntu Server 24.04 nebo Debian 13 s SSH.', 'RX-888 připojte přes USB 3 a anténu do SMA označeného <b>H</b>.', 'Přes SSH spusťte <code>curl -fsSL https://ubersdr.org/install.sh | bash</code>.', 'Otevřete <code>http://ubersdr.local:8080/admin.html</code> s heslem vypsaným na konci instalace a nechte průvodce vytvořit FFTW wisdom (minuty až hodiny).', 'Zveřejněte ho na <code>/create_public.html</code> – <i>Zero Config Tunnel</i> nepotřebuje přesměrování portů.']
+                },
+                app: {
+                    en: 'A public instance joins the UberSDR directory and shows up in SwR by itself – under the UberSDR client. Adding one by hand is not in the app yet.',
+                    cs: 'Veřejná instance se zapíše do adresáře UberSDR a v SwR se objeví sama – u klienta UberSDR. Ruční přidání zatím aplikace neumí.'
+                },
+                tip: { en: '<strong>Tip:</strong> the RX-888 runs warm – give it airflow.', cs: '<strong>Tip:</strong> RX-888 hřeje – dopřejte mu proudění vzduchu.' },
+                links: [['UberSDR', 'https://ubersdr.org'], ['GitHub', 'https://github.com/madpsy/ka9q_ubersdr'], [{ en: 'Instance directory', cs: 'Adresář instancí' }, 'https://instances.ubersdr.org']]
+            }
+        ];
+
+        const T = {
+            menuTitle: { en: 'Connect your own antenna', cs: 'Připojte vlastní anténu' },
+            menuText: { en: 'Build your own receiver and listen to it in SwR from anywhere – or plug a dongle straight into the phone.', cs: 'Postavte si vlastní přijímač a poslouchejte ho v SwR odkudkoli – nebo zapojte dongle přímo do telefonu.' },
+            menuFoot: { en: 'Your own receivers are added in SwR PRO with the <b>+</b> in the receiver list.', cs: 'Vlastní přijímače přidáte v SwR PRO přes <b>+</b> v seznamu přijímačů.' },
+            flow: { en: 'How it connects', cs: 'Jak se to zapojí' },
+            need: { en: 'What you need', cs: 'Co potřebujete' },
+            ports: { en: 'What goes where', cs: 'Co kam zapojit' },
+            steps: { en: 'Step by step', cs: 'Postup' },
+            inApp: { en: 'In SwR PRO', cs: 'V SwR PRO' },
+            links: { en: 'Links', cs: 'Odkazy' },
+            close: { en: 'Close', cs: 'Zavřít' },
+            clients: { en: 'Receiver types', cs: 'Typy přijímačů' },
+            safety: { en: 'An outdoor antenna needs grounding and a lightning arrester. Listening is legal in most countries; follow your local rules before publishing a receiver.', cs: 'Venkovní anténu uzemněte a dejte do svodu bleskojistku. Poslech je ve většině zemí legální; před zveřejněním přijímače se řiďte místními pravidly.' }
+        };
+
+        const chevron = svg('<path d="m9 6 6 6-6 6"/>', 2);
+        const extIcon = svg('<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>', 2);
+
+        // ---------- menu ----------
+        function renderMenu() {
+            menu.innerHTML = `
+                <div class="ant-menu-head"><b>${L(T.menuTitle)}</b><p>${L(T.menuText)}</p></div>
+                ${GUIDES.map(g => `
+                    <button class="ant-item" type="button" role="menuitem" data-guide="${g.id}" style="--c:${g.color}">
+                        ${ico(g.icon)}
+                        <span class="ant-item-text"><b>${g.name}</b><span>${L(g.tag)}</span></span>
+                        ${chevron}
+                    </button>`).join('')}
+                <p class="ant-menu-foot">${L(T.menuFoot)}</p>`;
+        }
+
+        function placeMenu() {
+            const r = btn.getBoundingClientRect();
+            const nav = document.querySelector('.navbar').getBoundingClientRect();
+            menu.style.top = Math.max(r.bottom, nav.bottom) + 8 + 'px';
+            // Under the button, but never past either edge of the screen
+            const room = window.innerWidth - menu.offsetWidth - 12;
+            menu.style.right = Math.max(12, Math.min(window.innerWidth - r.right, room)) + 'px';
+        }
+
+        function openMenu() {
+            renderMenu();
+            menu.hidden = false;
+            placeMenu();
+            btn.setAttribute('aria-expanded', 'true');
+            scrollAtOpen = window.scrollY;
+        }
+
+        function closeMenu() {
+            if (menu.hidden) return;
+            menu.hidden = true;
+            btn.setAttribute('aria-expanded', 'false');
+        }
+
+        let scrollAtOpen = 0;
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            menu.hidden ? openMenu() : closeMenu();
+        });
+        menu.addEventListener('click', e => {
+            const item = e.target.closest('[data-guide]');
+            if (item) { closeMenu(); openGuide(item.dataset.guide); }
+        });
+        document.addEventListener('click', e => {
+            if (!menu.hidden && !menu.contains(e.target) && !btn.contains(e.target)) closeMenu();
+        });
+        window.addEventListener('resize', () => { if (!menu.hidden) placeMenu(); });
+        // The navbar slides away on scroll; the menu goes with it
+        window.addEventListener('scroll', () => { if (!menu.hidden && Math.abs(window.scrollY - scrollAtOpen) > 60) closeMenu(); }, { passive: true });
+
+        // ---------- guide ----------
+        let current = null;
+
+        function renderFlow(flow) {
+            return flow.map(part => {
+                if (Array.isArray(part)) {
+                    return `<div class="ant-col${part.length > 1 ? ' is-multi' : ''}">${part.map(n => `
+                        <div class="ant-node">${ico(n.i)}<div><b>${L(n.t)}</b>${n.s ? `<small>${L(n.s)}</small>` : ''}</div></div>`).join('')}</div>`;
+                }
+                const label = L(part);
+                return `<div class="ant-wire" aria-hidden="true">${label ? `<span>${label}</span>` : ''}</div>`;
+            }).join('');
+        }
+
+        function flowText(flow) {
+            return flow.filter(Array.isArray).map(col => col.map(n => L(n.t)).join(' + ')).join(' → ');
+        }
+
+        function renderGuide() {
+            const g = GUIDES.find(x => x.id === current);
+            panel.style.setProperty('--c', g.color);
+            panel.innerHTML = `
+                <div class="ant-guide-top">
+                    <div class="ant-guide-title">${ico(g.icon)}<div><h2 id="antGuideTitle">${g.name}</h2><p>${L(g.tag)}</p></div></div>
+                    <button class="ant-close" type="button" aria-label="${L(T.close)}">${svg('<path d="M6 6l12 12M18 6 6 18"/>', 2)}</button>
+                    <div class="ant-tabs" role="tablist" aria-label="${L(T.clients)}">
+                        ${GUIDES.map(x => `<button class="ant-tab" type="button" role="tab" data-tab="${x.id}" aria-selected="${x.id === g.id}" style="--c:${x.color}">${x.name}</button>`).join('')}
+                    </div>
+                </div>
+                <div class="ant-guide-body" role="tabpanel" aria-labelledby="antGuideTitle">
+                    <div class="ant-chips">${g.chips.map(c => `<span class="ant-chip${c === 'PRO' ? ' is-pro' : ''}">${L(c)}</span>`).join('')}</div>
+                    <h3 class="ant-h">${L(T.flow)}</h3>
+                    <div class="ant-flow" role="img" aria-label="${flowText(g.flow)}">${renderFlow(g.flow)}</div>
+                    <div class="ant-grid">
+                        <div><h3 class="ant-h">${L(T.need)}</h3><ul class="ant-list">${L(g.need).map(x => `<li>${x}</li>`).join('')}</ul></div>
+                        <div><h3 class="ant-h">${L(T.ports)}</h3><table class="ant-ports"><tbody>${g.ports.map(([p, w]) => `<tr><td><code>${L(p)}</code></td><td>${L(w)}</td></tr>`).join('')}</tbody></table></div>
+                    </div>
+                    <h3 class="ant-h">${L(T.steps)}</h3>
+                    <ol class="ant-steps">${L(g.steps).map(x => `<li>${x}</li>`).join('')}</ol>
+                    <div class="ant-app">${ico('phone')}<div><b>${L(T.inApp)}</b>${L(g.app)}</div></div>
+                    <p class="ant-tip">${L(g.tip)}</p>
+                    <h3 class="ant-h">${L(T.links)}</h3>
+                    <div class="ant-links">${g.links.map(([label, url]) => `<a href="${url}" target="_blank" rel="noopener">${L(label)}${extIcon}</a>`).join('')}</div>
+                    <p class="ant-safety">${L(T.safety)}</p>
+                </div>`;
+        }
+
+        function openGuide(id) {
+            if (!GUIDES.some(g => g.id === id)) return;
+            const wasOpen = !guide.hidden;
+            current = id;
+            renderGuide();
+            if (!wasOpen) {
+                guide.hidden = false;
+                document.documentElement.style.overflow = 'hidden';
+            }
+            const tab = panel.querySelector(`[data-tab="${id}"]`);
+            tab.scrollIntoView({ block: 'nearest', inline: 'center' });
+            (wasOpen ? tab : panel.querySelector('.ant-close')).focus({ preventScroll: true });
+        }
+
+        function closeGuide() {
+            if (guide.hidden) return;
+            guide.hidden = true;
+            document.documentElement.style.overflow = '';
+            btn.focus({ preventScroll: true });
+        }
+
+        guide.addEventListener('click', e => {
+            if (e.target.closest('.ant-close') || e.target.classList.contains('ant-guide-backdrop')) return closeGuide();
+            const tab = e.target.closest('[data-tab]');
+            if (tab) openGuide(tab.dataset.tab);
+        });
+
+        guide.addEventListener('keydown', e => {
+            // Arrow keys move between the tabs
+            const tab = e.target.closest('[data-tab]');
+            if (tab && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
+                const i = GUIDES.findIndex(g => g.id === tab.dataset.tab);
+                const next = GUIDES[(i + (e.key === 'ArrowRight' ? 1 : -1) + GUIDES.length) % GUIDES.length];
+                openGuide(next.id);
+                e.preventDefault();
+            }
+            // Keep Tab inside the dialog
+            if (e.key === 'Tab') {
+                const f = panel.querySelectorAll('button, a[href]');
+                const first = f[0], last = f[f.length - 1];
+                if (e.shiftKey && document.activeElement === first) { last.focus(); e.preventDefault(); }
+                else if (!e.shiftKey && document.activeElement === last) { first.focus(); e.preventDefault(); }
+            }
+        });
+
+        document.addEventListener('keydown', e => {
+            if (e.key !== 'Escape') return;
+            if (!guide.hidden) closeGuide();
+            else if (!menu.hidden) { closeMenu(); btn.focus(); }
+        });
+
+        document.addEventListener('langchange', () => {
+            if (!menu.hidden) renderMenu();
+            if (!guide.hidden) renderGuide();
+        });
+
+        // A link like kruen.cz/#antenna-kiwi opens that guide
+        function fromHash() {
+            const m = /^#antenna(?:-(\w+))?$/.exec(location.hash);
+            if (m) openGuide(m[1] || 'usb');
+        }
+        window.addEventListener('hashchange', fromHash);
+        fromHash();
     })();
     </script>
 
@@ -4188,7 +5025,7 @@
                     if (!this.interactive) return;
                     // Check if touch is on a UI element (toggles)
                     const target = e.target;
-                    const isUIElement = target.closest('.theme-toggle') || target.closest('.manual-rotate-toggle') || target.closest('a, button');
+                    const isUIElement = target.closest('.theme-toggle') || target.closest('.manual-rotate-toggle') || target.closest('a, button, .ant-menu, .ant-guide');
 
                     if (this.manualRotateEnabled && !isUIElement) {
                         e.preventDefault();
@@ -4218,7 +5055,7 @@
 
                     // Check if touch is on a UI element (toggles)
                     const target = e.target;
-                    const isUIElement = target.closest('.theme-toggle') || target.closest('.manual-rotate-toggle') || target.closest('a, button');
+                    const isUIElement = target.closest('.theme-toggle') || target.closest('.manual-rotate-toggle') || target.closest('a, button, .ant-menu, .ant-guide');
 
                     if (this.manualRotateEnabled && !isUIElement) {
                         e.preventDefault();
@@ -4264,7 +5101,7 @@
                     if (!this.interactive) return;
                     // Check if touch is on a UI element (toggles)
                     const target = e.target;
-                    const isUIElement = target.closest('.theme-toggle') || target.closest('.manual-rotate-toggle') || target.closest('a, button');
+                    const isUIElement = target.closest('.theme-toggle') || target.closest('.manual-rotate-toggle') || target.closest('a, button, .ant-menu, .ant-guide');
 
                     if (this.manualRotateEnabled && !isUIElement) {
                         e.preventDefault();

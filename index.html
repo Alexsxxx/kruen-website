@@ -2457,10 +2457,18 @@
                     <h2>SwR<span>Global Radio</span></h2>
                     <div class="buy-badge">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 11V8a5 5 0 0 0-10 0v3"/><rect x="4.5" y="11" width="15" height="9.5" rx="2.5"/><path d="M12 15v2"/></svg>
-                        <p data-i18n="swr.buy">
-                            <strong>PRO is a one-time purchase</strong>
-                            Pay once, keep it forever - no subscription.
+                        <p id="swrBuy" data-i18n="swr.buyLaunch">
+                            <strong>Launch price ends October 31</strong>
+                            From November 1, PRO goes up in price. Get it now for less - one-time purchase, no subscription.
                         </p>
+                        <script>
+                            // After the launch price ends, show the normal one-time purchase note
+                            if (new Date() >= new Date(2026, 10, 1)) {
+                                var b = document.getElementById('swrBuy');
+                                b.setAttribute('data-i18n', 'swr.buy');
+                                b.innerHTML = '<strong>PRO is a one-time purchase</strong> Pay once, keep it forever - no subscription.';
+                            }
+                        </script>
                     </div>
                 </div>
                 <p class="lead reveal" data-i18n="swr.lead">Tune into <strong>real radio receivers</strong> around the world - live, from your phone. SwR connects to hundreds of receivers across five clients - KiwiSDR/Web-888, OpenWebRX, UberSDR, FM-DX and AirSpy - and turns the ionosphere into your personal listening room.</p>

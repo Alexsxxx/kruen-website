@@ -1095,6 +1095,59 @@
     .helix-step .phone-screen img { opacity: 1; }
     .helix-step .shot-cycle { position: absolute; inset: 0; }
 
+    /* Photos / Videos switch above the helix */
+    .media-toggle {
+        position: absolute;
+        top: clamp(72px, 10vh, 96px);
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 200;
+        display: inline-flex;
+        padding: 4px;
+        gap: 2px;
+        border: 1px solid var(--stage-line);
+        border-radius: 999px;
+        background: rgba(10, 10, 14, 0.55);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+    }
+    .media-toggle button {
+        border: 0;
+        border-radius: 999px;
+        padding: 7px 18px;
+        background: transparent;
+        color: var(--stage-text-2);
+        font: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        transition: background 0.25s ease, color 0.25s ease;
+    }
+    .media-toggle button:hover { color: var(--stage-text); }
+    .media-toggle button.is-on { background: var(--accent); color: #fff; }
+
+    /* Clips sit over the photos and fade in once one has a frame to show */
+    .shot-video {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        background: #000;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.45s ease;
+    }
+    .helix.show-videos .shot-video.ready { opacity: 1; }
+    .shot-video video {
+        position: absolute;
+        inset: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+    }
+    .shot-video video.on { opacity: 1; }
+
     .helix-num {
         display: block;
         font-family: 'Space Grotesk', sans-serif;
@@ -1197,6 +1250,8 @@
         .helix-pole { top: -20px; height: 60%; }
         .helix-counter { position: static; text-align: center; margin-top: 8px; }
         .helix-stage .helix-hint { display: block; }
+        .helix-stage { display: flex; flex-direction: column; }
+        .media-toggle { position: relative; top: auto; left: auto; transform: none; align-self: center; margin: -32px 0 28px; }
     }
 
     .helix-hint {
@@ -2500,13 +2555,17 @@
             </div>
 
             <!-- Feature helix -->
-            <div class="helix" id="swrHelix">
+            <div class="helix show-videos" id="swrHelix">
                 <div class="helix-track" style="--count: 11">
                     <div class="helix-stage">
+                        <div class="media-toggle" role="group" aria-label="Photos or videos" data-i18n-aria-label="helix.mediaLabel">
+                            <button type="button" aria-pressed="false" data-media="photos" data-i18n="helix.photos">Photos</button>
+                            <button type="button" class="is-on" aria-pressed="true" data-media="videos" data-i18n="helix.videos">Videos</button>
+                        </div>
                         <div class="helix-scene">
                             <div class="helix-pole"></div>
                             <article class="helix-step" data-num="01">
-                                <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-modes.webp" alt="SwR live spectrum and waterfall view" data-i18n-alt="alt.swr1" loading="lazy"></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-modes.webp" alt="SwR live spectrum and waterfall view" data-i18n-alt="alt.swr1" loading="lazy"><div class="shot-video" data-videos="swr-vid-01"></div></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">01</span>
                                     <h3 data-i18n="helix.h1">Live spectrum &amp; waterfall</h3>
@@ -2514,7 +2573,7 @@
                                 </div>
                             </article>
                             <article class="helix-step" data-num="02">
-                                <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle"><img src="assets/swr-shot-3d.webp" alt="SwR Customize panel with the spectrum and waterfall style options" data-i18n-alt="alt.swr2a" loading="lazy"><img src="assets/swr-shot-3d-2.webp" alt="SwR with a different waterfall style and the scan panel open" data-i18n-alt="alt.swr2b" loading="lazy"></div></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle"><img src="assets/swr-shot-3d.webp" alt="SwR Customize panel with the spectrum and waterfall style options" data-i18n-alt="alt.swr2a" loading="lazy"><img src="assets/swr-shot-3d-2.webp" alt="SwR with a different waterfall style and the scan panel open" data-i18n-alt="alt.swr2b" loading="lazy"></div><div class="shot-video" data-videos="swr-vid-02a swr-vid-02b"></div></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">02</span>
                                     <h3 data-i18n="helix.h2">Different types of waterfalls &amp; spectrums</h3>
@@ -2522,7 +2581,7 @@
                                 </div>
                             </article>
                             <article class="helix-step" data-num="03">
-                                <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle"><img src="assets/swr-shot-map.webp" alt="SwR 3D globe with KiwiSDR receivers across Asia and the day-night terminator" data-i18n-alt="alt.swr3a" loading="lazy"><img src="assets/swr-shot-map-2.webp" alt="SwR map zoomed on Italian receivers with a station detail popup" data-i18n-alt="alt.swr3b" loading="lazy"></div></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle"><img src="assets/swr-shot-map.webp" alt="SwR 3D globe with KiwiSDR receivers across Asia and the day-night terminator" data-i18n-alt="alt.swr3a" loading="lazy"><img src="assets/swr-shot-map-2.webp" alt="SwR map zoomed on Italian receivers with a station detail popup" data-i18n-alt="alt.swr3b" loading="lazy"></div><div class="shot-video" data-videos="swr-vid-03a swr-vid-03b"></div></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">03</span>
                                     <h3 data-i18n="helix.h3">A worldwide receiver network</h3>
@@ -2530,7 +2589,7 @@
                                 </div>
                             </article>
                             <article class="helix-step" data-num="04">
-                                <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle"><img src="assets/swr-shot-eq.webp" alt="SwR noise tab with squelch, noise blanker and noise reduction knobs" data-i18n-alt="alt.swr4a" loading="lazy"><img src="assets/swr-shot-eq-2.webp" alt="SwR spectrum tab with the multi-band graphic equalizer" data-i18n-alt="alt.swr4b" loading="lazy"></div></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle"><img src="assets/swr-shot-eq.webp" alt="SwR noise tab with squelch, noise blanker and noise reduction knobs" data-i18n-alt="alt.swr4a" loading="lazy"><img src="assets/swr-shot-eq-2.webp" alt="SwR spectrum tab with the multi-band graphic equalizer" data-i18n-alt="alt.swr4b" loading="lazy"></div><div class="shot-video" data-videos="swr-vid-04"></div></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">04</span>
                                     <h3 data-i18n="helix.h4">Shape the sound</h3>
@@ -2538,7 +2597,7 @@
                                 </div>
                             </article>
                             <article class="helix-step" data-num="05">
-                                <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-pixel.png" alt="SwR pixel-art display mode with dot-matrix spectrum and waterfall" data-i18n-alt="alt.swr5" loading="lazy"></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-pixel.png" alt="SwR pixel-art display mode with dot-matrix spectrum and waterfall" data-i18n-alt="alt.swr5" loading="lazy"><div class="shot-video" data-videos="swr-vid-05"></div></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">05</span>
                                     <h3 data-i18n="helix.h5">Pixel mode</h3>
@@ -2546,7 +2605,7 @@
                                 </div>
                             </article>
                             <article class="helix-step" data-num="06">
-                                <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-fm.webp" alt="SwR FM-DX mode with the 87.5-108 MHz tuning dial" data-i18n-alt="alt.swr6" loading="lazy"></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-fm.webp" alt="SwR FM-DX mode with the 87.5-108 MHz tuning dial" data-i18n-alt="alt.swr6" loading="lazy"><div class="shot-video" data-videos="swr-vid-06"></div></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">06</span>
                                     <h3>FM-DX</h3>
@@ -2554,7 +2613,7 @@
                                 </div>
                             </article>
                             <article class="helix-step" data-num="07">
-                                <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle"><img src="assets/swr-shot-widget.webp" alt="SwR KiwiSDR home-screen widget" data-i18n-alt="alt.swr7a" loading="lazy"><img src="assets/swr-shot-widget-2.webp" alt="SwR FM-DX home-screen widget" data-i18n-alt="alt.swr7b" loading="lazy"></div></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle"><img src="assets/swr-shot-widget.webp" alt="SwR KiwiSDR home-screen widget" data-i18n-alt="alt.swr7a" loading="lazy"><img src="assets/swr-shot-widget-2.webp" alt="SwR FM-DX home-screen widget" data-i18n-alt="alt.swr7b" loading="lazy"></div><div class="shot-video" data-videos="swr-vid-07a swr-vid-07b"></div></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">07</span>
                                     <h3 data-i18n="helix.h7">Widgets</h3>
@@ -2570,7 +2629,7 @@
                                 </div>
                             </article>
                             <article class="helix-step" data-num="09">
-                                <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle"><img src="assets/swr-shot-satellite.webp" alt="SwR tracking the Orbcomm FM112 satellite with receivers in range" data-i18n-alt="alt.swr9a" loading="lazy"><img src="assets/swr-shot-satellite-2.webp" alt="SwR showing the ISS pass with its downlink frequency" data-i18n-alt="alt.swr9b" loading="lazy"></div></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><div class="shot-cycle"><img src="assets/swr-shot-satellite.webp" alt="SwR tracking the Orbcomm FM112 satellite with receivers in range" data-i18n-alt="alt.swr9a" loading="lazy"><img src="assets/swr-shot-satellite-2.webp" alt="SwR showing the ISS pass with its downlink frequency" data-i18n-alt="alt.swr9b" loading="lazy"></div><div class="shot-video" data-videos="swr-vid-09"></div></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">09</span>
                                     <h3 data-i18n="helix.h9">Satellite tracking and listening</h3>
@@ -2578,7 +2637,7 @@
                                 </div>
                             </article>
                             <article class="helix-step" data-num="10">
-                                <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-planes.webp" alt="SwR map of live air traffic over Italy with a Boeing 787 flight detail and the nearest tower frequency" data-i18n-alt="alt.swr10" loading="lazy"></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-planes.webp" alt="SwR map of live air traffic over Italy with a Boeing 787 flight detail and the nearest tower frequency" data-i18n-alt="alt.swr10" loading="lazy"><div class="shot-video" data-videos="swr-vid-10"></div></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">10</span>
                                     <h3 data-i18n="helix.h10">Plane tracking and listening</h3>
@@ -2586,7 +2645,7 @@
                                 </div>
                             </article>
                             <article class="helix-step" data-num="11">
-                                <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-free.webp" alt="SwR free version" data-i18n-alt="alt.swr11" loading="lazy"></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><img src="assets/swr-shot-free.webp" alt="SwR free version" data-i18n-alt="alt.swr11" loading="lazy"><div class="shot-video" data-videos="swr-vid-11"></div></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">11</span>
                                     <h3 data-i18n="helix.h11">Free version</h3>
@@ -4207,6 +4266,82 @@
         readScroll();
         progress = target;
         applyMode();
+        initHelixVideos(helix, steps);
+    }
+
+    // Photos / Videos switch: only the front step plays, clips are fetched
+    // the first time they are needed, and a pair of clips takes turns.
+    function initHelixVideos(helix, steps) {
+        const buttons = Array.from(helix.querySelectorAll('.media-toggle button'));
+        const slots = steps.map(step => step.querySelector('.shot-video'));
+        let showVideos = helix.classList.contains('show-videos');
+        let onScreen = false;
+
+        function build(slot) {
+            if (slot.built) return;
+            slot.built = true;
+            slot.idx = 0;
+            slot.clips = slot.dataset.videos.split(' ').map((name, i, all) => {
+                const v = document.createElement('video');
+                v.muted = true;
+                v.playsInline = true;
+                v.setAttribute('playsinline', '');
+                v.setAttribute('aria-hidden', 'true');
+                v.preload = i === 0 ? 'auto' : 'metadata';
+                v.loop = all.length === 1;
+                v.innerHTML = `<source src="assets/${name}.webm" type='video/webm; codecs="vp9"'><source src="assets/${name}.mp4" type="video/mp4">`;
+                if (i === 0) v.classList.add('on');
+                v.addEventListener('loadeddata', () => {
+                    if (i === 0) slot.classList.add('ready');
+                });
+                v.addEventListener('ended', () => {
+                    if (all.length < 2) return;
+                    v.classList.remove('on');
+                    slot.idx = (i + 1) % all.length;
+                    const next = slot.clips[slot.idx];
+                    next.currentTime = 0;
+                    next.classList.add('on');
+                    if (slot.playing) next.play().catch(() => {});
+                });
+                slot.appendChild(v);
+                return v;
+            });
+        }
+
+        function update() {
+            steps.forEach((step, k) => {
+                const slot = slots[k];
+                if (!slot) return;
+                const play = showVideos && onScreen && step.classList.contains('active');
+                if (play) build(slot);
+                if (!slot.built) return;
+                slot.playing = play;
+                slot.clips.forEach((v, i) => {
+                    if (play && i === slot.idx) v.play().catch(() => {});
+                    else v.pause();
+                });
+            });
+        }
+
+        buttons.forEach(btn => btn.addEventListener('click', () => {
+            showVideos = btn.dataset.media === 'videos';
+            helix.classList.toggle('show-videos', showVideos);
+            buttons.forEach(b => {
+                const on = b === btn;
+                b.classList.toggle('is-on', on);
+                b.setAttribute('aria-pressed', String(on));
+            });
+            update();
+        }));
+
+        // The front step changes by toggling .active (staircase and rack alike)
+        const mo = new MutationObserver(update);
+        steps.forEach(step => mo.observe(step, { attributes: true, attributeFilter: ['class'] }));
+
+        new IntersectionObserver(entries => {
+            onScreen = entries[0].isIntersecting;
+            update();
+        }).observe(helix);
     }
 
     // ===================================================================

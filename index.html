@@ -628,7 +628,9 @@
     .stage-frost,
     .stage-glass {
         position: absolute;
-        left: 0; right: 0;
+        /* reach past the screen edges: the blur fades out at its own edge,
+           which left a thin clear strip at both sides (the stage clips the rest) */
+        left: -60px; right: -60px;
         z-index: -1;
         pointer-events: none;
     }

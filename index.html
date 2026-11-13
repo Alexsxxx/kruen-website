@@ -5555,8 +5555,18 @@
     class NetworkBackground {
         constructor() {
             this.canvas = document.getElementById('networkCanvas');
-            // The net paints its own opaque background, so the canvas needs no alpha channel
-            this.ctx = this.canvas.getContext('2d', { alpha: false });
+            // The net paints its own opaque background, so the canvas needs no alpha channel.
+            // It is drawn with WebGL - the whole frame is one batch of quads - and falls
+            // back to the 2D canvas where WebGL is missing.
+            this.gl = null;
+            try {
+                this.gl = this.canvas.getContext('webgl', { alpha: false, antialias: true, depth: false, stencil: false });
+                if (this.gl) this.initGL();
+            } catch (e) {
+                console.warn('Net: WebGL setup failed, drawing with the 2D canvas.', e);
+                this.gl = null;
+            }
+            if (!this.gl) this.ctx = this.canvas.getContext('2d', { alpha: false });
             this.quality = 0;   // 0 = full, raised by watchLoad() on devices that cannot keep up
             this.nodes = [];
             this.mouse = { x: 0, y: 0 };
@@ -5642,8 +5652,13 @@
             const m = this.scaleMix * this.scaleMix * (3 - 2 * this.scaleMix);
             const from = this.scales[this.scaleFrom], to = this.scales[this.scaleTo];
             const lut = from.map((c, i) => c.map((v, n) => v + (to[i][n] - v) * m));
-            const fills = rgb => shades.map(f =>
-                `rgb(${Math.round(rgb[0] * f)}, ${Math.round(rgb[1] * f)}, ${Math.round(rgb[2] * f)})`);
+            // each set of fills also carries its colours as 0-1 numbers for WebGL
+            const fills = rgb => {
+                const out = shades.map(f =>
+                    `rgb(${Math.round(rgb[0] * f)}, ${Math.round(rgb[1] * f)}, ${Math.round(rgb[2] * f)})`);
+                out.rgb = shades.map(f => rgb.map(c => Math.round(c * f) / 255));
+                return out;
+            };
             this.columnPalette = [];
             for (let s = 0; s < segments; s++) {
                 const h = (s + 0.5) / segments;
@@ -5704,7 +5719,144 @@
             this.canvas.height = Math.round(this.viewH * dpr);
             this.canvas.style.width = this.viewW + 'px';
             this.canvas.style.height = this.viewH + 'px';
-            this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            this.dpr = dpr;
+            if (this.gl) {
+                this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+                this.gl.uniform2f(this.uView, this.viewW, this.viewH);
+            } else {
+                this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            }
+        }
+
+        // ---- WebGL drawing: every line, dot and block face is one quad in a shared buffer ----
+        initGL() {
+            const gl = this.gl;
+            const compile = (type, src) => {
+                const sh = gl.createShader(type);
+                gl.shaderSource(sh, src); gl.compileShader(sh);
+                if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(sh));
+                return sh;
+            };
+            const prog = gl.createProgram();
+            gl.attachShader(prog, compile(gl.VERTEX_SHADER, `
+                attribute vec2 aPos; attribute vec4 aCol; attribute vec3 aEdge;
+                uniform vec2 uView; varying vec4 vCol; varying vec3 vEdge;
+                void main() {
+                    vCol = aCol; vEdge = aEdge;
+                    gl_Position = vec4(aPos.x / uView.x * 2. - 1., 1. - aPos.y / uView.y * 2., 0., 1.);
+                }`));
+            // aEdge = (offset from the axis or centre in device px, half width): the pixel's
+            // coverage is worked out here, so hairlines and tiny dots stay as smooth as on
+            // the 2D canvas. z > 9000 is a plain face, z < 0 a dot of radius -z.
+            gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, `
+                precision mediump float;
+                varying vec4 vCol; varying vec3 vEdge;
+                void main() {
+                    float cov = 1.;
+                    if (vEdge.z < 9000.) {
+                        float h = abs(vEdge.z), d = length(vEdge.xy);
+                        cov = clamp(min(d + .5, h) - max(d - .5, -h), 0., 1.);
+                        if (vEdge.z < 0.) cov *= min(1., h * 1.57);
+                    }
+                    float a = vCol.a * cov;
+                    gl_FragColor = vec4(vCol.rgb * a, a);
+                }`));
+            ['aPos', 'aCol', 'aEdge'].forEach((name, i) => gl.bindAttribLocation(prog, i, name));
+            gl.linkProgram(prog);
+            if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+            gl.useProgram(prog);
+            this.uView = gl.getUniformLocation(prog, 'uView');
+            if (this.viewW) gl.uniform2f(this.uView, this.viewW, this.viewH);
+
+            // one index pattern serves every quad; big frames are drawn in chunks of it
+            this.quadChunk = 16383;
+            const index = new Uint16Array(this.quadChunk * 6);
+            for (let q = 0; q < this.quadChunk; q++) {
+                index.set([q * 4, q * 4 + 1, q * 4 + 2, q * 4, q * 4 + 2, q * 4 + 3], q * 6);
+            }
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, index, gl.STATIC_DRAW);
+            gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+            for (let i = 0; i < 3; i++) gl.enableVertexAttribArray(i);
+            gl.enable(gl.BLEND);
+            gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+            if (!this.verts) this.verts = new Float32Array(36 * 4096);
+            this.vertLen = 0;
+
+            if (!this.glEvents) {
+                this.glEvents = true;
+                this.canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); this.glLost = true; });
+                this.canvas.addEventListener('webglcontextrestored', () => {
+                    this.initGL();
+                    gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+                    this.glLost = false;
+                });
+            }
+        }
+
+        // Room for one more quad (4 vertices of 9 numbers); returns where it starts
+        quadSlot() {
+            if (this.vertLen + 36 > this.verts.length) {
+                const bigger = new Float32Array(this.verts.length * 2);
+                bigger.set(this.verts);
+                this.verts = bigger;
+            }
+            const at = this.vertLen;
+            this.vertLen += 36;
+            return at;
+        }
+
+        // A filled quad, corners given in order around it
+        glQuad(x0, y0, x1, y1, x2, y2, x3, y3, rgb, alpha) {
+            const v = this.verts, r = rgb[0], g = rgb[1], b = rgb[2];
+            let o = this.quadSlot();
+            v[o] = x0; v[o + 1] = y0; v[o + 2] = r; v[o + 3] = g; v[o + 4] = b; v[o + 5] = alpha; v[o + 8] = 1e4; o += 9;
+            v[o] = x1; v[o + 1] = y1; v[o + 2] = r; v[o + 3] = g; v[o + 4] = b; v[o + 5] = alpha; v[o + 8] = 1e4; o += 9;
+            v[o] = x2; v[o + 1] = y2; v[o + 2] = r; v[o + 3] = g; v[o + 4] = b; v[o + 5] = alpha; v[o + 8] = 1e4; o += 9;
+            v[o] = x3; v[o + 1] = y3; v[o + 2] = r; v[o + 3] = g; v[o + 4] = b; v[o + 5] = alpha; v[o + 8] = 1e4;
+        }
+
+        // A line of the given width (CSS px), one pixel wider on each side for the soft edge
+        glLine(x0, y0, x1, y1, width, grey, alpha) {
+            const dx = x1 - x0, dy = y1 - y0, len = Math.hypot(dx, dy);
+            if (len < 1e-4) return;
+            const half = width * this.dpr / 2, reach = half + 1, off = reach / this.dpr;
+            const nx = -dy / len * off, ny = dx / len * off;
+            const v = this.verts;
+            let o = this.quadSlot();
+            v[o] = x0 + nx; v[o + 1] = y0 + ny; v[o + 2] = grey; v[o + 3] = grey; v[o + 4] = grey; v[o + 5] = alpha; v[o + 6] = reach; v[o + 7] = 0; v[o + 8] = half; o += 9;
+            v[o] = x0 - nx; v[o + 1] = y0 - ny; v[o + 2] = grey; v[o + 3] = grey; v[o + 4] = grey; v[o + 5] = alpha; v[o + 6] = -reach; v[o + 7] = 0; v[o + 8] = half; o += 9;
+            v[o] = x1 - nx; v[o + 1] = y1 - ny; v[o + 2] = grey; v[o + 3] = grey; v[o + 4] = grey; v[o + 5] = alpha; v[o + 6] = -reach; v[o + 7] = 0; v[o + 8] = half; o += 9;
+            v[o] = x1 + nx; v[o + 1] = y1 + ny; v[o + 2] = grey; v[o + 3] = grey; v[o + 4] = grey; v[o + 5] = alpha; v[o + 6] = reach; v[o + 7] = 0; v[o + 8] = half;
+        }
+
+        // A round dot of the given radius (CSS px)
+        glDot(x, y, radius, grey, alpha) {
+            const r = radius * this.dpr, reach = r + 1, off = reach / this.dpr;
+            const v = this.verts;
+            let o = this.quadSlot();
+            v[o] = x - off; v[o + 1] = y - off; v[o + 2] = grey; v[o + 3] = grey; v[o + 4] = grey; v[o + 5] = alpha; v[o + 6] = -reach; v[o + 7] = -reach; v[o + 8] = -r; o += 9;
+            v[o] = x + off; v[o + 1] = y - off; v[o + 2] = grey; v[o + 3] = grey; v[o + 4] = grey; v[o + 5] = alpha; v[o + 6] = reach; v[o + 7] = -reach; v[o + 8] = -r; o += 9;
+            v[o] = x + off; v[o + 1] = y + off; v[o + 2] = grey; v[o + 3] = grey; v[o + 4] = grey; v[o + 5] = alpha; v[o + 6] = reach; v[o + 7] = reach; v[o + 8] = -r; o += 9;
+            v[o] = x - off; v[o + 1] = y + off; v[o + 2] = grey; v[o + 3] = grey; v[o + 4] = grey; v[o + 5] = alpha; v[o + 6] = -reach; v[o + 7] = reach; v[o + 8] = -r;
+        }
+
+        // Send the collected quads to the screen in one go
+        glFlush() {
+            const gl = this.gl;
+            const bg = this.isDark ? 0 : 1;
+            gl.clearColor(bg, bg, bg, 1);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.bufferData(gl.ARRAY_BUFFER, this.verts.subarray(0, this.vertLen), gl.DYNAMIC_DRAW);
+            const quads = this.vertLen / 36;
+            for (let start = 0; start < quads; start += this.quadChunk) {
+                const base = start * 144;   // bytes: 4 vertices of 9 floats per quad
+                gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 36, base);
+                gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 36, base + 8);
+                gl.vertexAttribPointer(2, 3, gl.FLOAT, false, 36, base + 24);
+                gl.drawElements(gl.TRIANGLES, Math.min(this.quadChunk, quads - start) * 6, gl.UNSIGNED_SHORT, 0);
+            }
+            this.vertLen = 0;
         }
 
         // Frame-time governor. If the page cannot hold about 45 fps, step the quality
@@ -5758,6 +5910,13 @@
 
             const centerX = this.viewW / 2;
             const centerY = this.viewH / 2;
+
+            // Water surface for the cursor's ripples: height now, a step ago, and a spare
+            if (!this.ripple || this.ripple[0].length !== cols * rows) {
+                this.ripple = [0, 1, 2].map(() => new Float32Array(cols * rows));
+                this.rippleLive = false;
+                this.nearIndex = -1;
+            }
 
             for (let i = 0; i < cols; i++) {
                 for (let j = 0; j < rows; j++) {
@@ -5964,8 +6123,11 @@
             const dt = Math.min(0.1, (now - this.lastFrame) / 1000);
             this.lastFrame = now;
 
-            this.ctx.fillStyle = this.isDark ? '#000000' : '#ffffff';
-            this.ctx.fillRect(0, 0, this.viewW, this.viewH);
+            if (this.glLost) return;
+            if (this.ctx) {
+                this.ctx.fillStyle = this.isDark ? '#000000' : '#ffffff';
+                this.ctx.fillRect(0, 0, this.viewW, this.viewH);
+            }
 
             const time = Date.now() * 0.001;
 
@@ -6038,8 +6200,13 @@
                 Math.cos(time * 0.5 + n.x3d * 0.010 + n.y3d * 0.004) * 60 +
                 Math.sin(time * 0.3 + n.x3d * 0.005 + n.y3d * 0.012) * 40;
 
-            this.nodes.forEach(node => {
-                const totalWaveZ = waveAt(node);
+            this.stepRipples(dt);
+            const ripple = this.ripple[0];
+            const mouseX = this.mouse.x, mouseY = this.mouse.y;
+            let nearIndex = -1, nearDist = 45 * 45;
+
+            this.nodes.forEach((node, i) => {
+                const totalWaveZ = waveAt(node) + ripple[i];
                 node.wave = totalWaveZ;
                 // Nodes still growing in rise up from below
                 const finalZ = totalWaveZ - (1 - node.mask) * 70;
@@ -6052,26 +6219,27 @@
                 node.y = centerY + (ground - finalZ * 0.3) * f;
                 node.depth = sum;
 
-                // Gentle push-down under the mouse
-                if (!this.isDragging) {
-                    const dx = this.mouse.x - node.x;
-                    const dy = this.mouse.y - node.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    if (distance < 200) {
-                        const influence = (200 - distance) / 200;
-                        node.y += influence * influence * 120 * 0.3 * f;
-                    }
-                }
+                // The node nearest to the cursor is where it stirs the water next frame
+                const dx = mouseX - node.x, dy = mouseY - node.y, d2 = dx * dx + dy * dy;
+                if (d2 < nearDist) { nearDist = d2; nearIndex = i; }
 
                 node.onScreen = node.x > -120 && node.x < viewW + 120 && node.y > -160 && node.y < viewH + 160;
                 node.normalizedZ = (finalZ + 200) / 400;
                 node.opacity = (0.3 + node.normalizedZ * 0.7) * node.mask;
             });
+            this.nearIndex = nearIndex;
 
-            // Pass 2: collect lines, normals and points into a few alpha buckets,
-            // so thousands of segments cost a handful of strokes instead of one each
+            // Pass 2: lines, normals and points. Their opacity comes in a few steps (buckets);
+            // the 2D canvas collects each step into one path, so thousands of segments cost a
+            // handful of strokes, and WebGL keeps the same steps so both look alike.
             const BUCKETS = 16;
             const bucket = alpha => Math.max(0, Math.min(BUCKETS - 1, Math.floor(alpha * BUCKETS)));
+            if (this.gl) {
+                this.collectNet(bucket, BUCKETS, isoCos, isoSin);
+                this.drawColumns(dt, 0, 0, 1);
+                this.glFlush();
+                return;
+            }
             const lines = [], normalsNear = [], normalsFar = [], points = [];
             for (let k = 0; k < BUCKETS; k++) {
                 lines.push(new Path2D());
@@ -6150,6 +6318,97 @@
             this.drawColumns(dt, 0, 0, 1);
         }
 
+        // The cursor ruffles the net like a hand drawn through water: it dips the surface
+        // where it moves, and the dip spreads out in rings that cross, fade and die away.
+        // A still cursor leaves the water calm.
+        stepRipples(dt) {
+            const cols = this.cols, rows = this.rows;
+            const mx = this.mouse.x, my = this.mouse.y;
+            const moved = this.rippleX === undefined ? 0 : Math.hypot(mx - this.rippleX, my - this.rippleY);
+            this.rippleX = mx; this.rippleY = my;
+            if (!this.isDragging && moved > 0.5 && moved < 400 && this.nearIndex >= 0) {
+                const h = this.ripple[0];
+                const ci = Math.floor(this.nearIndex / rows), cj = this.nearIndex % rows;
+                const dip = Math.min(moved, 50) * 0.7;
+                for (let i = Math.max(1, ci - 2); i <= Math.min(cols - 2, ci + 2); i++) {
+                    for (let j = Math.max(1, cj - 2); j <= Math.min(rows - 2, cj + 2); j++) {
+                        const w = Math.exp(-((i - ci) * (i - ci) + (j - cj) * (j - cj)) / 1.5);
+                        h[i * rows + j] = Math.max(-70, h[i * rows + j] - dip * w);
+                    }
+                }
+                this.rippleLive = true;
+            }
+            if (!this.rippleLive) return;
+
+            // the wave equation on the grid, at a steady 120 steps a second
+            this.rippleClock = Math.min(0.05, (this.rippleClock || 0) + dt);
+            let peak = 0;
+            while (this.rippleClock >= 1 / 120) {
+                this.rippleClock -= 1 / 120;
+                const [h, prev, next] = this.ripple;
+                peak = 0;
+                for (let i = 1; i < cols - 1; i++) {
+                    for (let k = i * rows + 1, end = i * rows + rows - 1; k < end; k++) {
+                        const v = (2 * h[k] - prev[k] + 0.14 * (h[k - rows] + h[k + rows] + h[k - 1] + h[k + 1] - 4 * h[k])) * 0.989;
+                        next[k] = v;
+                        if (v > peak) peak = v; else if (-v > peak) peak = -v;
+                    }
+                }
+                this.ripple = [next, h, prev];
+                if (peak < 0.05) {   // calm again: stop until the cursor stirs it
+                    this.ripple.forEach(a => a.fill(0));
+                    this.rippleLive = false;
+                    break;
+                }
+            }
+        }
+
+        // The WebGL twin of pass 2 in animate(): the same lines, normals and points as quads
+        collectNet(bucket, BUCKETS, isoCos, isoSin) {
+            const nodes = this.nodes, cols = this.cols, rows = this.rows;
+            const lineGrey = this.isDark ? 1 : 80 / 255, normalGrey = this.isDark ? 1 : 100 / 255;
+            const step = k => (k + 0.5) / BUCKETS;
+            for (let pass = 0; pass < 3; pass++) {
+                for (let i = 0; i < nodes.length; i++) {
+                    const node = nodes[i];
+                    const grown = node.mask;
+                    if (grown < 0.01 || !node.onScreen) continue;
+                    const opacity = node.opacity;
+                    const rightNode = node.gridX < cols - 1 ? nodes[i + rows] : null;
+                    const bottomNode = node.gridY < rows - 1 ? nodes[i + 1] : null;
+
+                    if (pass === 0) {
+                        for (let n = 0; n < 2; n++) {
+                            const other = n ? bottomNode : rightNode;
+                            if (!other || other.mask <= 0.01) continue;
+                            const lineOpacity = (opacity + (other.y + 200) / 400 * 0.7) * 0.4 * Math.min(grown, other.mask);
+                            this.glLine(node.x, node.y, other.x, other.y, 0.5, lineGrey, step(bucket(lineOpacity)));
+                        }
+                    } else if (pass === 1) {
+                        let normalX3d = 0, normalY3d = 0, normalZ3d = 1;
+                        if (rightNode && bottomNode) {
+                            normalX3d = -(rightNode.wave - node.wave) * 18;
+                            normalY3d = -18 * (bottomNode.wave - node.wave);
+                            normalZ3d = 18 * 18;
+                            const length3d = Math.sqrt(normalX3d * normalX3d + normalY3d * normalY3d + normalZ3d * normalZ3d);
+                            normalX3d /= length3d; normalY3d /= length3d; normalZ3d /= length3d;
+                        }
+                        const normalLength = Math.max(1, (30 + node.normalizedZ * 20) * 0.8 * grown);
+                        const f = node.persp;
+                        const endX = node.x + (normalX3d - normalY3d) * isoCos * normalLength * f;
+                        const endY = node.y + ((normalX3d + normalY3d) * isoSin - normalZ3d) * normalLength * f;
+                        const midX = node.x + (endX - node.x) * 0.6, midY = node.y + (endY - node.y) * 0.6;
+                        const normalOpacity = opacity * 0.8;
+                        this.glLine(node.x, node.y, midX, midY, 1, normalGrey, step(bucket(normalOpacity * 0.7)));
+                        this.glLine(midX, midY, endX, endY, 1, normalGrey, step(bucket(normalOpacity * 0.18)));
+                    } else {
+                        const pointSize = Math.max(0.1, (0.5 + node.normalizedZ * 2) * 0.8 * grown * node.persp);
+                        this.glDot(node.x, node.y, pointSize, lineGrey, step(bucket(opacity)));
+                    }
+                }
+            }
+        }
+
         // 3D equalizer columns made of stacked blocks, standing on the net
         drawColumns(dt, rotZ, rotX, zoom) {
             const field = this.field;
@@ -6193,7 +6452,17 @@
             }
 
             // f = perspective scale of the column (near columns are drawn bigger)
-            const block = (bx, by, h, fills, f) => {
+            const c0 = corners[0], c1 = corners[1], c2 = corners[2], c3 = corners[3];
+            const block = this.gl ? (bx, by, h, fills, f, alpha) => {
+                for (let k = 0; k < faces.length; k++) {
+                    const { a, b, shade } = faces[k];
+                    this.glQuad(bx + a.x * f, by + a.y * f, bx + b.x * f, by + b.y * f,
+                        bx + b.x * f, by + b.y * f - h, bx + a.x * f, by + a.y * f - h, fills.rgb[shade], alpha);
+                }
+                this.glQuad(bx + c0.x * f, by + c0.y * f - h, bx + c1.x * f, by + c1.y * f - h,
+                    bx + c2.x * f, by + c2.y * f - h, bx + c3.x * f, by + c3.y * f - h, fills.rgb[0], alpha);
+            } : (bx, by, h, fills, f, alpha) => {
+                ctx.globalAlpha = alpha;
                 faces.forEach(({ a, b, shade }) => {
                     ctx.fillStyle = fills[shade];
                     ctx.beginPath();
@@ -6240,20 +6509,19 @@
                     // The topmost block fades in gradually instead of popping
                     const segAlpha = s < full ? 1 : lit - full;
                     if (segAlpha < 0.05) break;
-                    ctx.globalAlpha = alpha * segAlpha;
-                    block(node.x, node.y - s * pitch * f, blockHeight * f, this.columnPalette[s], f);
+                    block(node.x, node.y - s * pitch * f, blockHeight * f, this.columnPalette[s], f, alpha * segAlpha);
                 }
 
                 // Peak cap floats just above the column top
                 if (peak > 0.04) {
                     // ... and stands out 30% more solid than the blocks beneath it
-                    ctx.globalAlpha = Math.min(1, alpha * 1.3) * Math.min(1, (peak - 0.04) * 10);
+                    const capAlpha = Math.min(1, alpha * 1.3) * Math.min(1, (peak - 0.04) * 10);
                     const capY = node.y - (peak * maxHeight + pitch * 0.35) * f;
                     // The cap takes its colour from the scale by how high it rides
-                    block(node.x, capY, pitch * 0.2 * f, this.peakPalette[Math.min(63, Math.floor(peak * 64))], f);
+                    block(node.x, capY, pitch * 0.2 * f, this.peakPalette[Math.min(63, Math.floor(peak * 64))], f, capAlpha);
                 }
             });
-            ctx.globalAlpha = 1;
+            if (ctx) ctx.globalAlpha = 1;
         }
     }
 
@@ -6753,15 +7021,15 @@ void main() {
         window.addEventListener('pointermove', (e) => {
             if (e.pointerType !== 'mouse') return;
             const p = toLocal(e), far = Math.hypot(p.x, p.y - 20);
-            if (far > 420) {
+            if (far > 260) {
                 if (cursor.near || tilt.tx || tilt.ty) { cursor.near = false; tilt.tx = tilt.ty = 0; wake(); }
                 return;
             }
             if (cursor.near) cursor.startle = Math.max(cursor.startle, Math.min(1, Math.hypot(p.x - cursor.x, p.y - cursor.y) / 14));
             cursor.x = p.x; cursor.y = p.y; cursor.near = true;
             if (!reduced) {
-                tilt.tx = Math.max(-1, Math.min(1, p.x / 260)) * 0.34;
-                tilt.ty = Math.max(-1, Math.min(1, (p.y + 16) / 260)) * 0.34;
+                tilt.tx = Math.max(-1, Math.min(1, p.x / 200)) * 0.34;
+                tilt.ty = Math.max(-1, Math.min(1, (p.y + 16) / 200)) * 0.34;
             }
             wake();
         }, { passive: true });
@@ -6781,6 +7049,9 @@ void main() {
             const p = toLocal(e); grab.x = p.x; grab.y = p.y;
             wake();
         });
+        // iOS starts scrolling the page under the finger unless the touch itself is claimed
+        pull.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+        pull.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
         const release = () => {
             if (!grab.active) return;
             grab.active = false;

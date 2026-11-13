@@ -326,6 +326,8 @@
  "orb.p7": "Obok Mgławicy Kil i innych punktów orientacyjnych, wzdłuż ramienia spiralnego, aż do Sgr A* – czarnej dziury w sercu Drogi Mlecznej.",
  "orb.h8": "Stacje radiowe świata",
  "orb.p8": "Tysiące stacji na globie. Znajdź jedną, zobacz, skąd nadaje, i od razu jej posłuchaj.",
+ "orb.h9": "Czarne dziury",
+ "orb.p9": "Okrąż Sgr A* i zobacz, jak jej grawitacja zakrzywia światło w świecący pierścień wokół cienia. Karta podaje masę, rozmiar horyzontu zdarzeń i odległość od nas.",
  "orb.title": "Zmierzone, wyliczone czy <em>modelowane</em>.<br>I zawsze wiadomo co.",
  "orb.honest": "Nikt nie wie, jak większość wszechświata wygląda z bliska. Każda wartość i każdy obraz w Orbicie ma małą etykietę – <strong>Zmierzone</strong>, <strong>Wyliczone</strong> lub <strong>Model</strong> – więc zawsze wiesz, co pochodzi z katalogu, a co jest ilustracją."
 }

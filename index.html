@@ -2904,13 +2904,17 @@
             </div>
 
             <!-- Feature helix -->
-            <div class="helix" id="orbitaHelix">
-                <div class="helix-track" style="--count: 8">
+            <div class="helix show-videos" id="orbitaHelix">
+                <div class="helix-track" style="--count: 9">
                     <div class="helix-stage">
+                        <div class="media-toggle" role="group" aria-label="Photos or videos" data-i18n-aria-label="helix.mediaLabel">
+                            <button type="button" aria-pressed="false" data-media="photos" data-i18n="helix.photos">Photos</button>
+                            <button type="button" class="is-on" aria-pressed="true" data-media="videos" data-i18n="helix.videos">Videos</button>
+                        </div>
                         <div class="helix-scene">
                             <div class="helix-pole"></div>
                             <article class="helix-step" data-num="01">
-                                <div class="phone-frame"><div class="phone-screen"><img src="assets/orbita-shot-earth.webp" alt="The Earth as a globe with clouds, city lights and the aurora" loading="lazy"></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><img src="assets/orbita-shot-earth.webp" alt="The Earth as a globe with clouds, city lights and the aurora" loading="lazy"><div class="shot-video" data-videos="orbita-vid-01"></div></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">01</span>
                                     <h3 data-i18n="orb.h1">The Earth, live</h3>
@@ -2918,7 +2922,7 @@
                                 </div>
                             </article>
                             <article class="helix-step" data-num="02">
-                                <div class="phone-frame"><div class="phone-screen"><img src="assets/orbita-shot-solar.webp" alt="The solar system with planets, moons and spacecraft on their orbits" loading="lazy"></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><img src="assets/orbita-shot-solar.webp" alt="The solar system with planets, moons and spacecraft on their orbits" loading="lazy"><div class="shot-video" data-videos="orbita-vid-02"></div></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">02</span>
                                     <h3 data-i18n="orb.h2">The solar system</h3>
@@ -2926,7 +2930,7 @@
                                 </div>
                             </article>
                             <article class="helix-step" data-num="03">
-                                <div class="phone-frame"><div class="phone-screen"><img src="assets/orbita-shot-sun.webp" alt="The Sun up close with its data card and the corona layer" loading="lazy"></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><img src="assets/orbita-shot-sun.webp" alt="The Sun up close with its data card and the corona layer" loading="lazy"><div class="shot-video" data-videos="orbita-vid-03"></div></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">03</span>
                                     <h3 data-i18n="orb.h3">Up close to the Sun</h3>
@@ -2934,7 +2938,7 @@
                                 </div>
                             </article>
                             <article class="helix-step" data-num="04">
-                                <div class="phone-frame"><div class="phone-screen"><img src="assets/orbita-shot-local-group.webp" alt="The Local Group of galaxies around the Milky Way" loading="lazy"></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><img src="assets/orbita-shot-local-group.webp" alt="The Local Group of galaxies around the Milky Way" loading="lazy"><div class="shot-video" data-videos="orbita-vid-04"></div></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">04</span>
                                     <h3 data-i18n="orb.h4">The Local Group at true scale</h3>
@@ -2942,7 +2946,7 @@
                                 </div>
                             </article>
                             <article class="helix-step" data-num="05">
-                                <div class="phone-frame"><div class="phone-screen"><img src="assets/orbita-shot-neighbourhood.webp" alt="The stars, nebulae and clusters around the Sun" loading="lazy"></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><img src="assets/orbita-shot-neighbourhood.webp" alt="The stars, nebulae and clusters around the Sun" loading="lazy"><div class="shot-video" data-videos="orbita-vid-05"></div></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">05</span>
                                     <h3 data-i18n="orb.h5">Our corner of the Milky Way</h3>
@@ -2950,7 +2954,7 @@
                                 </div>
                             </article>
                             <article class="helix-step" data-num="06">
-                                <div class="phone-frame"><div class="phone-screen"><img src="assets/orbita-shot-orion.webp" alt="The Orion Nebula as a 3D object with its data card" loading="lazy"></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><img src="assets/orbita-shot-orion.webp" alt="The Orion Nebula as a 3D object with its data card" loading="lazy"><div class="shot-video" data-videos="orbita-vid-06"></div></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">06</span>
                                     <h3 data-i18n="orb.h6">Nebulae in 3D</h3>
@@ -2958,7 +2962,7 @@
                                 </div>
                             </article>
                             <article class="helix-step" data-num="07">
-                                <div class="phone-frame"><div class="phone-screen"><img src="assets/orbita-shot-carina.webp" alt="The Carina Nebula on the flight through the Milky Way" loading="lazy"></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><img src="assets/orbita-shot-carina.webp" alt="The Carina Nebula on the flight through the Milky Way" loading="lazy"><div class="shot-video" data-videos="orbita-vid-07"></div></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">07</span>
                                     <h3 data-i18n="orb.h7">A flight through the galaxy</h3>
@@ -2966,16 +2970,24 @@
                                 </div>
                             </article>
                             <article class="helix-step" data-num="08">
-                                <div class="phone-frame"><div class="phone-screen"><img src="assets/orbita-shot-radio.webp" alt="Radio stations pinned to the globe with a search field" loading="lazy"></div></div>
+                                <div class="phone-frame"><div class="phone-screen"><img src="assets/orbita-shot-radio.webp" alt="Radio stations pinned to the globe with a search field" loading="lazy"><div class="shot-video" data-videos="orbita-vid-08"></div></div></div>
                                 <div class="helix-text">
                                     <span class="helix-num">08</span>
                                     <h3 data-i18n="orb.h8">Radio stations of the world</h3>
                                     <p data-i18n="orb.p8">Thousands of stations pinned to the globe. Find one, see where it broadcasts from and listen right there.</p>
                                 </div>
                             </article>
+                            <article class="helix-step" data-num="09">
+                                <div class="phone-frame"><div class="phone-screen"><img src="assets/orbita-shot-black-hole.webp" alt="The black hole Sgr A* with its glowing ring and data card" loading="lazy"><div class="shot-video" data-videos="orbita-vid-09"></div></div></div>
+                                <div class="helix-text">
+                                    <span class="helix-num">09</span>
+                                    <h3 data-i18n="orb.h9">Black holes</h3>
+                                    <p data-i18n="orb.p9">Circle Sgr A* and watch its gravity bend the light into a glowing ring around the shadow. The card gives its mass, the size of the event horizon and the distance from us.</p>
+                                </div>
+                            </article>
                         </div>
                         <div class="helix-bar"><span></span></div>
-                        <div class="helix-counter" aria-hidden="true"><span class="cur">01</span> / 08</div>
+                        <div class="helix-counter" aria-hidden="true"><span class="cur">01</span> / 09</div>
                         <p class="helix-hint" aria-hidden="true" data-i18n="hint.drag">&larr; Drag to turn &rarr;</p>
                     </div>
                 </div>

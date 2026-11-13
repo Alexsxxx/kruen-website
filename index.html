@@ -6329,7 +6329,7 @@
             if (!this.isDragging && moved > 0.5 && moved < 400 && this.nearIndex >= 0) {
                 const h = this.ripple[0];
                 const ci = Math.floor(this.nearIndex / rows), cj = this.nearIndex % rows;
-                const dip = Math.min(moved, 50) * 0.7;
+                const dip = Math.min(moved, 50) * 1.0;
                 for (let i = Math.max(1, ci - 2); i <= Math.min(cols - 2, ci + 2); i++) {
                     for (let j = Math.max(1, cj - 2); j <= Math.min(rows - 2, cj + 2); j++) {
                         const w = Math.exp(-((i - ci) * (i - ci) + (j - cj) * (j - cj)) / 1.5);

@@ -231,6 +231,51 @@
 
     .nav-logo:hover img { transform: rotate(-12deg) scale(1.06); }
 
+    /* The mark doubles as a lamp (see initLamp): glass tubes drawn over the image, a cord
+       hanging from the ring and an unseen button riding on the bead at its end */
+    .nav-lamp { position: relative; display: flex; }
+
+    .lamp-gl {
+        position: absolute;
+        left: 50%; top: 50%;
+        width: 104px; height: 104px;
+        margin: -52px 0 0 -52px;
+        pointer-events: none;
+        display: none;
+    }
+
+    .nav-lamp.gl .lamp-gl { display: block; }
+    .nav-lamp.gl .nav-logo img { opacity: 0; }
+    /* without WebGL the image itself goes dim and bright */
+    .nav-lamp:not(.gl) .nav-logo img { filter: saturate(0.45) brightness(0.7); transition: filter 0.4s ease, transform 0.4s ease; }
+    .nav-lamp.lit:not(.gl) .nav-logo img { filter: drop-shadow(0 0 6px rgba(255, 90, 40, 0.8)); }
+
+    .lamp-cord {
+        position: absolute;
+        left: -70px; top: -54px;   /* its centre sits where the cord is tied: 20px, 36px */
+        width: 180px; height: 180px;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+    }
+
+    .lamp-pull {
+        position: absolute;
+        left: 2px; top: 18px;
+        width: 36px; height: 36px;
+        border: 0; border-radius: 50%;
+        background: none;
+        cursor: grab;
+        touch-action: none;
+        -webkit-tap-highlight-color: transparent;
+        transition: opacity 0.25s ease;
+    }
+
+    .nav-lamp.pulling .lamp-pull { cursor: grabbing; }
+    .lamp-pull:focus-visible { outline: 2px solid var(--accent); outline-offset: -8px; }
+    @media (pointer: coarse) { .lamp-pull { left: -2px; top: 14px; width: 44px; height: 44px; } }
+
+    .navbar.hidden .lamp-cord, .navbar.hidden .lamp-pull { opacity: 0; pointer-events: none; }
+
     .nav-links {
         display: flex;
         align-items: center;
@@ -2472,7 +2517,11 @@
         </div>
         <nav class="navbar">
             <div class="nav-container">
-                <a class="nav-logo" href="#top" aria-label="Kruen - back to top" data-i18n-aria-label="a.top"><img src="assets/kruen-mark.svg" alt="" width="40" height="40"></a>
+                <div class="nav-lamp">
+                    <a class="nav-logo" href="#top" aria-label="Kruen - back to top" data-i18n-aria-label="a.top"><img src="assets/kruen-mark.svg" alt="" width="40" height="40"><canvas class="lamp-gl" aria-hidden="true"></canvas></a>
+                    <canvas class="lamp-cord" aria-hidden="true"></canvas>
+                    <button class="lamp-pull" type="button" aria-pressed="false" aria-label="Lamp switch - pull the cord" data-i18n-aria-label="a.lamp"></button>
+                </div>
                 <div class="nav-right">
                     <div class="nav-links">
                         <a class="nav-social" href="https://www.facebook.com/profile.php?id=61591433805080" target="_blank" rel="noopener" aria-label="Facebook">
@@ -6416,6 +6465,343 @@
     }
 
     // ===================================================================
+    // LAMP - the Kruen mark as a raymarched glass lamp with a pull cord
+    // ===================================================================
+    // The enso ring and the K are glass tubes with a filament inside. A cord hangs
+    // from the mark: it shies away from the cursor, but it can be caught, and a tug
+    // downwards heats the filament up (or lets it cool down again).
+    function initLamp() {
+        const root = document.querySelector('.nav-lamp');
+        if (!root) return;
+        const glCanvas = root.querySelector('.lamp-gl');
+        const cord = root.querySelector('.lamp-cord');
+        const pull = root.querySelector('.lamp-pull');
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        let on = false;
+        try { on = localStorage.getItem('lamp') === 'on'; } catch (e) { /* stays off */ }
+        let heat = on ? 1 : 0;
+        const tilt = { x: 0, y: 0, tx: 0, ty: 0 };
+
+        // ---- the lamp itself -------------------------------------------------
+        const FRAG = `
+precision highp float;
+uniform vec2 uRes; uniform float uHeat; uniform vec2 uTilt;
+const float SCALE = 2.6;                 // the mark spans -1..1, the rest is room for the halo
+const vec2 RC = vec2(-.01, .03); const float RR = .775;
+const float A0 = .8378, SPAN = 5.515, TAU = 6.2831853;
+const vec2 S0 = vec2(-.41, .45), S1 = vec2(-.43, -.42);
+const vec2 U0 = vec2(-.41, .10), U1 = vec2(.30, .47);
+const vec2 L0 = vec2(-.24, .19), L1 = vec2(.30, -.42);
+
+float ringR(float tn) { return mix(.036, .088, smoothstep(0., .35, tn)) * mix(1., .24, smoothstep(.5, 1., tn)); }
+// local frame of the nearest point of a tube axis: (along, across, depth, position on the axis)
+vec4 ringLocal(vec3 p, float lo, float hi) {
+    vec2 v = p.xy - RC; float t = mod(atan(v.y, v.x) - A0, TAU);
+    if (t > SPAN) t = (t - SPAN < (TAU - SPAN) * .5) ? SPAN : 0.;
+    t = clamp(t, lo, hi);
+    float a = A0 + t; vec2 er = vec2(cos(a), sin(a)); vec2 rel = v - er * RR;
+    return vec4(dot(rel, vec2(-er.y, er.x)), dot(rel, er), p.z, t);
+}
+vec4 segLocal(vec3 p, vec2 a, vec2 b, float inset) {
+    vec2 ab = b - a; float len = length(ab); vec2 d = ab / len; vec2 pa = p.xy - a;
+    float h = clamp(dot(pa, d), inset, len - inset);
+    return vec4(dot(pa, d) - h, dot(pa, vec2(-d.y, d.x)), p.z, h);
+}
+float smin(float a, float b, float k) { float h = max(k - abs(a - b), 0.) / k; return min(a, b) - h * h * k * .25; }
+float glass(vec3 p) {
+    vec4 r = ringLocal(p, 0., SPAN);
+    float d = length(r.xyz) - ringR(r.w / SPAN);
+    float k = length(segLocal(p, S0, S1, 0.).xyz) - .078;
+    k = smin(k, length(segLocal(p, U0, U1, 0.).xyz) - .066, .03);
+    k = smin(k, length(segLocal(p, L0, L1, 0.).xyz) - .066, .03);
+    return min(d, k);
+}
+float coil(vec4 l, float amp) {
+    float ph = l.w * 52.36;
+    return length(vec3(l.x, l.y - amp * cos(ph), l.z - amp * sin(ph))) - .015;
+}
+float wire(vec3 p) {
+    vec4 r = ringLocal(p, .05, SPAN * .9);
+    float d = coil(vec4(r.xyz, r.w * RR), ringR(r.w / SPAN) * .16);
+    d = min(d, coil(segLocal(p, S0, S1, .015), .012));
+    d = min(d, coil(segLocal(p, U0, U1, .015), .011));
+    d = min(d, coil(segLocal(p, L0, L1, .015), .011));
+    return d;
+}
+void main() {
+    vec2 uv = (gl_FragCoord.xy * 2. - uRes) / uRes.y * SCALE;
+    float cx = cos(uTilt.x), sx = sin(uTilt.x), cy = cos(uTilt.y), sy = sin(uTilt.y);
+    mat3 R = mat3(cx, 0., -sx, 0., 1., 0., sx, 0., cx) * mat3(1., 0., 0., 0., cy, sy, 0., -sy, cy);
+    vec3 ro = R * vec3(uv, 2.), rd = R * vec3(0., 0., -1.);
+    float dmin = 1e3, t = 1.5; bool hit = false; vec3 p = ro;
+    if (length(uv) < 1.2) {
+        for (int i = 0; i < 48; i++) {
+            p = ro + rd * t; float d = glass(p); dmin = min(dmin, d);
+            if (d < .0015) { hit = true; break; }
+            t += d * .9; if (t > 2.5) break;
+        }
+    } else dmin = length(uv - RC) - RR - .09;
+
+    vec3 hot = vec3(1., .18, .03) * smoothstep(0., .5, uHeat) * 1.2
+             + vec3(.9, .75, .25) * smoothstep(.45, 1., uHeat)
+             + vec3(.3, .4, .5) * smoothstep(.85, 1., uHeat);
+    vec3 col = vec3(0.); float a = 0.;
+    if (hit) {
+        const vec2 e = vec2(.002, -.002);
+        vec3 n = normalize(e.xyy * glass(p + e.xyy) + e.yyx * glass(p + e.yyx) + e.yxy * glass(p + e.yxy) + e.xxx * glass(p + e.xxx));
+        vec3 L = normalize(vec3(-.45, .7, .55));
+        float f = pow(1. - max(dot(n, -rd), 0.), 2.5);
+        float dif = max(dot(n, L), 0.);
+        col = vec3(.88, .10, .14) * (.55 + .45 * dif) * mix(1., .6, f) + vec3(1., .45, .45) * f * .3;
+        a = mix(.5, .9, f);
+        // through the glass: the ray bends and looks for the filament
+        vec3 rr = refract(rd, n, 1. / 1.4); vec3 q = p + rr * .004;
+        float wmin = 1e3, tw = 0.; bool wh = false;
+        for (int i = 0; i < 28; i++) {
+            float dw = wire(q); wmin = min(wmin, dw);
+            if (dw < .002) { wh = true; break; }
+            float s = max(dw * .55, .003); q += rr * s; tw += s; if (tw > .26) break;
+        }
+        if (wh) {
+            vec3 wn = normalize(e.xyy * wire(q + e.xyy) + e.yyx * wire(q + e.yyx) + e.yxy * wire(q + e.yxy) + e.xxx * wire(q + e.xxx));
+            vec3 cold = vec3(.16, .13, .12) * (.35 + .65 * max(dot(wn, L), 0.)) + pow(max(dot(reflect(rr, wn), L), 0.), 20.) * .45;
+            col = mix(col, cold * (1. - uHeat) + hot, .92); a = max(a, .95);
+        }
+        col += vec3(1., .32, .10) * uHeat * (.012 / (max(wmin, 0.) + .012) * 1.1 + .25 + .35 * f);
+        a = min(1., a + uHeat * .5);
+        float sp = pow(max(dot(reflect(rd, n), L), 0.), 50.) * .9
+                 + pow(max(dot(reflect(rd, n), normalize(vec3(.6, -.35, .5))), 0.), 30.) * .3;
+        col += sp; a = min(1., a + sp);
+        col *= a;
+    } else {
+        float dm = max(dmin, 0.);
+        float halo = uHeat * (pow(.06 / (dm + .06), 2.) * .75 + exp(-dm * 2.6) * .22) * smoothstep(2.6, 1.7, length(uv));
+        col = vec3(1., .27, .10) * halo; a = halo;
+    }
+    gl_FragColor = vec4(min(col, vec3(1.)), a);
+}`;
+        let gl = null, uHeat = null, uTilt = null;
+        try {
+            gl = glCanvas.getContext('webgl', { alpha: true, premultipliedAlpha: true, antialias: false });
+            if (gl) {
+                const px = (window.devicePixelRatio || 1) > 1.5 ? 312 : 208;   // oversampled, the page scales it down
+                glCanvas.width = glCanvas.height = px;
+                const compile = (type, src) => {
+                    const s = gl.createShader(type);
+                    gl.shaderSource(s, src); gl.compileShader(s);
+                    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+                    return s;
+                };
+                const prog = gl.createProgram();
+                gl.attachShader(prog, compile(gl.VERTEX_SHADER, 'attribute vec2 a; void main() { gl_Position = vec4(a, 0., 1.); }'));
+                gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FRAG));
+                gl.bindAttribLocation(prog, 0, 'a');
+                gl.linkProgram(prog);
+                if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+                gl.useProgram(prog);
+                gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+                gl.enableVertexAttribArray(0);
+                gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+                gl.viewport(0, 0, px, px);
+                gl.uniform2f(gl.getUniformLocation(prog, 'uRes'), px, px);
+                uHeat = gl.getUniformLocation(prog, 'uHeat');
+                uTilt = gl.getUniformLocation(prog, 'uTilt');
+                root.classList.add('gl');
+                // a lost context leaves the plain image in charge
+                glCanvas.addEventListener('webglcontextlost', () => { gl = null; root.classList.remove('gl'); });
+            }
+        } catch (e) {
+            console.warn('Lamp: no WebGL, the mark stays an image.', e);
+            gl = null;
+        }
+        root.classList.toggle('lit', on);
+        pull.setAttribute('aria-pressed', String(on));
+
+        // ---- the cord: a short verlet rope, measured from where it is tied to the ring ----
+        const N = 10, SEG = 5, LEN = (N - 1) * SEG, STRETCH = 30, HALF = 90;
+        const X = new Float32Array(N), Y = new Float32Array(N), PX = new Float32Array(N), PY = new Float32Array(N);
+        for (let i = 0; i < N; i++) { Y[i] = PY[i] = i * SEG; }
+        const dpr = Math.min(window.devicePixelRatio || 1, 3);
+        cord.width = cord.height = HALF * 2 * dpr;
+        const ctx = cord.getContext('2d');
+        const cursor = { x: 0, y: 0, near: false, startle: 0 };
+        const grab = { active: false, x: 0, y: LEN, armed: true, pull: 0 };
+        let seg = SEG;
+
+        function toLocal(e) {
+            const r = root.getBoundingClientRect();
+            return { x: e.clientX - r.left - 20, y: e.clientY - r.top - 36 };
+        }
+
+        function toggle() {
+            on = !on;
+            try { localStorage.setItem('lamp', on ? 'on' : 'off'); } catch (e) { /* not remembered */ }
+            root.classList.toggle('lit', on);
+            pull.setAttribute('aria-pressed', String(on));
+            if (navigator.vibrate) navigator.vibrate(8);
+            wake();
+        }
+
+        function step(dt) {
+            const end = N - 1;
+            // let go, the stretched cord shortens over a few frames instead of snapping back
+            seg = SEG + (seg - SEG) * Math.exp(-dt * 28);
+            grab.pull = 0;
+            if (grab.active) {
+                // the cord gives like rubber, less and less the further it is pulled
+                const d = Math.hypot(grab.x, grab.y) || 1;
+                const ext = Math.max(0, d - LEN);
+                const shown = STRETCH * (1 - Math.exp(-ext / STRETCH));
+                const len = Math.min(d, LEN) + shown;
+                X[end] = PX[end] = grab.x / d * len;
+                Y[end] = PY[end] = grab.y / d * len;
+                seg = Math.max(SEG, len / end);
+                grab.pull = shown * Math.max(0, grab.y / d);
+                if (grab.armed && grab.pull > 14) { grab.armed = false; toggle(); }
+                else if (!grab.armed && grab.pull < 6) grab.armed = true;
+            }
+            const last = grab.active ? end : N;
+            for (let i = 1; i < last; i++) {
+                let ax = 0, ay = 1400;
+                if (cursor.near && !grab.active && !reduced) {
+                    const dx = X[i] - cursor.x, dy = Y[i] - cursor.y, d = Math.hypot(dx, dy);
+                    if (d < 44) {
+                        const f = 1 - d / 44, s = f * f * (0.2 + 0.8 * cursor.startle) * 6000 * (i / end);
+                        ax += d > 0.5 ? dx / d * s : s;
+                        ay += d > 0.5 ? dy / d * s : 0;
+                    }
+                }
+                const vx = (X[i] - PX[i]) * 0.985, vy = (Y[i] - PY[i]) * 0.985;
+                PX[i] = X[i]; PY[i] = Y[i];
+                X[i] += vx + ax * dt * dt; Y[i] += vy + ay * dt * dt;
+            }
+            for (let k = 0; k < 10; k++) {
+                for (let i = 0; i < end; i++) {
+                    const dx = X[i + 1] - X[i], dy = Y[i + 1] - Y[i], d = Math.hypot(dx, dy) || 1e-6;
+                    const diff = (d - seg) / d;
+                    const fixA = i === 0, fixB = grab.active && i + 1 === end;
+                    if (fixA && fixB) continue;
+                    const wa = fixA ? 0 : fixB ? 1 : 0.5, wb = fixB ? 0 : fixA ? 1 : 0.5;
+                    X[i] += dx * diff * wa; Y[i] += dy * diff * wa;
+                    X[i + 1] -= dx * diff * wb; Y[i + 1] -= dy * diff * wb;
+                }
+            }
+            cursor.startle *= Math.exp(-dt * 3);
+        }
+
+        function drawCord() {
+            ctx.setTransform(dpr, 0, 0, dpr, HALF * dpr, HALF * dpr);
+            ctx.clearRect(-HALF, -HALF, HALF * 2, HALF * 2);
+            const path = () => {
+                ctx.beginPath(); ctx.moveTo(X[0], Y[0]);
+                for (let i = 1; i < N - 1; i++) ctx.quadraticCurveTo(X[i], Y[i], (X[i] + X[i + 1]) / 2, (Y[i] + Y[i + 1]) / 2);
+                ctx.lineTo(X[N - 1], Y[N - 1]);
+            };
+            ctx.lineCap = 'round'; ctx.lineWidth = 1.3;
+            ctx.strokeStyle = '#8f8a88'; path(); ctx.stroke();
+            if (heat > 0.01) {   // the lamp lights the top of its own cord
+                const g = ctx.createLinearGradient(0, 0, 0, 42);
+                g.addColorStop(0, `rgba(255, 130, 60, ${0.95 * heat})`); g.addColorStop(1, 'rgba(255, 130, 60, 0)');
+                ctx.strokeStyle = g; path(); ctx.stroke();
+            }
+            const bx = X[N - 1], by = Y[N - 1];
+            const bead = ctx.createRadialGradient(bx - 1.2, by - 1.4, 0.4, bx, by, 4);
+            bead.addColorStop(0, '#ff8d86'); bead.addColorStop(0.45, '#e3202b'); bead.addColorStop(1, '#8e0f17');
+            ctx.fillStyle = bead; ctx.beginPath(); ctx.arc(bx, by, 4, 0, Math.PI * 2); ctx.fill();
+            pull.style.transform = `translate(${bx.toFixed(1)}px, ${by.toFixed(1)}px)`;
+        }
+
+        function drawLamp() {
+            if (!gl) return;
+            gl.uniform1f(uHeat, heat);
+            gl.uniform2f(uTilt, tilt.x, tilt.y + grab.pull / STRETCH * 0.22);
+            gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.drawArrays(gl.TRIANGLES, 0, 3);
+        }
+
+        // ---- one loop for both, asleep whenever nothing moves ----
+        let raf = 0, lastT = 0, acc = 0;
+        function frame(now) {
+            const dt = Math.min(0.05, (now - lastT) / 1000 || 0.016);
+            lastT = now;
+            acc += dt;
+            let motion = 0;
+            while (acc >= 1 / 120) {
+                step(1 / 120); acc -= 1 / 120;
+            }
+            for (let i = 1; i < N; i++) motion += Math.abs(X[i] - PX[i]) + Math.abs(Y[i] - PY[i]);
+
+            const target = on ? 1 : 0;
+            const dHeat = target - heat;
+            heat = reduced || Math.abs(dHeat) < 0.002 ? target : heat + dHeat * (1 - Math.exp(-dt / (on ? 0.28 : 0.6)));
+            const dtx = tilt.tx - tilt.x, dty = tilt.ty - tilt.y;
+            tilt.x += dtx * Math.min(1, dt * 7); tilt.y += dty * Math.min(1, dt * 7);
+
+            drawCord();
+            drawLamp();
+
+            const busy = grab.active || motion > 0.02 || heat !== target || Math.abs(dtx) + Math.abs(dty) > 0.002
+                || cursor.startle > 0.02 || Math.abs(X[N - 1]) > 0.3;
+            raf = busy ? requestAnimationFrame(frame) : 0;
+        }
+        function wake() {
+            if (!raf) { lastT = performance.now(); raf = requestAnimationFrame(frame); }
+        }
+
+        window.addEventListener('pointermove', (e) => {
+            if (e.pointerType !== 'mouse') return;
+            const p = toLocal(e), far = Math.hypot(p.x, p.y - 20);
+            if (far > 420) {
+                if (cursor.near || tilt.tx || tilt.ty) { cursor.near = false; tilt.tx = tilt.ty = 0; wake(); }
+                return;
+            }
+            if (cursor.near) cursor.startle = Math.max(cursor.startle, Math.min(1, Math.hypot(p.x - cursor.x, p.y - cursor.y) / 14));
+            cursor.x = p.x; cursor.y = p.y; cursor.near = true;
+            if (!reduced) {
+                tilt.tx = Math.max(-1, Math.min(1, p.x / 260)) * 0.34;
+                tilt.ty = Math.max(-1, Math.min(1, (p.y + 16) / 260)) * 0.34;
+            }
+            wake();
+        }, { passive: true });
+        document.addEventListener('pointerleave', () => { cursor.near = false; tilt.tx = tilt.ty = 0; wake(); });
+
+        pull.addEventListener('pointerdown', (e) => {
+            if (e.button) return;
+            e.preventDefault();
+            pull.setPointerCapture(e.pointerId);
+            const p = toLocal(e);
+            grab.active = true; grab.armed = true; grab.x = p.x; grab.y = p.y;
+            root.classList.add('pulling');
+            wake();
+        });
+        pull.addEventListener('pointermove', (e) => {
+            if (!grab.active) return;
+            const p = toLocal(e); grab.x = p.x; grab.y = p.y;
+            wake();
+        });
+        const release = () => {
+            if (!grab.active) return;
+            grab.active = false;
+            root.classList.remove('pulling');
+            wake();
+        };
+        pull.addEventListener('pointerup', release);
+        pull.addEventListener('pointercancel', release);
+        pull.addEventListener('lostpointercapture', release);
+        // keyboard: Enter or Space gives the cord a tug
+        pull.addEventListener('click', (e) => {
+            if (e.detail !== 0) return;
+            PY[N - 1] -= 2.5;
+            toggle();
+        });
+
+        drawCord();
+        drawLamp();
+    }
+
+    // ===================================================================
     // INITIALIZATION
     // ===================================================================
     document.addEventListener('DOMContentLoaded', function() {
@@ -6424,6 +6810,7 @@
         new NetworkBackground();
         initPages();
         initNavbar();
+        initLamp();
         initReveals();
         initHelix();
         initUpcoming();

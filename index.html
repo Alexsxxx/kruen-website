@@ -1101,7 +1101,10 @@
         border-radius: 30px;
     }
 
-    .helix-step .phone-screen { border-radius: 23px; }
+    /* The screen takes the 9:20 shape of the shots and clips, so nothing is
+       cropped at the sides; the frame wraps around it */
+    .helix-step .phone-frame { aspect-ratio: auto; }
+    .helix-step .phone-screen { border-radius: 23px; height: auto; aspect-ratio: 9 / 20; }
     .helix-step .phone-screen img { opacity: 1; }
     .helix-step .shot-cycle { position: absolute; inset: 0; }
 

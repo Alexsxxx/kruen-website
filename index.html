@@ -6,6 +6,16 @@
     <meta name="google-site-verification" content="0c-hmtOEQ5Lbyy8KcHhiSP3Y-jO0mCeDEr_tyvdrUfw" />
     <meta name="description" content="Kruen - Android app design & development from the Czech Republic. Makers of SwR Global Radio, CmA Crypto Market Analysis and PBH Phone Battery Health." data-i18n-content="meta.description">
     <title>Kruen - SwR Global Radio, CmA &amp; PBH</title>
+    <!-- Link previews. Each app has its own at kruen.cz/app/<page>/ (see initPages) -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Kruen">
+    <meta property="og:url" content="https://kruen.cz/">
+    <meta property="og:title" content="Kruen - SwR Global Radio, CmA &amp; PBH">
+    <meta property="og:description" content="Kruen - Android app design &amp; development from the Czech Republic. Makers of SwR Global Radio, CmA Crypto Market Analysis and PBH Phone Battery Health.">
+    <meta property="og:image" content="https://kruen.cz/assets/og/swr.png">
+    <meta property="og:image:width" content="512">
+    <meta property="og:image:height" content="512">
+    <meta name="twitter:card" content="summary">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -30,6 +40,15 @@
     <script>
     // Pages: kruen.cz alone shows the hero, #swr, #orbita... show one app (see initPages)
     (function() {
+        // The address bar then moves on to kruen.cz/app/orbita/ - an address whose
+        // link preview is about that one app. Relative links (assets/, i18n/) must
+        // keep pointing at the site root from there, hence the <base>.
+        if (/^https?:$/.test(location.protocol)) {
+            window.__siteRoot = location.pathname.replace(/[^\/]*$/, '');
+            var base = document.createElement('base');
+            base.href = window.__siteRoot;
+            document.head.appendChild(base);
+        }
         var h = location.hash.slice(1);
         var pages = ['swr', 'swr-watch', 'orbita', 'cma', 'pbh', 'about'];
         document.documentElement.dataset.page = pages.indexOf(h) >= 0 ? h : (h === 'upcoming' ? 'swr' : 'home');
@@ -6689,6 +6708,22 @@
             return alias[id] || null;
         }
 
+        // Served over http(s), a page lives at <root>app/<page>/ - the small share
+        // page there has the link preview for that app and leads back here. Opened
+        // as a file there is no such thing, the pages stay at #<page>.
+        const siteRoot = window.__siteRoot;
+        const urlOf = page => {
+            if (siteRoot == null) return page === 'home' ? location.pathname + location.search : '#' + page;
+            return siteRoot + (page === 'home' ? '' : 'app/' + page + '/') + location.search;
+        };
+        function pageHere() {
+            if (siteRoot != null && location.pathname.startsWith(siteRoot + 'app/')) {
+                const id = location.pathname.slice(siteRoot.length + 4).replace(/\/.*$/, '');
+                if (pages.includes(id)) return id;
+            }
+            return pageOf(location.hash);
+        }
+
         function mark(page) {
             links.forEach(a => {
                 const on = pageOf(a.getAttribute('href')) === page;
@@ -6718,15 +6753,20 @@
             const page = pageOf(a.getAttribute('href'));
             if (!page) return;
             e.preventDefault();
-            const url = page === 'home' ? location.pathname + location.search : '#' + page;
-            if (page !== root.dataset.page) history.pushState(null, '', url);
+            if (page !== root.dataset.page) history.pushState(null, '', urlOf(page));
             show(page);
         });
 
         window.addEventListener('popstate', () => {
-            const page = pageOf(location.hash);
+            const page = pageHere();
             if (page) show(page);
         });
+
+        // Arrived at #orbita (a link, or sent on by the share page): show the
+        // address that is worth copying
+        if (siteRoot != null && location.hash === '#' + root.dataset.page) {
+            history.replaceState(history.state, '', urlOf(root.dataset.page));
+        }
 
         if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
         mark(root.dataset.page);

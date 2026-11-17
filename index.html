@@ -329,6 +329,13 @@
         gap: 24px;
     }
 
+    /* App links: names on wide screens, icons alone on phones (see the 700px block) */
+    .nav-app img { display: none; width: 28px; height: 28px; border-radius: 23%; }
+
+    /* Your antenna and Facebook are about SwR: only on its two pages */
+    html:not([data-page="swr"]):not([data-page="swr-watch"]) .navbar .nav-antenna,
+    html:not([data-page="swr"]):not([data-page="swr-watch"]) .navbar .nav-social { display: none; }
+
     /* Language switch (CZ / EN) - stays visible on phones */
     .i18n-pending .content-wrapper { visibility: hidden; }
 
@@ -2469,7 +2476,6 @@
     }
 
     @media (max-width: 640px) {
-        .nav-antenna { padding: 7px 11px 7px 9px; }
         .ant-guide { padding: 0; place-items: end stretch; }
         .ant-guide-panel { width: 100%; max-height: 92vh; max-height: 92dvh; border-radius: 26px 26px 0 0; }
         .ant-guide-top { padding: 18px 16px 0; }
@@ -2506,13 +2512,33 @@
     /* RESPONSIVE & MOTION */
     /* ================================================================= */
     @media (max-width: 700px) {
-        .nav-links { display: none; }
+        /* phones: app icons without names, the antenna button as an icon */
+        .nav-container { padding: 14px 16px; }
+        .nav-right { gap: 10px; }
+        .nav-links { gap: 8px; }
+        .navbar .nav-links .nav-social, .nav-links .nav-about { display: none; }
+        .nav-app { display: flex; border-radius: 8px; }
+        .nav-app img { display: block; opacity: 0.6; transition: opacity 0.2s ease; }
+        html[data-page="home"] .nav-app img, .nav-app.is-current img { opacity: 1; }
+        .nav-app.is-current { box-shadow: 0 0 0 2px var(--accent); }
+        .nav-app span, .nav-antenna span {
+            position: absolute; width: 1px; height: 1px; overflow: hidden;
+            clip-path: inset(50%); white-space: nowrap;
+        }
+        .nav-antenna { padding: 7px; }
         .about-grid { grid-template-columns: 1fr; }
         .app-head { gap: 16px; }
         .buy-badge { margin-left: 0; max-width: none; width: 100%; padding: 13px 15px; }
         .buy-badge strong { font-size: 14px; }
         .buy-badge p { font-size: 12.5px; }
         .cta-row { margin-top: 28px; }
+    }
+
+    @media (max-width: 360px) {
+        .nav-container { padding: 14px 12px; }
+        .nav-right { gap: 8px; }
+        .nav-links { gap: 6px; }
+        .nav-app img { width: 24px; height: 24px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -2546,12 +2572,12 @@
                         <a class="nav-social" href="https://www.facebook.com/profile.php?id=61591433805080" target="_blank" rel="noopener" aria-label="Facebook">
                             <svg viewBox="0 0 24 24" role="img" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                         </a>
-                        <a href="#swr">SwR</a>
-                        <a href="#swr-watch">SwR Watch</a>
-                        <a href="#orbita">Orbita</a>
-                        <a href="#cma">CmA</a>
-                        <a href="#pbh">PBH</a>
-                        <a href="#about" data-i18n="nav.about">About</a>
+                        <a class="nav-app" href="#swr"><img src="assets/swr-icon.webp" alt="" width="28" height="28"><span>SwR</span></a>
+                        <a class="nav-app" href="#swr-watch"><img src="assets/swrw-icon.webp" alt="" width="28" height="28"><span>SwR Watch</span></a>
+                        <a class="nav-app" href="#orbita"><img src="assets/orbita-icon.webp" alt="" width="28" height="28"><span>Orbita</span></a>
+                        <a class="nav-app" href="#cma"><img src="assets/cma-icon.webp" alt="" width="28" height="28"><span>CmA</span></a>
+                        <a class="nav-app" href="#pbh"><img src="assets/pbh-icon.webp" alt="" width="28" height="28"><span>PBH</span></a>
+                        <a class="nav-about" href="#about" data-i18n="nav.about">About</a>
                     </div>
                     <button class="nav-antenna" type="button" id="antennaBtn" aria-haspopup="menu" aria-expanded="false" aria-controls="antennaMenu">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="7.5" r="1.6"/><path d="M8.6 4.1a4.8 4.8 0 0 0 0 6.8M15.4 4.1a4.8 4.8 0 0 1 0 6.8M5.9 1.9a8.4 8.4 0 0 0 0 11.2M18.1 1.9a8.4 8.4 0 0 1 0 11.2M12 9.2V21M12 12.5 8.6 21M12 12.5l3.4 8.5M8 21h8"/></svg>

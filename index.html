@@ -5638,7 +5638,7 @@
             this.coreHalf = 2;
             // The net is decoration only on phones - no touch/pointer interaction there
             this.mobileQuery = window.matchMedia('(max-width: 768px)');
-            if (this.mobileQuery.matches) this.parkMouse();
+            if (!this.interactive) this.parkMouse();
             // Phones draw the whole net at half size around the screen centre
             this.zoom = this.mobileQuery.matches ? 0.85 : 1;
             this.updateTheme();
@@ -5646,8 +5646,9 @@
             this.init();
         }
 
+        // The home screen shows the net as decoration only; app pages let it react
         get interactive() {
-            return !this.mobileQuery.matches;
+            return !this.mobileQuery.matches && document.documentElement.dataset.page !== 'home';
         }
 
         // Move the push point far off screen so no node stays dented
@@ -5993,6 +5994,8 @@
 
         setupEventListeners() {
             window.addEventListener('resize', () => {
+                // a page switch fires resize too: back on the home screen the net lets go
+                if (!this.interactive) this.parkMouse();
                 if (this.resize()) this.createNodes();
             });
 

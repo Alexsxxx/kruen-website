@@ -1616,8 +1616,9 @@
     }
 
 
-    /* SwR Watch sits on the SwR page; links to #swr-watch stop below the fixed navbar */
-    #swr-watch { scroll-margin-top: 90px; }
+    /* SwR Watch sits on the SwR page, under Panel One with the same gap as between the
+       panel and its heading; links to #swr-watch stop below the fixed navbar */
+    #swr-watch { margin-top: clamp(60px, 8vw, 110px); scroll-margin-top: 90px; }
 
     /* SwR Watch: warm tint so it reads as part of the SwR family */
     .appblock.tint-orange::before {

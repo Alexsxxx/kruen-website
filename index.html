@@ -50,8 +50,8 @@
             document.head.appendChild(base);
         }
         var h = location.hash.slice(1);
-        var pages = ['swr', 'swr-watch', 'orbita', 'cma', 'pbh', 'about'];
-        document.documentElement.dataset.page = pages.indexOf(h) >= 0 ? h : (h === 'upcoming' ? 'swr' : 'home');
+        var pages = ['swr', 'orbita', 'cma', 'pbh', 'about'];
+        document.documentElement.dataset.page = pages.indexOf(h) >= 0 ? h : (h === 'upcoming' || h === 'swr-watch' ? 'swr' : 'home');
     })();
     </script>
     <script>
@@ -335,8 +335,8 @@
     .nav-app[hidden], .hero-chip[hidden] { display: none !important; }
 
     /* Your antenna and Facebook are about SwR: only on its two pages */
-    html:not([data-page="swr"]):not([data-page="swr-watch"]) .navbar .nav-antenna,
-    html:not([data-page="swr"]):not([data-page="swr-watch"]) .navbar .nav-social { display: none; }
+    html:not([data-page="swr"]) .navbar .nav-antenna,
+    html:not([data-page="swr"]) .navbar .nav-social { display: none; }
 
     /* Language switch (CZ / EN) - stays visible on phones */
     .i18n-pending .content-wrapper { visibility: hidden; }
@@ -1392,181 +1392,6 @@
         50%, 95% { opacity: 0; }
         100%     { opacity: 1; }
     }
-    /* --- Free vs PRO comparison table --- */
-    .compare {
-        margin-top: clamp(60px, 8vw, 110px);
-    }
-
-    .compare-head {
-        text-align: center;
-        max-width: 640px;
-        margin: 0 auto clamp(28px, 4vw, 46px);
-    }
-
-    .compare-head h2 {
-        font-size: clamp(26px, 4vw, 42px);
-        font-weight: 700;
-        letter-spacing: -0.02em;
-    }
-
-    .compare-head h2 em {
-        font-style: normal;
-        color: var(--accent);
-    }
-
-    /* A pane of glass: barely tinted, lit along its top edge, floating on a soft shadow */
-    .compare-table-wrap {
-        max-width: 920px;
-        margin: 0 auto;
-        padding: clamp(6px, 1.2vw, 14px) clamp(4px, 1vw, 12px);
-        border: 1px solid rgba(255, 255, 255, 0.13);
-        border-radius: 30px;
-        background:
-            linear-gradient(155deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.035) 38%, rgba(255, 255, 255, 0.02) 100%);
-        -webkit-backdrop-filter: blur(22px) saturate(150%);
-        backdrop-filter: blur(22px) saturate(150%);
-        box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.22),
-            inset 0 -1px 0 rgba(255, 255, 255, 0.04),
-            0 30px 70px rgba(0, 0, 0, 0.45);
-        overflow: hidden;
-    }
-
-    .compare-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 15px;
-    }
-
-    .compare-table th,
-    .compare-table td {
-        /* long compound words (German, Polish) break instead of widening the table */
-        hyphens: auto;
-        -webkit-hyphens: auto;
-        overflow-wrap: anywhere;
-        padding: 20px clamp(14px, 2.4vw, 28px);
-        text-align: left;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.055);
-        vertical-align: middle;
-    }
-
-    .compare-table tbody tr:last-child th,
-    .compare-table tbody tr:last-child td { border-bottom: 0; }
-
-    /* Feature name column */
-    .compare-table tbody th {
-        font-family: 'Inter', sans-serif;
-        font-weight: 500;
-        color: var(--stage-text);
-    }
-
-    .compare-table tbody th small {
-        display: block;
-        margin-top: 3px;
-        font-size: 13px;
-        font-weight: 400;
-        color: var(--stage-text-2);
-    }
-
-    .compare-table .col-val small {
-        display: block;
-        margin-top: 2px;
-        font-size: 12px;
-        color: var(--stage-text-2);
-    }
-
-    .visually-hidden {
-        position: absolute;
-        width: 1px; height: 1px;
-        margin: -1px;
-        padding: 0;
-        border: 0;
-        overflow: hidden;
-        clip: rect(0 0 0 0);
-        clip-path: inset(50%);
-        white-space: nowrap;
-    }
-
-    /* Value columns */
-    .compare-table .col-val {
-        width: clamp(96px, 17%, 170px);
-        text-align: center;
-        color: var(--stage-text-2);
-    }
-
-    /* The PRO column is a second, warmer sheet of glass laid into the pane */
-    .compare-table .col-pro {
-        background: linear-gradient(to right, rgba(255, 138, 30, 0.04), rgba(255, 138, 30, 0.1));
-        box-shadow: inset 1px 0 0 rgba(255, 170, 90, 0.14);
-        color: var(--stage-text);
-    }
-
-    .compare-table thead .col-pro { border-top-right-radius: 20px; }
-    .compare-table tbody tr:last-child .col-pro { border-bottom-right-radius: 20px; }
-
-    .compare-table thead th {
-        font-family: 'Space Grotesk', 'Inter', sans-serif;
-        font-size: 13px;
-        font-weight: 700;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: var(--stage-text-2);
-        padding-top: 24px;
-        padding-bottom: 24px;
-    }
-
-    .compare-table thead .col-pro {
-        color: var(--accent);
-    }
-
-    .compare-table thead .col-pro small {
-        display: block;
-        margin-top: 5px;
-        font-family: 'Inter', sans-serif;
-        font-size: 11px;
-        font-weight: 500;
-        letter-spacing: 0.02em;
-        text-transform: none;
-        color: var(--stage-text-2);
-    }
-
-    .compare-mark {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 24px; height: 24px;
-        border-radius: 50%;
-    }
-
-    .compare-mark svg { width: 15px; height: 15px; }
-
-    .compare-mark.yes {
-        background: rgba(255, 138, 30, 0.16);
-        color: var(--accent);
-    }
-
-    .compare-mark.no {
-        background: rgba(255, 255, 255, 0.05);
-        color: rgba(255, 255, 255, 0.28);
-    }
-
-    @media (max-width: 640px) {
-        .compare-table { font-size: 14px; }
-        .compare-table-wrap { border-radius: 22px; }
-        .compare-table th,
-        .compare-table td { padding: 16px 10px; }
-        .compare-table tbody th small { font-size: 12px; }
-        .compare-table .col-val { width: 74px; }
-        .compare-table .col-val small { font-size: 11px; }
-        .compare-table thead th { font-size: 11px; letter-spacing: 0.1em; }
-    }
-
-    @media (max-width: 400px) {
-        .compare-table th,
-        .compare-table td { padding: 14px 7px; }
-        .compare-table .col-val { width: 66px; }
-    }
-
     /* --- Upcoming: two phones that take turns playing --- */
     .upcoming {
         margin-top: clamp(70px, 9vw, 120px);
@@ -1791,6 +1616,9 @@
     }
 
 
+    /* SwR Watch sits on the SwR page; links to #swr-watch stop below the fixed navbar */
+    #swr-watch { scroll-margin-top: 90px; }
+
     /* SwR Watch: warm tint so it reads as part of the SwR family */
     .appblock.tint-orange::before {
         background: radial-gradient(700px 380px at 30% 55%, rgba(255, 138, 30, 0.1), transparent 70%);
@@ -1980,7 +1808,6 @@
     /* PAGES: one app per page, the hero alone on kruen.cz (see initPages) */
     html[data-page]:not([data-page="home"]) [data-view="home"],
     html[data-page]:not([data-page="swr"]) [data-view="swr"],
-    html[data-page]:not([data-page="swr-watch"]) [data-view="swr-watch"],
     html[data-page]:not([data-page="orbita"]) [data-view="orbita"],
     html[data-page]:not([data-page="cma"]) [data-view="cma"],
     html[data-page]:not([data-page="pbh"]) [data-view="pbh"],
@@ -2575,7 +2402,6 @@
                             <svg viewBox="0 0 24 24" role="img" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                         </a>
                         <a class="nav-app" href="#swr"><img src="assets/swr-icon.webp" alt="" width="28" height="28"><span>SwR</span></a>
-                        <a class="nav-app" href="#swr-watch"><img src="assets/swrw-icon.webp" alt="" width="28" height="28"><span>SwR Watch</span></a>
                         <a class="nav-app" href="#orbita"><img src="assets/orbita-icon.webp" alt="" width="28" height="28"><span>Orbita</span></a>
                         <a class="nav-app" hidden href="#cma"><img src="assets/cma-icon.webp" alt="" width="28" height="28"><span>CmA</span></a>
                         <a class="nav-app" hidden href="#pbh"><img src="assets/pbh-icon.webp" alt="" width="28" height="28"><span>PBH</span></a>
@@ -2619,7 +2445,6 @@
                 <p class="hero-subtitle" data-i18n="hero.sub">Android and iOS App Design &amp; Development</p>
                 <div class="hero-cta">
                     <a class="hero-chip" href="#swr" title="SwR - Global Radio" aria-label="SwR - Global Radio"><img src="assets/swr-icon.webp" alt="" width="28" height="28">SwR</a>
-                    <a class="hero-chip" href="#swr-watch" title="SwR Watch - for Apple Watch" data-i18n-title="a.chipWatch" aria-label="SwR Watch - for Apple Watch" data-i18n-aria-label="a.chipWatch"><img src="assets/swrw-icon.webp" alt="" width="28" height="28">SwR Watch</a>
                     <a class="hero-chip" href="#orbita" title="Orbita - Space Explorer" data-i18n-title="a.chipOrbita" aria-label="Orbita - Space Explorer" data-i18n-aria-label="a.chipOrbita"><img src="assets/orbita-icon.webp" alt="" width="28" height="28">Orbita</a>
                     <a class="hero-chip" hidden href="#cma" title="CmA - Crypto Market Analysis" aria-label="CmA - Crypto Market Analysis"><img src="assets/cma-icon.webp" alt="" width="28" height="28">CmA</a>
                     <a class="hero-chip" hidden href="#pbh" title="PBH - Phone Battery Health" aria-label="PBH - Phone Battery Health"><img src="assets/pbh-icon.webp" alt="" width="28" height="28">PBH</a>
@@ -2826,125 +2651,51 @@
                 <p class="panel-caption" data-i18n="panel.caption"><strong>Panel One</strong> - one hand-crafted radio skin, two finishes. Drag the divider to switch. Every knob, switch and needle actually works.</p>
             </div>
 
-            <!-- Free vs PRO -->
-            <div class="compare container">
-                <div class="compare-head reveal">
-                    <h2 data-i18n="cmp.title">Free or <em>PRO</em>.</h2>
-                </div>
+            <!-- SwR Watch: the Apple Watch member of the SwR family (#swr-watch scrolls here) -->
+            <div class="appblock tint-orange container" id="swr-watch">
+                <div class="appblock-grid is-flipped">
+                    <div class="appblock-text">
+                        <p class="eyebrow reveal" data-i18n="watch.eyebrow">02 · SwR family · Apple Watch</p>
+                        <div class="app-head reveal">
+                            <div class="app-icon"><img src="assets/swrw-icon.webp" alt="SwR Watch app icon" data-i18n-alt="alt.iconWatch" width="512" height="512"></div>
+                            <h2>SwR Watch<span data-i18n="watch.sub">Shortwave on your wrist</span></h2>
+                        </div>
+                        <p class="lead reveal" data-i18n="watch.lead">A real shortwave radio on your <strong>Apple Watch</strong>. SwR Watch connects to public KiwiSDR and Web-888 receivers around the world - tune them with the Digital Crown, watch the band and listen, right on your wrist. A standalone watch app: no iPhone, no account, no sign-up.</p>
+                        <div class="cta-row reveal">
+                            <a class="play-btn" href="https://apps.apple.com/app/id6815200455" target="_blank" rel="noopener">
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.36 12.68c.02-2.1 1.72-3.11 1.79-3.16-.98-1.43-2.5-1.62-3.04-1.65-1.29-.13-2.53.76-3.18.76-.66 0-1.67-.74-2.75-.72-1.41.02-2.72.82-3.44 2.09-1.47 2.54-.38 6.3 1.05 8.36.7 1.01 1.53 2.14 2.62 2.1 1.05-.04 1.45-.68 2.72-.68 1.27 0 1.63.68 2.74.66 1.13-.02 1.85-1.03 2.54-2.04.8-1.17 1.13-2.3 1.15-2.36-.03-.01-2.2-.85-2.2-3.36zM14.3 6.6c.58-.7.97-1.68.86-2.65-.83.03-1.84.55-2.44 1.25-.54.62-1.01 1.61-.88 2.56.93.07 1.88-.47 2.46-1.16z"/></svg>
+                                <span><small data-i18n="store.apple">Download on the</small>App Store</span>
+                            </a>
+                            <div class="buy-badge">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 11V8a5 5 0 0 0-10 0v3"/><rect x="4.5" y="11" width="15" height="9.5" rx="2.5"/><path d="M12 15v2"/></svg>
+                                <p data-i18n="watch.buy">
+                                    <strong>One-time purchase</strong>
+                                    Pay once, keep it forever - no subscription.
+                                </p>
+                            </div>
+                            <div class="tag-row">
+                                <span class="tag" data-i18n="watch.only">Apple Watch only</span>
+                                <span class="tag" data-i18n="watch.standalone">Standalone</span>
+                                <span class="tag" data-i18n="watch.noAccount">No account</span>
+                            </div>
+                        </div>
+                        <p class="appblock-note reveal" data-i18n="watch.note">AM, LSB, USB, CW and NBFM with adjustable bandwidth, volume and squelch. Audio keeps playing with your wrist down, and if a receiver drops you, SwR Watch reconnects or moves to the next best one. A separate app from SwR - Global Radio, with the same spectrum and waterfall look.</p>
+                    </div>
 
-                <div class="compare-table-wrap reveal">
-                    <table class="compare-table">
-                        <caption class="visually-hidden" data-i18n="cmp.caption">Feature comparison between the free version of SwR and SwR PRO</caption>
-                        <thead>
-                            <tr>
-                                <th scope="col" data-i18n="cmp.feature">Feature</th>
-                                <th scope="col" class="col-val" data-i18n="cmp.free">Free</th>
-                                <th scope="col" class="col-val col-pro" data-i18n="cmp.pro">PRO<small>one-time purchase</small></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <th scope="row" data-i18n="cmp.clients">Receiver clients<small>KiwiSDR/Web-888, OpenWebRX, UberSDR, FM-DX, AirSpy</small></th>
-                                <td class="col-val">1<small>KiwiSDR/Web-888</small></td>
-                                <td class="col-val col-pro" data-i18n="cmp.allClients">5<small>all clients</small></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" data-i18n="cmp.time">Listening time<small>How long you can stay tuned in</small></th>
-                                <td class="col-val">15 min</td>
-                                <td class="col-val col-pro" data-i18n="cmp.unlimited">Unlimited</td>
-                            </tr>
-                            <tr>
-                                <th scope="row" data-i18n="tag.noads">No ads</th>
-                                <td class="col-val"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" data-i18n="tag.nodata">Zero data collection</th>
-                                <td class="col-val"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" data-i18n="cmp.render">Render Radio<small>Hand-crafted skins with working knobs and needles</small></th>
-                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden" data-i18n="cmp.no">Not included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" data-i18n="cmp.pixel">Pixel graphics<small>Retro dot-matrix display mode</small></th>
-                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden" data-i18n="cmp.no">Not included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" data-i18n="cmp.waterfall">Waterfall visuals</th>
-                                <td class="col-val">1</td>
-                                <td class="col-val col-pro">6</td>
-                            </tr>
-                            <tr>
-                                <th scope="row" data-i18n="cmp.spectrum">Spectrum visuals</th>
-                                <td class="col-val">1</td>
-                                <td class="col-val col-pro">6</td>
-                            </tr>
-                            <tr>
-                                <th scope="row" data-i18n="cmp.wKiwi">Widgets for KiwiSDR/Web-888</th>
-                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden" data-i18n="cmp.no">Not included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" data-i18n="cmp.wFm">Widgets for FM-DX</th>
-                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden" data-i18n="cmp.no">Not included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" data-i18n="cmp.background">Background playback</th>
-                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden" data-i18n="cmp.no">Not included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" data-i18n="cmp.scan">Smart scanning</th>
-                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden" data-i18n="cmp.no">Not included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" data-i18n="cmp.tuning">Reception &amp; sound tuning<small>Equalizer, bandwidth, noise reduction</small></th>
-                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden" data-i18n="cmp.no">Not included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" data-i18n="cmp.colours">Custom colours</th>
-                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden" data-i18n="cmp.no">Not included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" data-i18n="cmp.detect">Smart receiver detection<small>Finds the receiver's location and the band it is tuned to</small></th>
-                                <td class="col-val"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" data-i18n="cmp.daynight">Day / night map</th>
-                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden" data-i18n="cmp.no">Not included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" data-i18n="cmp.dongle">USB dongle<small>Your own antenna, fully offline</small></th>
-                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden" data-i18n="cmp.no">Not included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" data-i18n="cmp.sat">Satellites<small>Live tracking and listening</small></th>
-                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden" data-i18n="cmp.no">Not included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" data-i18n="cmp.planes">Planes<small>Live air traffic and tower frequencies</small></th>
-                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden" data-i18n="cmp.no">Not included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" data-i18n="cmp.maps">Detailed maps<small>Powered by OpenFreeMap</small></th>
-                                <td class="col-val"><span class="compare-mark no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="visually-hidden" data-i18n="cmp.no">Not included</span></span></td>
-                                <td class="col-val col-pro"><span class="compare-mark yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg><span class="visually-hidden" data-i18n="cmp.yes">Included</span></span></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="appblock-shots" data-rack-split>
+                        <figure class="appblock-shot reveal">
+                            <div class="watch"><div class="watch-case"><div class="watch-glass"><div class="watch-screen"><img src="assets/swrw-shot-list.webp" alt="SwR Watch receiver list grouped by country" data-i18n-alt="alt.watch1" width="416" height="496" loading="lazy"></div></div></div></div>
+                            <figcaption data-i18n="watch.fig1">Hundreds of receivers, filed by country - nearest first.</figcaption>
+                        </figure>
+                        <figure class="appblock-shot raised reveal">
+                            <div class="watch"><div class="watch-case"><div class="watch-glass"><div class="watch-screen"><div class="shot-cycle"><img src="assets/swrw-shot-spectrum.webp" alt="SwR Watch live spectrum and waterfall tuned to 9755 kHz" data-i18n-alt="alt.watch2a" width="416" height="496" loading="lazy"><img src="assets/swrw-shot-spectrum-2.webp" alt="SwR Watch tuned to Voice of Turkey on 9765 kHz" data-i18n-alt="alt.watch2b" width="416" height="496" loading="lazy"></div></div></div></div></div>
+                            <figcaption data-i18n="watch.fig2">Live spectrum and waterfall, tuned with the Digital Crown.</figcaption>
+                        </figure>
+                        <figure class="appblock-shot reveal">
+                            <div class="watch"><div class="watch-case"><div class="watch-glass"><div class="watch-screen"><div class="shot-cycle"><img src="assets/swrw-shot-map.webp" alt="SwR Watch map of receivers in Florida" data-i18n-alt="alt.watch3a" width="416" height="496" loading="lazy"><img src="assets/swrw-shot-controls.webp" alt="SwR Watch volume and squelch controls" data-i18n-alt="alt.watch3b" width="416" height="496" loading="lazy"></div></div></div></div></div>
+                            <figcaption data-i18n="watch.fig3">The whole fleet on a map, plus volume, squelch and bandwidth.</figcaption>
+                        </figure>
+                    </div>
                 </div>
             </div>
 
@@ -3097,56 +2848,6 @@
                 <p class="lead reveal" data-i18n="orb.honest">Nobody knows what most of the universe looks like up close. Every value and every picture in Orbita carries a small chip - <strong>Measured</strong>, <strong>Derived</strong> or <strong>Model</strong> - so you always know what comes from a catalogue and what is an illustration.</p>
             </div>
             </div><!-- /Orbita page -->
-
-            <!-- ===================================================== -->
-            <!-- SWR WATCH -->
-            <!-- ===================================================== -->
-            <div class="appblock tint-orange container" id="swr-watch" data-view="swr-watch">
-                <div class="appblock-grid is-flipped">
-                    <div class="appblock-text">
-                        <p class="eyebrow reveal" data-i18n="watch.eyebrow">02 · SwR family · Apple Watch</p>
-                        <div class="app-head reveal">
-                            <div class="app-icon"><img src="assets/swrw-icon.webp" alt="SwR Watch app icon" data-i18n-alt="alt.iconWatch" width="512" height="512"></div>
-                            <h2>SwR Watch<span data-i18n="watch.sub">Shortwave on your wrist</span></h2>
-                        </div>
-                        <p class="lead reveal" data-i18n="watch.lead">A real shortwave radio on your <strong>Apple Watch</strong>. SwR Watch connects to public KiwiSDR and Web-888 receivers around the world - tune them with the Digital Crown, watch the band and listen, right on your wrist. A standalone watch app: no iPhone, no account, no sign-up.</p>
-                        <div class="cta-row reveal">
-                            <a class="play-btn" href="https://apps.apple.com/app/id6815200455" target="_blank" rel="noopener">
-                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.36 12.68c.02-2.1 1.72-3.11 1.79-3.16-.98-1.43-2.5-1.62-3.04-1.65-1.29-.13-2.53.76-3.18.76-.66 0-1.67-.74-2.75-.72-1.41.02-2.72.82-3.44 2.09-1.47 2.54-.38 6.3 1.05 8.36.7 1.01 1.53 2.14 2.62 2.1 1.05-.04 1.45-.68 2.72-.68 1.27 0 1.63.68 2.74.66 1.13-.02 1.85-1.03 2.54-2.04.8-1.17 1.13-2.3 1.15-2.36-.03-.01-2.2-.85-2.2-3.36zM14.3 6.6c.58-.7.97-1.68.86-2.65-.83.03-1.84.55-2.44 1.25-.54.62-1.01 1.61-.88 2.56.93.07 1.88-.47 2.46-1.16z"/></svg>
-                                <span><small data-i18n="store.apple">Download on the</small>App Store</span>
-                            </a>
-                            <div class="buy-badge">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 11V8a5 5 0 0 0-10 0v3"/><rect x="4.5" y="11" width="15" height="9.5" rx="2.5"/><path d="M12 15v2"/></svg>
-                                <p data-i18n="watch.buy">
-                                    <strong>One-time purchase</strong>
-                                    Pay once, keep it forever - no subscription.
-                                </p>
-                            </div>
-                            <div class="tag-row">
-                                <span class="tag" data-i18n="watch.only">Apple Watch only</span>
-                                <span class="tag" data-i18n="watch.standalone">Standalone</span>
-                                <span class="tag" data-i18n="watch.noAccount">No account</span>
-                            </div>
-                        </div>
-                        <p class="appblock-note reveal" data-i18n="watch.note">AM, LSB, USB, CW and NBFM with adjustable bandwidth, volume and squelch. Audio keeps playing with your wrist down, and if a receiver drops you, SwR Watch reconnects or moves to the next best one. A separate app from SwR - Global Radio, with the same spectrum and waterfall look.</p>
-                    </div>
-
-                    <div class="appblock-shots" data-rack-split>
-                        <figure class="appblock-shot reveal">
-                            <div class="watch"><div class="watch-case"><div class="watch-glass"><div class="watch-screen"><img src="assets/swrw-shot-list.webp" alt="SwR Watch receiver list grouped by country" data-i18n-alt="alt.watch1" width="416" height="496" loading="lazy"></div></div></div></div>
-                            <figcaption data-i18n="watch.fig1">Hundreds of receivers, filed by country - nearest first.</figcaption>
-                        </figure>
-                        <figure class="appblock-shot raised reveal">
-                            <div class="watch"><div class="watch-case"><div class="watch-glass"><div class="watch-screen"><div class="shot-cycle"><img src="assets/swrw-shot-spectrum.webp" alt="SwR Watch live spectrum and waterfall tuned to 9755 kHz" data-i18n-alt="alt.watch2a" width="416" height="496" loading="lazy"><img src="assets/swrw-shot-spectrum-2.webp" alt="SwR Watch tuned to Voice of Turkey on 9765 kHz" data-i18n-alt="alt.watch2b" width="416" height="496" loading="lazy"></div></div></div></div></div>
-                            <figcaption data-i18n="watch.fig2">Live spectrum and waterfall, tuned with the Digital Crown.</figcaption>
-                        </figure>
-                        <figure class="appblock-shot reveal">
-                            <div class="watch"><div class="watch-case"><div class="watch-glass"><div class="watch-screen"><div class="shot-cycle"><img src="assets/swrw-shot-map.webp" alt="SwR Watch map of receivers in Florida" data-i18n-alt="alt.watch3a" width="416" height="496" loading="lazy"><img src="assets/swrw-shot-controls.webp" alt="SwR Watch volume and squelch controls" data-i18n-alt="alt.watch3b" width="416" height="496" loading="lazy"></div></div></div></div></div>
-                            <figcaption data-i18n="watch.fig3">The whole fleet on a map, plus volume, squelch and bandwidth.</figcaption>
-                        </figure>
-                    </div>
-                </div>
-            </div>
 
             <!-- ===================================================== -->
             <!-- CMA -->
@@ -6726,8 +6427,14 @@
     // and the back button.
     // ===================================================================
     function initPages() {
-        const pages = ['swr', 'swr-watch', 'orbita', 'cma', 'pbh', 'about'];
-        const alias = { upcoming: 'swr' };
+        const pages = ['swr', 'orbita', 'cma', 'pbh', 'about'];
+        const alias = { upcoming: 'swr', 'swr-watch': 'swr' };
+        // sections inside a page: their links open the page and scroll there
+        const sections = ['swr-watch'];
+        const sectionOf = hash => {
+            const id = (hash || '').replace(/^#/, '');
+            return sections.includes(id) ? document.getElementById(id) : null;
+        };
         const root = document.documentElement;
         const links = Array.from(document.querySelectorAll('.nav-links a[href^="#"]'));
 
@@ -6764,9 +6471,10 @@
             });
         }
 
-        function show(page) {
+        function show(page, section) {
             if (page === root.dataset.page) {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                else window.scrollTo({ top: 0, behavior: 'smooth' });
                 return;
             }
             root.dataset.page = page;
@@ -6775,6 +6483,7 @@
             // the helix, racks and navbar measure what was hidden until now
             window.dispatchEvent(new Event('resize'));
             window.dispatchEvent(new Event('scroll'));
+            if (section) section.scrollIntoView({ behavior: 'instant', block: 'start' });
         }
 
         document.addEventListener('click', e => {
@@ -6785,7 +6494,7 @@
             if (!page) return;
             e.preventDefault();
             if (page !== root.dataset.page) history.pushState(null, '', urlOf(page));
-            show(page);
+            show(page, sectionOf(a.getAttribute('href')));
         });
 
         window.addEventListener('popstate', () => {
@@ -6801,6 +6510,15 @@
 
         if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
         mark(root.dataset.page);
+
+        // Arrived at #swr-watch (an old link, or its share page): once the page
+        // has its final height, go to that section
+        const arrived = sectionOf(location.hash);
+        if (arrived) {
+            const go = () => arrived.scrollIntoView({ behavior: 'instant', block: 'start' });
+            go();
+            window.addEventListener('load', go, { once: true });
+        }
     }
 
     // ===================================================================

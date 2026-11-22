@@ -334,9 +334,11 @@
     /* CmA and PBH are not presented for now: their nav links and hero chips carry [hidden]; drop the attribute to show them again */
     .nav-app[hidden], .hero-chip[hidden] { display: none !important; }
 
-    /* Your antenna and Facebook are about SwR: only on its two pages */
-    html:not([data-page="swr"]) .navbar .nav-antenna,
-    html:not([data-page="swr"]) .navbar .nav-social { display: none; }
+    /* Your antenna is about SwR: only on its page */
+    html:not([data-page="swr"]) .navbar .nav-antenna { display: none; }
+    /* Facebook: SwR's profile on the SwR page, Orbita's on the Orbita page, none elsewhere */
+    html:not([data-page="swr"]) .nav-social[data-app="swr"],
+    html:not([data-page="orbita"]) .nav-social[data-app="orbita"] { display: none; }
 
     /* Language switch (CZ / EN) - stays visible on phones */
     .i18n-pending .content-wrapper { visibility: hidden; }
@@ -2399,7 +2401,10 @@
                 </div>
                 <div class="nav-right">
                     <div class="nav-links">
-                        <a class="nav-social" href="https://www.facebook.com/profile.php?id=61591433805080" target="_blank" rel="noopener" aria-label="Facebook">
+                        <a class="nav-social" data-app="swr" href="https://www.facebook.com/profile.php?id=61591433805080" target="_blank" rel="noopener" aria-label="Facebook">
+                            <svg viewBox="0 0 24 24" role="img" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                        </a>
+                        <a class="nav-social" data-app="orbita" href="https://www.facebook.com/profile.php?id=61596456257405" target="_blank" rel="noopener" aria-label="Facebook">
                             <svg viewBox="0 0 24 24" role="img" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                         </a>
                         <a class="nav-app" href="#swr"><img src="assets/swr-icon.webp" alt="" width="28" height="28"><span>SwR</span></a>
@@ -2959,7 +2964,10 @@
                 <div class="footer-row">
                     <div>© kruen s.r.o. 2026</div>
                     <div class="footer-contact">
-                        <a class="nav-social" href="https://www.facebook.com/profile.php?id=61591433805080" target="_blank" rel="noopener" aria-label="Facebook">
+                        <a class="nav-social" data-app="swr" href="https://www.facebook.com/profile.php?id=61591433805080" target="_blank" rel="noopener" aria-label="Facebook">
+                            <svg viewBox="0 0 24 24" role="img" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                        </a>
+                        <a class="nav-social" data-app="orbita" href="https://www.facebook.com/profile.php?id=61596456257405" target="_blank" rel="noopener" aria-label="Facebook">
                             <svg viewBox="0 0 24 24" role="img" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                         </a>
                         <a href="mailto:info@kruen.cz">info@kruen.cz</a>
